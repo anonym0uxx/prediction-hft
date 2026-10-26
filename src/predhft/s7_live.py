@@ -9,7 +9,7 @@ import argparse, datetime as dt, json, math, pathlib, statistics as st, time, ur
 from .kalshi_public import KalshiPublic, f
 from .fees import kalshi_taker_fee
 
-CB = "https://api.exchange.coinbase.com/products/BTC-USD"
+CB_BASE = "https://api.exchange.coinbase.com/products"
 def utcnow() -> float: return time.time()
 def ts(s: str) -> int: return int(dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp())
 def Phi(x): return 0.5 * (1 + math.erf(x / math.sqrt(2)))
@@ -31,9 +31,9 @@ class State:
     def append(self, path, obj): path.open("a").write(json.dumps(obj) + "\n")
     def rewrite_trades(self, trades): self.trades.write_text("".join(json.dumps(t) + "\n" for t in trades))
 
-def sigma_1m() -> float | None:
+def sigma_1m(product: str = "BTC-USD") -> float | None:
     end = dt.datetime.now(dt.timezone.utc); start = end - dt.timedelta(minutes=180)
-    d = jget(f"{CB}/candles?granularity=60&start={start.isoformat()}&end={end.isoformat()}")
+    d = jget(f"{CB_BASE}/{product}/candles?granularity=60&start={start.isoformat()}&end={end.isoformat()}")
     px = [float(c[4]) for c in sorted(d)]
     rets = [math.log(px[i] / px[i - 1]) for i in range(1, len(px))]
     return st.pstdev(rets[-120:]) if len(rets) >= 60 else None
@@ -65,19 +65,19 @@ def settle(k: KalshiPublic, state: State):
             state.logline(f"SETTLED {t['ticker']} side={t['side']} result={res} qty={t['qty']} pnl={t['pnl']:+.2f}")
     if changed: state.rewrite_trades(trades)
 
-def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pathlib.Path):
+def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD"):
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0
-    state.logline(f"start thr={thr} window=T-{t_open}..T-{t_close}min lot={lot}")
+    state.logline(f"start {series}/{product} thr={thr} window=T-{t_open}..T-{t_close}min lot={lot}")
     while True:
         try:
             now = utcnow(); next_hour = (int(now) // 3600 + 1) * 3600; mins_left = (next_hour - now) / 60
             if mins_left > t_open + 1 or mins_left < t_close:
                 settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
             if now - sig_ts > 900:
-                s = sigma_1m(); sig = s or sig; sig_ts = now
+                s = sigma_1m(product); sig = s or sig; sig_ts = now
             close_iso = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            spot = float(jget(f"{CB}/ticker")["price"])
-            cands = [m for m in k.markets(series_ticker="KXBTCD", status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")]
+            spot = float(jget(f"{CB_BASE}/{product}/ticker")["price"])
+            cands = [m for m in k.markets(series_ticker=series, status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")]
             # near the money: within 4 sigma*sqrt(t) in log space
             band = 4 * (sig or 0.0006) * math.sqrt(max(mins_left, 0.5))
             near = [m for m in cands if abs(math.log(spot / float(m["floor_strike"]))) <= band]
@@ -107,5 +107,6 @@ def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pa
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=int, default=8)
-    ap.add_argument("--t-close", type=int, default=2); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0)
-    a = ap.parse_args(); run(a.thr, a.t_open, a.t_close, a.lot, a.poll, pathlib.Path("data/s7live"))
+    ap.add_argument("--t-close", type=int, default=2); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    a = ap.parse_args(); root = pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}")
+    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product)
