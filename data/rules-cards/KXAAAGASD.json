@@ -1,0 +1,80 @@
+{
+ "series": "KXAAAGASD",
+ "settlement_source": "AAA Gas Prices https://gasprices.aaa.com/ national Regular average 'Price as of <date>' (AAA derives from OPIS; OPIS not named).",
+ "settlement_variable": "AAA US national average regular price labeled 'Price as of D' for market dated D; YES iff strictly greater than strike. Page shows FOUR decimals (e.g. $4.2858) and Kalshi uses that string verbatim. Verified Oct 26 (4.2858), Oct 25 (4.2892), Oct 19 (4.2953 via Wayback).",
+ "timezone": "ET; close_time 03:59Z = 23:59 EDT the evening before D; DST behaviour unknown.",
+ "tie_handling": "Strictly greater; exact ties possible (4-dp values vs 4-dp strikes) -> NO.",
+ "rounding": "None; 4-dp page value; strikes at $0.005 steps.",
+ "trading_close_vs_settlement": "Trading closes 23:59 ET before D; AAA posts D's value overnight between ~00:42 and ~05:56 ET (Wayback-bounded); Kalshi settles automatically 07:06-07:14 ET on D (35/36 days). NO pre-close verifier window from AAA itself.",
+ "early_close_or_void_clauses": "No void: no data -> last available day's value (known at close -> fully predictable if AAA misses an update); revisions after expiration ignored; Market Outcome Review 6.3(d); latest expiration one month after.",
+ "title_vs_rules_divergences": [
+  "Title omits regular/US/date/source",
+  "Series 'US gas price up' / event 'US gas prices tomorrow' imply direction; markets are level thresholds",
+  "PDF expiration 10:15/11:00/15:00 ET vs actual ~07:10 ET; Last Trading 11:59 PM ET matches 03:59Z only under EDT",
+  "Template boilerplate",
+  "'Price as of' date with no time"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AAA homepage (server-rendered HTML, 4-dp national tables)",
+   "url": "https://gasprices.aaa.com/",
+   "latency": "the settling value; posts ~00:42-05:56 ET, after close",
+   "cost": "free"
+  },
+  {
+   "name": "AAA state page / cached variants",
+   "url": "https://gasprices.aaa.com/?state=US",
+   "latency": "may lag a day",
+   "cost": "free"
+  },
+  {
+   "name": "Wayback snapshots (timing/verification)",
+   "url": "https://web.archive.org/web/*/gasprices.aaa.com/",
+   "latency": "irregular",
+   "cost": "free"
+  },
+  {
+   "name": "Kalshi settled markets (expiration_value)",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXAAAGASD&status=settled",
+   "latency": "~07:10 ET",
+   "cost": "free"
+  },
+  {
+   "name": "GasBuddy national average (different methodology; directional)",
+   "url": "https://www.gasbuddy.com/charts",
+   "latency": "intraday",
+   "cost": "free"
+  },
+  {
+   "name": "OPIS (AAA's upstream; subscribers may see the number earlier)",
+   "url": "https://www.opisnet.com/",
+   "latency": "unknown",
+   "cost": "paid"
+  },
+  {
+   "name": "EIA weekly retail gasoline",
+   "url": "https://www.eia.gov/petroleum/gasdiesel/",
+   "latency": "weekly",
+   "cost": "free"
+  },
+  {
+   "name": "RBOB futures (1-2 week pass-through)",
+   "url": "https://www.cmegroup.com/markets/energy/refined-products/rbob-gasoline.html",
+   "latency": "real-time; indirect",
+   "cost": "free delayed"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "OPIS subscribers may know the print before AAA posts (paid informational edge)",
+  "Daily moves 0.2-2c vs $0.005 strikes: sub-cent noise bets",
+  "AAA posting time unknown (00:42-05:56 ET); monitor for any pre-close post",
+  "No-update fallback = known stale value -> near-certain outcome for whoever notices",
+  "Settlement automated ~07:10 ET, one late anomaly",
+  "DST: 03:59Z close vs 11:59 PM ET contract",
+  "Titles omit grade/region/date; directional-sounding event titles",
+  "Thin/zero liquidity at listing",
+  "Insider prohibition acknowledges MNPI risk"
+ ],
+ "notes": "Sep 22-Oct 26 settlement series recorded by subagent (4.4750 ... 4.2858). Verifier trading stays DISABLED (observability partial): a daily-change model (yesterday's AAA + GasBuddy trend + RBOB) is a J3-style forecast, not a J1 verification."
+}

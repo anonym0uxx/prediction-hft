@@ -1,0 +1,60 @@
+{
+ "series": "KXINXU",
+ "settlement_source": "Source Agency is Kalshi itself (contract terms); series lists 'For example, Google Finance' only. Observed expiration_value equals the official S&P 500 close to the cent (Oct 23: 7623.68; Oct 26: 7676.77).",
+ "settlement_variable": "H1600 markets: official S&P 500 end-of-day closing level (price index); YES iff close >= floor_strike (strikes X.9999, greater_or_equal). Intraday H1000/H1500 markets use the index print at that minute. Revisions after expiration ignored; no data -> most recent prior value.",
+ "timezone": "ET; close_time 20:00Z under EDT (21:00Z after Nov 1 \u2014 verify). Opens at prior close.",
+ "tie_handling": "Close published to 2 dp vs X.9999 strike -> no ties; subtitle '7,745.0099 or above' is an artifact; effective threshold >= integer strike.",
+ "rounding": "None stated; index 2 dp; expiration_value 4 dp.",
+ "trading_close_vs_settlement": "Trading closes 16:00:00 ET = closing auction instant; final close finalized ~16:00-16:15 ET; Kalshi settles H1600 ~23:01Z (3 h later) on the final official close. Intraday markets settle ~2 min after close.",
+ "early_close_or_void_clauses": "No void: no data -> most recent prior value (holiday/outage settles on stale level); half-day behaviour unspecified; can_close_early true; Market Outcome Review 6.3(c)/7.1.",
+ "title_vs_rules_divergences": [
+  "Title '4pm' tick vs rules 'end-of-day' official close (can differ by 1-5 points via the closing auction)",
+  "Subtitle 7,745.0099 vs rules above 7744.9999",
+  "Source Agency Kalshi vs 'example' Google Finance",
+  "Inconsistent rules wording across H1600 markets",
+  "Series labelled hourly; H1600 markets are daily"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Yahoo chart API ^GSPC 1-min + regularMarketPrice",
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1d&interval=1m",
+   "latency": "seconds; unofficial",
+   "cost": "free"
+  },
+  {
+   "name": "Google Finance .INX page (real-time, scrape)",
+   "url": "https://www.google.com/finance/quote/.INX:INDEXSP?hl=en",
+   "latency": "real-time; HTML",
+   "cost": "free"
+  },
+  {
+   "name": "Cboe delayed _SPX JSON",
+   "url": "https://cdn.cboe.com/api/global/delayed_quotes/quotes/_SPX.json",
+   "latency": "15 min delayed; confirms close",
+   "cost": "free"
+  },
+  {
+   "name": "SPY 1-min proxy",
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1d&interval=1m",
+   "latency": "real-time; basis noise several points",
+   "cost": "free"
+  },
+  {
+   "name": "S&P DJI official page",
+   "url": "https://www.spglobal.com/spdji/en/indices/equity/sp-500/",
+   "latency": "blocks bots",
+   "cost": "free to view"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Official close unknowable at trading close: closing auction moves 1-5+ points vs 5-point strikes",
+  "Source Agency is Kalshi (discretionary), only an example public source",
+  "Title/rules/subtitle inconsistency",
+  "Holiday/outage fallback settles on stale prior value, no void",
+  "DST: 20:00Z close only under EDT",
+  "NYSE closing imbalance feeds (15:50-16:00) give informed participants an edge",
+  "Public feeds unofficial/scraped; Yahoo v7 401, SPDJI 403"
+ ],
+ "notes": "Subagent verified Oct 23/26 settlements vs Yahoo/Cboe/Google. S7-index should model the closing-auction basis as extra variance and avoid strikes within ~0.1% at 15:58."
+}

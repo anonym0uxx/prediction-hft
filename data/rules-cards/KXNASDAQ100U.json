@@ -1,0 +1,73 @@
+{
+ "series": "KXNASDAQ100U",
+ "settlement_source": "Source Agency Kalshi; 'For example, Google Finance' NDX:INDEXNASDAQ; PDF links nasdaq.com (non-binding). Observed expiration_value 28957.5283 (Oct 23) = Nasdaq official close 28,957.53.",
+ "settlement_variable": "NDX level at the 4:00 PM ET close (official closing-cross-based close); YES iff > X.99 strike (strike_type greater_or_equal floor X). 4-dp expiration_value. Intraday H1000 etc. use the index at that minute.",
+ "timezone": "ET; close_time 20:00Z under EDT; DST shift unverified.",
+ "tie_handling": "Rules 'above X.99' vs floor_strike X greater_or_equal conflict only for values in (X.99, X.00) \u2014 negligible.",
+ "rounding": "None; expiration_value 4 dp.",
+ "trading_close_vs_settlement": "Closes 20:00Z at the Nasdaq closing cross; final official close published minutes later (Yahoo stamps ~17:16 ET); expected_expiration 23:00Z; settlement_timer 60 s.",
+ "early_close_or_void_clauses": "No void; no data -> most recent prior value; half-day handling unknown; can_close_early true; Market Outcome Review.",
+ "title_vs_rules_divergences": [
+  "'above 30889.99' vs '30,890 or above' vs greater_or_equal 30890 with 4-dp values",
+  "'end-of-day' undefined vs 4pm title",
+  "Three source references, only Kalshi binding",
+  "Template PDF written for touch/barrier variants",
+  "Series mixes hourly snapshot and EOD events with near-identical titles"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Yahoo chart API ^NDX",
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENDX?range=1d&interval=1m",
+   "latency": "seconds, occasionally 15-60 s stale",
+   "cost": "free"
+  },
+  {
+   "name": "Google Finance NDX:INDEXNASDAQ (real-time GIDS)",
+   "url": "https://www.google.com/finance/quote/NDX:INDEXNASDAQ",
+   "latency": "few seconds; scrape",
+   "cost": "free"
+  },
+  {
+   "name": "api.nasdaq.com quote NDX",
+   "url": "https://api.nasdaq.com/api/quote/NDX/info?assetclass=index",
+   "latency": "isRealTime=false; confirms official close later",
+   "cost": "free"
+  },
+  {
+   "name": "QQQ proxy (NDX \u2248 QQQ\u00d7~41, drifts)",
+   "url": "broker/IEX",
+   "latency": "real-time; few-point proxy error",
+   "cost": "free"
+  },
+  {
+   "name": "CME NQ futures",
+   "url": "https://www.cmegroup.com/markets/equities/nasdaq/e-mini-nasdaq-100.html",
+   "latency": "real-time via broker; basis",
+   "cost": "broker"
+  },
+  {
+   "name": "Nasdaq GIDS (official 1-s index feed)",
+   "url": "https://www.nasdaq.com/solutions/nasdaq-global-index-data-service-gids",
+   "latency": "official",
+   "cost": "paid"
+  },
+  {
+   "name": "Nasdaq NOII closing imbalance 15:50-16:00",
+   "url": "https://www.nasdaqtrader.com/Trader.aspx?id=OpenClose",
+   "latency": "real-time",
+   "cost": "paid/broker"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement = closing-cross value, unknowable until after close; NOII/GIDS/NQ holders have the final-minute edge",
+  "Source Agency Kalshi, undisclosed vendor",
+  "Rules vs strike_type sliver conflict",
+  "No void clause; stale-value fallback",
+  "Thin one-sided tail books (9,000 @ 1c, no bids)",
+  "Title hard-codes EDT",
+  "Hourly and EOD events easily confused",
+  "Public API 429s quickly"
+ ],
+ "notes": "Residual unknown = closing-cross basis; material only for strikes within \u00b10.1-0.3% at 15:59 ET."
+}

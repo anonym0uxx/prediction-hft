@@ -1,0 +1,57 @@
+{
+ "series": "KXNBAGAME",
+ "settlement_source": "Hierarchy: NBA official result (nba.com) then ESPN, AP, Reuters, Fox, broadcaster. First official final result; later corrections ignored.",
+ "settlement_variable": "Team scores strictly more points over full game incl. OT. expiration_value is score string e.g. '112-123' (order undocumented, appears home-away).",
+ "timezone": "ET per terms; API UTC. Ticker date = originally scheduled date.",
+ "tie_handling": "No Tie strike listed -> tie pays $0.50 to both sides; practically moot (OT until decided) except abandoned-tied games.",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Trades through the final buzzer; Kalshi closes early at the final (close_time back-dated by seconds; a print 9 s after) and settles ~2 min later. Tape (MEMSAC): last non-extreme print 7.1 min before close; YES pinned <= 0.05 from 6.8 min out; final-minute prints all 0.01.",
+ "early_close_or_void_clauses": "Postponed within 48 h -> stands; cancelled/not started within 48 h -> last fair price; abandoned after tip -> official record only if 48 game-minutes reached or league declares official, else last fair price; forfeit before play -> last fair price; forfeit after start -> league winner; data unavailable 48 h -> last fair price; Market Outcome Review 7.1; Rule 7.2 early expiration.",
+ "title_vs_rules_divergences": [
+  "OT counts and game may be played up to 48 h later",
+  "Tie/forfeit/abandonment -> Exchange 'fair price' not Yes/No",
+  "'resolve to a fair price' wording vs PDF 'last fair price'",
+  "'Pro Basketball game' template wording",
+  "PDF schedule (10 AM ET, next-day settlement) vs practice (buzzer close, 2-min settlement)",
+  "expiration_value score string unlabeled",
+  "close_time not exact last-trade boundary"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPN scoreboard API",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard",
+   "latency": "~10-40 s behind broadcast (unmeasured)",
+   "cost": "free, unofficial"
+  },
+  {
+   "name": "NBA liveData CDN JSON (governing-league record)",
+   "url": "https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json",
+   "latency": "seconds (unmeasured)",
+   "cost": "free, unofficial"
+  },
+  {
+   "name": "stats.nba.com scoreboardv3",
+   "url": "https://stats.nba.com/stats/scoreboardv3?GameDate=YYYY-MM-DD&LeagueID=00",
+   "latency": "slower; blocks non-browser clients",
+   "cost": "free"
+  },
+  {
+   "name": "Kalshi market/trades API",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets/trades?ticker=",
+   "latency": "settlement ~2 min after buzzer; 429s",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "In-game market through the buzzer: lower-latency feeds (arena/broadcast/league JSON) beat ESPN polling; exploitable window is before the game is decided, not the final minute",
+  "Tape dominated by 0.01 lottery buys and giant NO unwinds (49,926 and 90,550-contract prints at 0.01); quadratic fees make 1-5c trades expensive",
+  "Early close at Exchange discretion; close_time approximate",
+  "Void/forfeit/abandonment -> undefined 'last fair price'",
+  "Game may be played up to 48 h later",
+  "First official result governs within ~2 min",
+  "Informed counterparties (prohibited-trader list acknowledges MNPI risk)",
+  "Public API rate limits"
+ ],
+ "notes": "No post-final verifier edge (market closes at the final). S6 remains observe-only; in-game model skill must be shown on the scoreboard first. ESPN/NBA feed latency vs arena clock not measured."
+}

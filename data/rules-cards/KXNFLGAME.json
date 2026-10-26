@@ -1,0 +1,63 @@
+{
+ "series": "KXNFLGAME",
+ "settlement_source": "Governing League (nfl.com) then ESPN, CBS, Fox, NBC, AP, WSJ, broadcaster. First official final result; corrections after expiration ignored.",
+ "settlement_variable": "Team scores strictly more points over the full game incl. OT. expiration_value 'winner'.",
+ "timezone": "ET per terms; API UTC; API scheduled expiration fields don't match the PDF's 10:00 AM ET.",
+ "tie_handling": "No Tie strike -> tie settles BOTH team markets at $0.50 to YES and NO (rules_secondary explicit). Regular-season ties are real outcomes.",
+ "rounding": "n/a; fractional contract counts allowed.",
+ "trading_close_vs_settlement": "can_close_early: 'will close and expire after a winner is declared'; observed close at the final with ~6 min to settlement; ~200 fills at 0.99 printed up to ~59 s AFTER recorded close_time (back-dated). KCSEA tape: 0.95 at T-26 min, 0.99 at T-22 min; final 20 min pinned 0.99/1.00.",
+ "early_close_or_void_clauses": "Postponed within 48 h -> stands; not started within 48 h -> last fair price; abandoned before 55 min of play -> last fair price, after 55 min or league-final -> score at that point; forfeit before kickoff -> last fair price, after -> league result; venue change rules; DQ/vacated rules; Market Outcome Review 7.1. No void/refund ever \u2014 catch-all is discretionary 'last fair price'.",
+ "title_vs_rules_divergences": [
+  "'wins' market pays $0.50 on a tie",
+  "Partial-game settlement after 55 min",
+  "Original date not binding (48 h window), beyond -> fair price",
+  "DQ/vacated not in title",
+  "PDF 10 AM ET vs API times",
+  "Fills after recorded close_time",
+  "Discretionary non-binary settlements exist"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPN NFL scoreboard JSON",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+   "latency": "~0.15 s HTTP; ~10-60 s behind live play (unverified)",
+   "cost": "free, unofficial"
+  },
+  {
+   "name": "NFL.com scores (JS; APIs need tokens)",
+   "url": "https://www.nfl.com/scores/",
+   "latency": "unknown",
+   "cost": "free to view"
+  },
+  {
+   "name": "ESPN summary (play-by-play)",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=",
+   "latency": "~10-60 s",
+   "cost": "free"
+  },
+  {
+   "name": "Kalshi trades/candlesticks",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets/trades?ticker=",
+   "latency": "real-time; 429s",
+   "cost": "free"
+  },
+  {
+   "name": "Broadcast",
+   "url": "n/a",
+   "latency": "5-45 s vs stadium; ahead of data feeds",
+   "cost": "subscription"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "In-game asymmetry: broadcast/ESPN pollers know score seconds before resting orders update",
+  "Trades ~1 min past recorded close; ~15k contracts at 0.99 in final 95 s (taker NO buying 1c lottery)",
+  "Blowouts pin early (0.99 at T-22 min); close games sit non-extreme to the whistle where a faster feed is toxic to makers",
+  "Tie -> $0.50: 'wins' market near 0/1 in a tied late-OT game is mispriced; API result semantics for ties unknown",
+  "Discretionary 'last fair price' for postponements/forfeits/abandonment/venue flips",
+  "First official result within ~6 min governs",
+  "quadratic_with_maker_fees: taking at 0.99/0.01 dominated by fees",
+  "API close_time back-dated \u2014 don't use as last-fill timestamp"
+ ],
+ "notes": "Evidence: KCSEA-SEA (SEA 20-3) 2,600 trades + 1-min candles; GBDET decided by last-play FG (DET 20-17) \u2014 close games are where in-game pricing matters. Feed latency vs live not measured. Observe-only (S6) until scoreboard skill shown."
+}

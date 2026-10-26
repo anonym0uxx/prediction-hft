@@ -1,0 +1,73 @@
+{
+ "series": "KXRAIN",
+ "settlement_source": "The Weather Company https://weather.com/kalshi Daily Climate 'Precip (in)' relaying the NWS CLI (CF6 backup) for the station in rules_primary (CLITPA=KTPA, CLIDJT=West Palm, CLINYC=KNYC, ORD/MDW separate, IAH/HOU separate).",
+ "settlement_variable": "NWS CLI 'PRECIPITATION TODAY' for the station's local calendar day; YES iff strictly > 0 i.e. >= 0.01 in. TRACE RULE RESOLVED: 'T' and missing values count as 0.00 -> NO (rules_secondary, PDF, TWC page).",
+ "timezone": "Station local calendar day; close_time 05:00Z (Eastern stations) / 06:00Z (Central) the day after; Mountain/Pacific close times unverified.",
+ "tie_handling": "No ties: 0.00 or T -> NO; >= 0.01 -> YES; missing -> 0 -> NO.",
+ "rounding": "CLI to 0.01 in; < 0.01 reported T.",
+ "trading_close_vs_settlement": "Opens ~09:10Z day before; closes ~local midnight after the day ends. Preliminary CLI ~4-5 PM local shows precip-so-far (not final \u2014 evening rain can flip it); final CLI ~00:30-04:30 local next day, after close. Settlement timer 1800 s.",
+ "early_close_or_void_clauses": "No void. Initial non-preliminary value governs; material-error hold at Kalshi discretion; no reliable data by Expiration Date -> last fair price; missing daily value -> 0 (NO) \u2014 which applies if CLI never published is unknown; TWC 'Final' non-binding; Market Outcome Review 7.1.",
+ "title_vs_rules_divergences": [
+  "'Will it rain' includes melted snow/sleet/hail; trace rain = NO",
+  "City title vs single airport gauge (convective rain is local)",
+  "Local-day date vs UTC close; PDF '10:00 AM ET' expiration vs API",
+  "'as reported by TWC' but data is NWS CLI",
+  "Generic PDF; specifics only in rules_secondary"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NWS CLI via api.weather.gov (prelim ~16:00-17:15 local; final ~00:30-04:30 local)",
+   "url": "https://api.weather.gov/products/types/CLI/locations/TPA",
+   "latency": "minutes after issuance",
+   "cost": "free"
+  },
+  {
+   "name": "METAR hourly/SPECI P-groups (P0001+ = measurable; RA with P0000 = trace -> NO), 6xxxx/7xxxx totals, RAB/RAE remarks",
+   "url": "https://aviationweather.gov/api/data/metar?ids=KTPA&format=raw&hours=24",
+   "latency": "5-15 min after ob",
+   "cost": "free"
+  },
+  {
+   "name": "api.weather.gov observations (precipitationLastHour/3h/6h)",
+   "url": "https://api.weather.gov/stations/KTPA/observations",
+   "latency": "5-20 min",
+   "cost": "free"
+  },
+  {
+   "name": "Iowa Mesonet ASOS archive / daily_climate API / CF6",
+   "url": "https://mesonet.agron.iastate.edu/api/1/nws/daily_climate.json",
+   "latency": "minutes-hours; backtesting trace-vs-measurable base rates",
+   "cost": "free"
+  },
+  {
+   "name": "NWS CF6 backup",
+   "url": "https://api.weather.gov/products/types/CF6/locations/TPA",
+   "latency": "daily early morning",
+   "cost": "free"
+  },
+  {
+   "name": "MRMS radar QPE (directional only)",
+   "url": "https://mrms.ncep.noaa.gov/",
+   "latency": "2-10 min",
+   "cost": "free"
+  },
+  {
+   "name": "weather.com/kalshi Daily Climate (settlement page)",
+   "url": "https://weather.com/kalshi",
+   "latency": "after CLI, 15-min refresh",
+   "cost": "free, JS"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "0.00/T vs 0.01 coin-flip on marginal days; 'RA' with P0000 = NO",
+  "Once a METAR shows P0001+ the outcome is locked hours before close \u2014 informed flow sweeps on the first measurable tip; late maker quotes adversely selected",
+  "Prelim 4-5 PM CLI not final; evening rain can flip (TPA Oct 26: 0.00 at 17:13 then trace rain at 18:29)",
+  "Single airport gauge under-catch; ASOS '$' outages -> missing -> NO",
+  "Missing->0 vs no-data->last fair price ambiguity",
+  "Initial vs revised CLI ambiguity",
+  "Market open after local day ends (00:00-01:00 local for E/C stations) \u2014 pure information arbitrage window",
+  "Quadratic fees, thin liquidity at listing"
+ ],
+ "notes": "Verified 2026-10-26 on 5 sample markets (WPB/TTN/TPA/STL/SGF). J1 rule: YES determined when any METAR P-group >= 0.01 (or CLI prelim precip >= 0.01); NO never determined before the final CLI except by elapsed day with 0.00 (probabilistic)."
+}
