@@ -8,3 +8,180 @@ KXNCAAFGAME {}
 KXBTCD {}
 KXINXU {1: 186, 6: 262, 24: 280}
 KXAAAGASD {}
+KXTRUMPMENTION {}
+KXRT {24: 239, 6: 259, 1: 219}
+KXHOUSERACE {}
+# S1 favorite-longshot sweep (Kalshi public history)
+
+Return = realized − implied − taker fee (cents per $1 contract bought at mid). Negative in low bins = longshots overpriced (sell side for a maker).
+
+## KXHIGHNY
+- T-24h: n=300 Brier=0.0788 logloss=0.247
+    0.00-0.05 n= 140 implied=0.014 realized=0.000 ret=-1.5c
+    0.05-0.15 n=  51 implied=0.098 realized=0.020 ret=-8.5c
+    0.15-0.30 n=  29 implied=0.222 realized=0.207 ret=-2.8c
+    0.30-0.50 n=  45 implied=0.390 realized=0.378 ret=-2.9c
+    0.50-0.70 n=  30 implied=0.550 realized=0.700 ret=+13.2c
+    0.70-0.85 n=   3 implied=0.757 realized=1.000 ret=+23.0c
+    0.85-0.95 n=   2 implied=0.863 realized=1.000 ret=+12.8c
+- T-6h: n=288 Brier=0.0068 logloss=0.032
+    0.00-0.05 n= 234 implied=0.006 realized=0.004 ret=-0.2c
+    0.05-0.15 n=   4 implied=0.074 realized=0.000 ret=-7.9c
+    0.85-0.95 n=   4 implied=0.921 realized=1.000 ret=+7.3c
+    0.95-1.00 n=  46 implied=0.991 realized=0.978 ret=-1.4c
+- T-1h: n=283 Brier=0.0010 logloss=0.009
+    0.00-0.05 n= 233 implied=0.005 realized=0.000 ret=-0.6c
+    0.30-0.50 n=   1 implied=0.360 realized=0.000 ret=-37.7c
+    0.50-0.70 n=   1 implied=0.625 realized=1.000 ret=+35.8c
+    0.95-1.00 n=  48 implied=0.994 realized=1.000 ret=+0.5c
+
+## KXHIGHCHI
+- T-24h: n=300 Brier=0.0955 logloss=0.307
+    0.00-0.05 n= 121 implied=0.017 realized=0.025 ret=+0.6c
+    0.05-0.15 n=  59 implied=0.086 realized=0.034 ret=-5.8c
+    0.15-0.30 n=  47 implied=0.220 realized=0.191 ret=-4.2c
+    0.30-0.50 n=  51 implied=0.398 realized=0.471 ret=+5.5c
+    0.50-0.70 n=  18 implied=0.572 realized=0.444 ret=-14.6c
+    0.70-0.85 n=   3 implied=0.753 realized=1.000 ret=+23.3c
+    0.85-0.95 n=   1 implied=0.930 realized=1.000 ret=+6.5c
+- T-6h: n=281 Brier=0.0006 logloss=0.007
+    0.00-0.05 n= 230 implied=0.005 realized=0.000 ret=-0.6c
+    0.15-0.30 n=   1 implied=0.295 realized=0.000 ret=-31.0c
+    0.70-0.85 n=   1 implied=0.720 realized=1.000 ret=+26.5c
+    0.95-1.00 n=  49 implied=0.995 realized=1.000 ret=+0.4c
+- T-1h: n=283 Brier=0.0003 logloss=0.007
+    0.00-0.05 n= 235 implied=0.005 realized=0.000 ret=-0.6c
+    0.15-0.30 n=   1 implied=0.195 realized=0.000 ret=-20.6c
+    0.70-0.85 n=   1 implied=0.790 realized=1.000 ret=+19.8c
+    0.95-1.00 n=  46 implied=0.995 realized=1.000 ret=+0.4c
+
+## KXHIGHMIA
+- T-24h: n=300 Brier=0.1014 logloss=0.312
+    0.00-0.05 n= 128 implied=0.018 realized=0.000 ret=-2.0c
+    0.05-0.15 n=  48 implied=0.091 realized=0.083 ret=-1.4c
+    0.15-0.30 n=  51 implied=0.223 realized=0.275 ret=+3.9c
+    0.30-0.50 n=  48 implied=0.396 realized=0.312 ret=-10.0c
+    0.50-0.70 n=  23 implied=0.570 realized=0.696 ret=+10.7c
+    0.70-0.85 n=   2 implied=0.715 realized=0.500 ret=-23.0c
+- T-6h: n=289 Brier=0.0000 logloss=0.005
+    0.00-0.05 n= 239 implied=0.005 realized=0.000 ret=-0.6c
+    0.95-1.00 n=  50 implied=0.995 realized=1.000 ret=+0.4c
+- T-1h: n=288 Brier=0.0000 logloss=0.005
+    0.00-0.05 n= 238 implied=0.005 realized=0.000 ret=-0.6c
+    0.95-1.00 n=  50 implied=0.995 realized=1.000 ret=+0.4c
+
+## KXRAIN
+- T-24h: n=275 Brier=0.0398 logloss=0.127
+    0.00-0.05 n= 198 implied=0.007 realized=0.000 ret=-0.8c
+    0.05-0.15 n=  24 implied=0.082 realized=0.042 ret=-4.6c
+    0.15-0.30 n=   9 implied=0.226 realized=0.222 ret=-1.6c
+    0.30-0.50 n=  10 implied=0.418 realized=0.400 ret=-3.6c
+    0.50-0.70 n=  11 implied=0.636 realized=0.545 ret=-10.7c
+    0.70-0.85 n=   9 implied=0.773 realized=0.444 ret=-34.2c
+    0.85-0.95 n=  11 implied=0.911 realized=1.000 ret=+8.3c
+    0.95-1.00 n=   3 implied=0.968 realized=1.000 ret=+2.9c
+- T-6h: n=242 Brier=0.0082 logloss=0.035
+    0.00-0.05 n= 191 implied=0.008 realized=0.000 ret=-0.9c
+    0.05-0.15 n=   9 implied=0.079 realized=0.000 ret=-8.5c
+    0.15-0.30 n=   9 implied=0.201 realized=0.111 ret=-10.2c
+    0.30-0.50 n=   3 implied=0.408 realized=0.333 ret=-9.2c
+    0.50-0.70 n=   1 implied=0.570 realized=0.000 ret=-58.8c
+    0.70-0.85 n=   1 implied=0.705 realized=1.000 ret=+28.0c
+    0.95-1.00 n=  28 implied=0.995 realized=1.000 ret=+0.4c
+- T-1h: n=289 Brier=0.0024 logloss=0.014
+    0.00-0.05 n= 251 implied=0.006 realized=0.000 ret=-0.7c
+    0.05-0.15 n=   7 implied=0.089 realized=0.000 ret=-9.5c
+    0.15-0.30 n=   1 implied=0.220 realized=1.000 ret=+76.7c
+    0.95-1.00 n=  30 implied=0.995 realized=1.000 ret=+0.4c
+
+## KXNBAGAME
+
+## KXNFLGAME
+
+## KXNCAAFGAME
+
+## KXBTCD
+
+## KXINXU
+- T-24h: n=280 Brier=0.0883 logloss=0.316
+    0.05-0.15 n=  61 implied=0.103 realized=0.000 ret=-11.0c
+    0.15-0.30 n=  47 implied=0.197 realized=0.000 ret=-20.9c
+    0.30-0.50 n=  39 implied=0.387 realized=0.615 ret=+21.2c
+    0.50-0.70 n=  50 implied=0.591 realized=0.980 ret=+37.2c
+    0.70-0.85 n=  43 implied=0.789 realized=1.000 ret=+19.9c
+    0.85-0.95 n=  40 implied=0.884 realized=1.000 ret=+10.8c
+- T-6h: n=262 Brier=0.0842 logloss=0.277
+    0.00-0.05 n=  45 implied=0.014 realized=0.000 ret=-1.5c
+    0.05-0.15 n=  28 implied=0.093 realized=0.036 ret=-6.3c
+    0.15-0.30 n=  17 implied=0.208 realized=0.294 ret=+7.4c
+    0.30-0.50 n=  53 implied=0.399 realized=0.491 ret=+7.5c
+    0.50-0.70 n=  19 implied=0.589 realized=1.000 ret=+39.4c
+    0.70-0.85 n=  24 implied=0.784 realized=1.000 ret=+20.4c
+    0.85-0.95 n=  46 implied=0.907 realized=1.000 ret=+8.7c
+    0.95-1.00 n=  30 implied=0.965 realized=1.000 ret=+3.2c
+- T-1h: n=186 Brier=0.0307 logloss=0.114
+    0.00-0.05 n=  43 implied=0.018 realized=0.000 ret=-2.0c
+    0.05-0.15 n=  12 implied=0.089 realized=0.000 ret=-9.5c
+    0.15-0.30 n=   7 implied=0.242 realized=0.000 ret=-25.5c
+    0.30-0.50 n=   5 implied=0.406 realized=0.200 ret=-22.3c
+    0.50-0.70 n=   8 implied=0.588 realized=0.625 ret=+2.0c
+    0.70-0.85 n=   7 implied=0.763 realized=0.714 ret=-6.2c
+    0.85-0.95 n=  13 implied=0.902 realized=0.923 ret=+1.4c
+    0.95-1.00 n=  91 implied=0.983 realized=1.000 ret=+1.5c
+
+## KXAAAGASD
+
+## KXTRUMPMENTION
+
+## KXRT
+- T-24h: n=239 Brier=0.0149 logloss=0.055
+    0.00-0.05 n= 104 implied=0.007 realized=0.000 ret=-0.8c
+    0.05-0.15 n=   7 implied=0.089 realized=0.000 ret=-9.5c
+    0.15-0.30 n=   2 implied=0.230 realized=0.000 ret=-24.3c
+    0.30-0.50 n=   4 implied=0.416 realized=0.500 ret=+6.6c
+    0.50-0.70 n=   7 implied=0.589 realized=0.571 ret=-3.4c
+    0.70-0.85 n=   7 implied=0.756 realized=1.000 ret=+23.1c
+    0.85-0.95 n=   4 implied=0.910 realized=1.000 ret=+8.4c
+    0.95-1.00 n= 104 implied=0.991 realized=1.000 ret=+0.8c
+- T-6h: n=259 Brier=0.0039 logloss=0.020
+    0.00-0.05 n= 134 implied=0.006 realized=0.000 ret=-0.7c
+    0.15-0.30 n=   4 implied=0.195 realized=0.000 ret=-20.6c
+    0.70-0.85 n=   3 implied=0.805 realized=0.667 ret=-14.9c
+    0.85-0.95 n=   5 implied=0.900 realized=1.000 ret=+9.3c
+    0.95-1.00 n= 113 implied=0.993 realized=1.000 ret=+0.6c
+- T-1h: n=219 Brier=0.0045 logloss=0.023
+    0.00-0.05 n= 103 implied=0.006 realized=0.000 ret=-0.7c
+    0.05-0.15 n=   4 implied=0.094 realized=0.000 ret=-10.0c
+    0.85-0.95 n=   9 implied=0.913 realized=0.889 ret=-3.0c
+    0.95-1.00 n= 103 implied=0.994 realized=1.000 ret=+0.5c
+
+## KXHOUSERACE
+
+## ALL SERIES POOLED
+- T-24h: n=1694 Brier=0.0720
+    0.00-0.05 n=  691 implied=0.012 realized=0.004 ret=-0.9c
+    0.05-0.15 n=  250 implied=0.093 realized=0.032 ret=-6.7c
+    0.15-0.30 n=  185 implied=0.216 realized=0.168 ret=-6.0c
+    0.30-0.50 n=  197 implied=0.395 realized=0.437 ret=+2.5c
+    0.50-0.70 n=  139 implied=0.580 realized=0.748 ret=+15.1c
+    0.70-0.85 n=   67 implied=0.778 realized=0.910 ret=+11.9c
+    0.85-0.95 n=   58 implied=0.891 realized=1.000 ret=+10.2c
+    0.95-1.00 n=  107 implied=0.991 realized=1.000 ret=+0.8c
+- T-6h: n=1621 Brier=0.0168
+    0.00-0.05 n= 1073 implied=0.006 realized=0.001 ret=-0.6c
+    0.05-0.15 n=   41 implied=0.088 realized=0.024 ret=-7.0c
+    0.15-0.30 n=   31 implied=0.207 realized=0.194 ret=-2.6c
+    0.30-0.50 n=   56 implied=0.399 realized=0.482 ret=+6.6c
+    0.50-0.70 n=   20 implied=0.588 realized=0.950 ret=+34.5c
+    0.70-0.85 n=   29 implied=0.781 realized=0.966 ret=+17.2c
+    0.85-0.95 n=   55 implied=0.907 realized=1.000 ret=+8.7c
+    0.95-1.00 n=  316 implied=0.991 realized=0.997 ret=+0.5c
+- T-1h: n=1548 Brier=0.0050
+    0.00-0.05 n= 1103 implied=0.006 realized=0.000 ret=-0.7c
+    0.05-0.15 n=   23 implied=0.090 realized=0.000 ret=-9.6c
+    0.15-0.30 n=    9 implied=0.234 realized=0.111 ret=-13.6c
+    0.30-0.50 n=    6 implied=0.398 realized=0.167 ret=-24.9c
+    0.50-0.70 n=    9 implied=0.592 realized=0.667 ret=+5.7c
+    0.70-0.85 n=    8 implied=0.766 realized=0.750 ret=-2.9c
+    0.85-0.95 n=   22 implied=0.907 realized=0.909 ret=-0.4c
+    0.95-1.00 n=  368 implied=0.992 realized=1.000 ret=+0.7c
