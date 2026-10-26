@@ -14,6 +14,7 @@ import argparse, datetime as dt, json, pathlib, re, time
 from .kalshi_public import KalshiPublic, f
 from .s7_live import book_touch, single_instance
 from .risk import series_multiplier, Ledger, halted
+from .fusion import flow
 
 SERIES_GLOBS = [r"^KXHIGH", r"^KXLOW(T|[A-Z]{2,4}$)", r"^KXRAIN", r"^KXINXU$", r"^KXNASDAQ100U$", r"^KXAAAGASD$", r"^KXBTCD$", r"^KXETHD$"]
 SELL_LO, SELL_HI, BUY_LO, BUY_HI = 0.05, 0.30, 0.50, 0.95
@@ -59,13 +60,17 @@ def scan(k: KalshiPublic, book: Book, lot: int, max_open_per_series: int, db_pat
             try: b = k.orderbook(m["ticker"]); byb, bya, bbs, bas = book_touch(b)
             except Exception: continue
             queue_ahead = bas if side == "sell_yes" else bbs
+            fl = flow(k, m["ticker"]); imb = fl.get("imbalance")
+            # sentiment/flow feature: do not sell YES into heavy YES-taker flow or buy YES into heavy NO-taker flow (fade only after it)
+            if imb is not None and fl["n"] >= 5 and ((side == "sell_yes" and imb > 0.6) or (side == "buy_yes" and imb < -0.6)):
+                book.logline(f"SKIP flow {m['ticker']} side={side} imbalance={imb:+.2f} n={fl['n']}"); continue
             lot_eff = max(1, int(lot * series_multiplier(series)))
             if side == "sell_yes" and abs(bya - price) > 1e-9: price = bya
             if side == "buy_yes" and abs(byb - price) > 1e-9: price = byb
             o = {"t": now, "ticker": m["ticker"], "series": series, "side": side, "price": price, "qty": lot_eff, "queue_ahead": queue_ahead, "filled": 0.0,
-                 "close_ts": ts(m["close_time"]), "hours_to_close": round(h, 1), "mid_at_post": mid, "status": "resting", "fill_prints": 0}
+                 "close_ts": ts(m["close_time"]), "hours_to_close": round(h, 1), "mid_at_post": mid, "status": "resting", "fill_prints": 0, "flow_imbalance": imb, "flow_n": fl.get("n")}
             book.items.append(o); have[m["ticker"]] = o; open_by_series[series] = open_by_series.get(series, 0) + 1
-            book.score.open("a").write(json.dumps({"t": now, "family": "s1_maker", "ticker": m["ticker"], "series": series, "side": side, "price": price, "p_market": mid, "hours": round(h, 1)}) + "\n")
+            book.score.open("a").write(json.dumps({"t": now, "family": "s1_maker", "ticker": m["ticker"], "series": series, "side": side, "price": price, "p_market": mid, "hours": round(h, 1), "flow_imbalance": imb}) + "\n")
             book.logline(f"POST {side} {lot_eff}@{price:.2f} {m['ticker']} queue_ahead={queue_ahead:.0f} T-{h:.1f}h")
             if open_by_series[series] >= max_open_per_series: break
     book.save()
