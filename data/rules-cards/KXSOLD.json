@@ -1,0 +1,84 @@
+{
+ "series": "KXSOLD",
+ "settlement_source": "CF Benchmarks CME CF Solana-Dollar Real Time Index (SOLUSD_RTI), https://www.cfbenchmarks.com/data/indices/SOLUSD_RTI ; terms https://assets.kalshi.com/contract_terms/CRYPTO.pdf (generic template). Constituents: Coinbase, Kraken, Gemini, LMAX Digital, Bitstamp, Crypto.com. Order-book index, 1% depth parameter, 200 ms calc, 1/s dissemination at 0.01.",
+ "settlement_variable": "Simple average of the 60 SOLUSD_RTI values in [T-60s,T); YES iff average > X.9999 strike (round_digits=4). Settled markets publish expiration_value to 4 dp (e.g. 100.2170). Revisions after expiration ignored.",
+ "timezone": "US Eastern wall-clock (EDT/EST) in rules; UTC close_time in API. Contract template's '10:00 AM ET' is boilerplate.",
+ "tie_handling": "Strikes X.9999 with strict >: effectively average >= X.0000 -> YES. Rounding of the average unknown (published to 4 dp).",
+ "rounding": "RTI 0.01; expiration_value 4 dp (truncation vs round-half-up unknown); strikes at $0.25 increments on daily markets; min tick $0.001.",
+ "trading_close_vs_settlement": "close_time == T; window fully tradable. settlement_timer 60 s; observed settlement \u2248 T+2.5 min. Daily events list ~25 h ahead; hourly shorter.",
+ "early_close_or_void_clauses": "can_close_early true. 'No data or incomplete data at expiration -> affected strikes resolve NO'; handling of <60 prints unspecified. Market Outcome Review 6.3(d)/(b). $25k accountability.",
+ "title_vs_rules_divergences": [
+  "Spot-at-instant title vs 60-s average",
+  "'$100 or above' vs strike 99.9999 strict",
+  "Index vs Coinbase/Binance/Google price",
+  "Template PDF says 10 AM ET / one-week; actual 5 PM ET or hourly",
+  "'at 5pm' vs minute 4:59:00\u20134:59:59; inclusion of T print unknown",
+  "Series says 'hourly' but lists daily 5 PM events too"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "CF SOLUSD_RTI page",
+   "url": "https://www.cfbenchmarks.com/data/indices/SOLUSD_RTI",
+   "latency": "~1 s in browser; API licensed (400 unauth)",
+   "cost": "free to view"
+  },
+  {
+   "name": "Kalshi API (expiration_value post-settlement) / market page chart",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD",
+   "latency": "~2.5 min after close",
+   "cost": "free"
+  },
+  {
+   "name": "Coinbase SOL-USD L2 WS (largest constituent)",
+   "url": "wss://ws-feed.exchange.coinbase.com",
+   "latency": "sub-second; tracks RTI within a few bps",
+   "cost": "free"
+  },
+  {
+   "name": "Kraken SOL/USD book",
+   "url": "wss://ws.kraken.com/v2",
+   "latency": "sub-second",
+   "cost": "free"
+  },
+  {
+   "name": "Bitstamp solusd book",
+   "url": "wss://ws.bitstamp.net",
+   "latency": "sub-second",
+   "cost": "free"
+  },
+  {
+   "name": "Gemini SOLUSD book",
+   "url": "wss://api.gemini.com/v1/marketdata/SOLUSD",
+   "latency": "sub-second",
+   "cost": "free"
+  },
+  {
+   "name": "Crypto.com SOL_USD book",
+   "url": "wss://stream.crypto.com/exchange/v1/market",
+   "latency": "sub-second",
+   "cost": "free"
+  },
+  {
+   "name": "LMAX Digital (institutional only)",
+   "url": "https://www.lmaxdigital.com",
+   "latency": "n/a",
+   "cost": "institutional"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement window (T-60s..T) lies entirely inside live trading: anyone streaming the index can compute the running 60-s average; resting orders near the strike in the last minute are adversely selected",
+  "Settlement is a 60-s TWAP of an order-book index, not the spot/last-trade print; Coinbase/Binance tickers are proxies only",
+  "Kalshi does not publish the computed average for BTC (settlement_value null); rounding/boundary cases cannot be audited",
+  "Rounding/precision and window boundary (1-s vs 200-ms samples, inclusive/exclusive) unspecified",
+  "No data at expiration -> resolves NO (not void)",
+  "Kalshi Market Outcome Review (Rule 6.3) and settlement delay (Rule 7.1) at sole discretion",
+  "CF Benchmarks is Kraken-owned (Payward); Kraken is a constituent; Expert Judgement permitted in extraordinary circumstances",
+  "Constituent set and methodology changed Jun-Sep 2026 (uncrossing, dynamic spacing, 200 ms effective time)",
+  "EDT/EST label changes with DST (Nov 1 2026); UTC close_time authoritative",
+  "Order-book index on thin SOL books: large resting orders can move the RTI without trades (manipulable over a 60-s window)",
+  "$0.25 strikes on ~$100 SOL (25 bps) decided by cents of average",
+  "Official tick data paywalled; retail cannot audit the 4-dp value except via replicas"
+ ],
+ "notes": "Subagent read: series + markets (open/settled), CRYPTO.pdf, methodology, constituent list v13.7 (SOLUSD_RTI constituents with admission dates)."
+}

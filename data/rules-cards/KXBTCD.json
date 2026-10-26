@@ -1,0 +1,64 @@
+{
+ "series": "KXBTCD",
+ "settlement_source": "CF Benchmarks CME CF Bitcoin Real Time Index (BRTI), https://www.cfbenchmarks.com/data/indices/BRTI ; terms https://assets.kalshi.com/contract_terms/BTC.pdf ; methodology v17.0 https://docs.cfbenchmarks.com/CME%20CF%20Real%20Time%20Indices%20Methodology.pdf ; constituents (v13.7): Bitstamp, Coinbase, Kraken, Gemini, LMAX Digital, Bullish, Crypto.com (itBit suspended 2026-07-27). Order-book index: exponentially-weighted mid price-volume curve to 0.5% depth, calc every 200 ms, disseminated ~1/s at 0.01 USD.",
+ "settlement_variable": "Simple average of the 60 BRTI values in the minute immediately before T; YES iff average > floor_strike (strike X.99, strict). Revisions after expiration ignored. Unspecified: 1-s vs 200-ms sampling, [T-60,T) vs (T-60,T], <60 values.",
+ "timezone": "Rules in US Eastern with EDT/EST label; API close_time UTC authoritative (21:00Z = 5 PM EDT). DST shift Nov 1 2026.",
+ "tie_handling": "Strict > X.99; average exactly X.99 -> NO. Title '$X or above' vs rules '> X-0.01' differ for unrounded averages in (X-0.01, X).",
+ "rounding": "Unspecified by Kalshi; BRTI to 0.01; average may carry more decimals; treat comparison as unrounded.",
+ "trading_close_vs_settlement": "close_time == T == end of averaging window: whole settlement window is inside live trading. Markets open 48 h before close; settlement_timer 60 s; observed settlement_ts \u2248 close + 2m55s. Kalshi publishes only result (settlement_value null).",
+ "early_close_or_void_clauses": "can_close_early true (no condition). No data -> NO. Post-expiration revisions ignored. Market Outcome Review Rule 6.3(c); settlement delay Rule 7.1. Position accountability $25,000/strike/member. CF employees and MNPI holders barred.",
+ "title_vs_rules_divergences": [
+  "'$76,000 or above' (inclusive) vs 'above 75999.99' (strict) differ for unrounded averages between",
+  "Title implies a spot price at an instant; rules use a 60-s trailing average of BRTI",
+  "Hour only in rules_primary/subtitle, not title",
+  "Sampling cadence/boundary unspecified",
+  "Data outage defaults to NO, not void",
+  "'60 prices collected in the last minute before expiration' while trading continues through that minute"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "CF Benchmarks BRTI page (official, 1-s updates via site websocket wss://www.cfbenchmarks.com/ws/v4; not a documented public API)",
+   "url": "https://www.cfbenchmarks.com/data/indices/BRTI",
+   "latency": "~1 s",
+   "cost": "Free to view; programmatic access licensed"
+  },
+  {
+   "name": "CF Benchmarks licensed API (REST+WS, 1 s / 200 ms)",
+   "url": "https://docs.cfbenchmarks.com/api/rest/values/",
+   "latency": "real-time",
+   "cost": "paid, price not public"
+  },
+  {
+   "name": "CME CF benchmarks page",
+   "url": "https://www.cmegroup.com/markets/cryptocurrencies/cme-cf-cryptocurrency-benchmarks.html",
+   "latency": "unknown",
+   "cost": "free"
+  },
+  {
+   "name": "Constituent exchange public books (Coinbase, Kraken, Bitstamp, Gemini, Crypto.com; LMAX/Bullish need accounts) for a BRTI replica",
+   "url": "methodology PDF",
+   "latency": "sub-second; small non-zero replica error",
+   "cost": "free"
+  },
+  {
+   "name": "Kalshi public API result",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD",
+   "latency": "~3 min after close",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement window (T-60s..T) lies entirely inside live trading: anyone streaming the index can compute the running 60-s average; resting orders near the strike in the last minute are adversely selected",
+  "Settlement is a 60-s TWAP of an order-book index, not the spot/last-trade print; Coinbase/Binance tickers are proxies only",
+  "Kalshi does not publish the computed average for BTC (settlement_value null); rounding/boundary cases cannot be audited",
+  "Rounding/precision and window boundary (1-s vs 200-ms samples, inclusive/exclusive) unspecified",
+  "No data at expiration -> resolves NO (not void)",
+  "Kalshi Market Outcome Review (Rule 6.3) and settlement delay (Rule 7.1) at sole discretion",
+  "CF Benchmarks is Kraken-owned (Payward); Kraken is a constituent; Expert Judgement permitted in extraordinary circumstances",
+  "Constituent set and methodology changed Jun-Sep 2026 (uncrossing, dynamic spacing, 200 ms effective time)",
+  "EDT/EST label changes with DST (Nov 1 2026); UTC close_time authoritative",
+  "Quadratic fee type and $100 strike ladder concentrate contracts near ATM where the ambiguities matter most"
+ ],
+ "notes": "Subagent read: Kalshi series + markets, BTC.pdf, CF BRTI page, methodology v17.0, constituent list v13.7. Unauthenticated CF API returns 400."
+}

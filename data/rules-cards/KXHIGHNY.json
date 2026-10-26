@@ -1,0 +1,80 @@
+{
+ "series": "KXHIGHNY",
+ "settlement_source": "The Weather Company portal https://weather.com/kalshi 'Daily Climate' tab, row NYC \u2014 which per its footer relays the NWS Daily Climate Report CLINYC (WFO OKX) with CF6 as backup; TWC does not originate or adjust. CLINYC = Central Park ASOS KNYC (Belvedere Castle), NOT LGA/JFK/EWR. Rulebook GLOBALTEMPERATURE.pdf lists sources TWC > NWS > national met service.",
+ "settlement_variable": "Daily MAX temperature, whole \u00b0F, local calendar day, as printed on the first official non-preliminary CLINYC (~1\u20134 AM local next day). CLI max comes from the ASOS continuous 1-minute sensor and can exceed the highest hourly METAR (2026-10-26: prelim CLI max 69 at 2:34 PM vs hourly METAR max 68).",
+ "timezone": "America/New_York local day (CLI uses LST). close_time 05:00Z next day (1 AM EDT); expected_expiration 19:00Z next day; hard expiration ~7 days.",
+ "tie_handling": "Integers, no ties: '>67' == '68 or above'; '<60' == '59 or below'; between bands inclusive; bands+tails partition the integers.",
+ "rounding": "Whole \u00b0F from the CLI at source precision; ASOS produces \u00b0F internally \u2014 converting METAR tenths-\u00b0C yourself can differ by \u00b11\u00b0F; METAR body \u00b0C is coarser (1\u00b0C\u22481.8\u00b0F). rules_secondary warns preliminary TWC values may differ by rounding/conversion.",
+ "trading_close_vs_settlement": "Trading closes 05:00Z AFTER the local day ends: the full day's METAR/ASOS record and the ~4:33 PM preliminary CLI are public while trading is open; only post-4 PM maxima (rare) remain unresolved. Final CLI ~2:30\u20133:30 AM EDT (observed 06:36Z), ~1.5 h after close. settlement_timer 300 s; can_close_early true.",
+ "early_close_or_void_clauses": "Material-error hold at Kalshi's sole discretion until revision or Expiration Date; no data by Expiration Date -> ALL strikes resolve to Kalshi's 'last fair price' (not void); 'Final' on TWC portal non-binding; only first non-preliminary report counts; Market Outcome Review 7.1; exchange may specify station; source-agency employees/MNPI barred.",
+ "title_vs_rules_divergences": [
+  "'NYC' = Central Park KNYC only; airports differ by several \u00b0F on sea-breeze/UHI days",
+  "'>67\u00b0' vs '68\u00b0 or above' equivalent only because integer",
+  "Ticker 'B66.5' encodes band 66\u201367 inclusive, not a half-degree threshold",
+  "'according to The Weather Company' but TWC relays the NWS CLI",
+  "Rulebook 10 AM ET expiration / 3-month window / last trade 11:59 PM vs live params 3 PM EDT expected expiration, 7-day expiry, 1 AM EDT close",
+  "TWC portal hourly \u00b0F values ran 1\u20134\u00b0F below METAR-derived values on 2026-10-26 and are NOT the settlement figure"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NWS CLI preliminary CLINYC ('VALID TODAY AS OF 0400 PM') \u2014 same ASOS source as the final, gives max-so-far and time",
+   "url": "https://api.weather.gov/products/types/CLI/locations/NYC",
+   "latency": "~4:30\u20134:45 PM local daily (observed 20:33Z); final ~2:30\u20133:30 AM local (06:36Z)",
+   "cost": "free (User-Agent required)"
+  },
+  {
+   "name": "KNYC METAR hourly (:51) via aviationweather.gov Data API",
+   "url": "https://aviationweather.gov/api/data/metar?ids=KNYC&format=raw&hours=24",
+   "latency": "1\u20135 min after obs; hourly only; AUTO, often '$' maintenance flag",
+   "cost": "free"
+  },
+  {
+   "name": "api.weather.gov KNYC observations (JSON, \u00b0C)",
+   "url": "https://api.weather.gov/stations/KNYC/observations",
+   "latency": "5\u201315 min",
+   "cost": "free"
+  },
+  {
+   "name": "Iowa Mesonet ASOS archive + 1-min ASOS + CLI table (backtesting METAR-vs-CLI gap)",
+   "url": "https://mesonet.agron.iastate.edu/nws/clitable.php?station=KNYC",
+   "latency": "METAR ~10 min; 1-min data hours\u20131 day; CLI minutes",
+   "cost": "free"
+  },
+  {
+   "name": "NWS CF6 (backup source)",
+   "url": "https://forecast.weather.gov/product.php?site=OKX&issuedby=NYC&product=CF6",
+   "latency": "daily early morning",
+   "cost": "free"
+  },
+  {
+   "name": "xmACIS/NOWData",
+   "url": "https://data.rcc-acis.org/StnData",
+   "latency": "next morning",
+   "cost": "free"
+  },
+  {
+   "name": "TWC Kalshi portal (hourly tab 15-min refresh; daily tab = settlement figure)",
+   "url": "https://weather.com/kalshi",
+   "latency": "hourly 15\u201360 min behind; daily after CLI arrives",
+   "cost": "free (JS)"
+  },
+  {
+   "name": "NWS KNYC obs history (6-hr max/min METAR remarks usually equal the ASOS max)",
+   "url": "https://forecast.weather.gov/data/obhistory/KNYC.html",
+   "latency": "5\u201310 min",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Preliminary CLI at ~4:33 PM reveals the official max-so-far while trading runs to 1 AM \u2014 adverse selection against resting orders after ~4:45 PM",
+  "Hourly METAR max under-reads the CLI max by 0\u20132\u00b0F; boundary strikes decided by this gap",
+  "KNYC ASOS often '$' flagged, outages \u2192 delayed/erroneous CLI \u2192 discretionary material-error hold",
+  "No data \u2192 'last fair price' at Kalshi discretion, not refund",
+  "Station mismatch risk (apps quote LGA/JFK/EWR or TWC forecasts)",
+  "Rulebook timing text conflicts with live market parameters",
+  "TWC 'Final' label non-binding",
+  "DST days: 23/25-h local day; 05:00Z = midnight EST vs 1 AM EDT"
+ ],
+ "notes": "Verified live 2026-10-26: 6 open Oct-27 markets; TWC portal lists 48 cities with Status column; NYC Oct 25 = Max 64 Min 43 Final. Best proxy ordering: preliminary CLI (exact) > METAR 6-hourly max remarks > hourly METAR T-group > TWC hourly tab. Only the first non-preliminary CLI counts."
+}

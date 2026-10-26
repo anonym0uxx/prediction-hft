@@ -1,0 +1,72 @@
+{
+ "series": "KXETHD",
+ "settlement_source": "CF Benchmarks CME CF Ether-Dollar Real Time Index (ETHUSD_RTI; Kalshi calls it 'ERTI'), https://www.cfbenchmarks.com/data/indices/ETHUSD_RTI ; terms https://assets.kalshi.com/contract_terms/ETH.pdf (template with placeholders). Constituents: Bitstamp, Kraken, Gemini, Coinbase, LMAX Digital, Crypto.com, Bullish. Order-book index, depth parameter 1%, calc 200 ms, disseminated 1/s at 0.01.",
+ "settlement_variable": "Simple average of 60 per-second ETHUSD_RTI values in the minute before T; YES iff average > X.99 strike (strict). custom_strike.round_digits='2' suggests the average is rounded to 2 dp (mode unknown). No data -> NO.",
+ "timezone": "US Eastern wall-clock with EDT/EST label; API close_time UTC. Fall-back-hour behaviour unknown.",
+ "tie_handling": "Strict > X.99; mean of 3059.995 would be YES though below '$3,060'. 'Between' variants inclusive.",
+ "rounding": "RTI 0.01; round_digits=2 for expiration value; rounding mode and whether applied before comparison unknown.",
+ "trading_close_vs_settlement": "close_time == T; trading open through the whole averaging window. settlement_timer 60 s; expected_expiration close+5 min; expiration_time close+7 d backstop. No preliminary value published.",
+ "early_close_or_void_clauses": "can_close_early true, no condition. No data -> NO (no void). Market Outcome Review 6.3(c), delay 7.1. $25k accountability. ETH hard-fork policy applies to the index.",
+ "title_vs_rules_divergences": [
+  "'price at 5pm' vs 60-s TWAP ending at 5pm",
+  "'$3,060 or above' vs 'above 3059.99'",
+  "Generic 'Ethereum price' vs CF order-book index only",
+  "'ERTI' name vs official ETHUSD_RTI",
+  "Data outage -> NO not disclosed in title",
+  "Contract PDF is an unfilled template; operative wording only in per-market rules",
+  "One-week expiration backstop can mislead"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "CF ETHUSD_RTI page",
+   "url": "https://www.cfbenchmarks.com/data/indices/ETHUSD_RTI",
+   "latency": "~1 s",
+   "cost": "free to view"
+  },
+  {
+   "name": "CF REST /api/v1/values?id=ETHUSD_RTI (PER_SECOND/PER_200MS) + WS v4",
+   "url": "https://docs.cfbenchmarks.com/api/rest/values/",
+   "latency": "sub-second",
+   "cost": "API key/licence (400 unauthenticated)"
+  },
+  {
+   "name": "Kalshi market page live index chart",
+   "url": "https://kalshi.com/markets/kxethd",
+   "latency": "~1 s",
+   "cost": "free"
+  },
+  {
+   "name": "Kraken Futures ticker indexPrice PF_ETHUSD (= CF index, but REST rounds to whole dollars)",
+   "url": "https://futures.kraken.com/derivatives/api/v3/tickers?symbol=PF_ETHUSD",
+   "latency": "near real-time",
+   "cost": "free; coarse"
+  },
+  {
+   "name": "Constituent public books for a replica (LMAX not public)",
+   "url": "methodology PDF",
+   "latency": "100s of ms; replica error cents to tens of cents",
+   "cost": "free"
+  },
+  {
+   "name": "Kalshi public API result/expiration_value",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD",
+   "latency": "minutes after close",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement window (T-60s..T) lies entirely inside live trading: anyone streaming the index can compute the running 60-s average; resting orders near the strike in the last minute are adversely selected",
+  "Settlement is a 60-s TWAP of an order-book index, not the spot/last-trade print; Coinbase/Binance tickers are proxies only",
+  "Kalshi does not publish the computed average for BTC (settlement_value null); rounding/boundary cases cannot be audited",
+  "Rounding/precision and window boundary (1-s vs 200-ms samples, inclusive/exclusive) unspecified",
+  "No data at expiration -> resolves NO (not void)",
+  "Kalshi Market Outcome Review (Rule 6.3) and settlement delay (Rule 7.1) at sole discretion",
+  "CF Benchmarks is Kraken-owned (Payward); Kraken is a constituent; Expert Judgement permitted in extraordinary circumstances",
+  "Constituent set and methodology changed Jun-Sep 2026 (uncrossing, dynamic spacing, 200 ms effective time)",
+  "EDT/EST label changes with DST (Nov 1 2026); UTC close_time authoritative",
+  "Live check: ETHUSD_RTI 2302.93 vs Kraken Futures REST index 2304 (integer) vs Kraken spot 2304.7 \u2014 proxies coarse vs 0.01 strike granularity",
+  "Thin hourly books near expiry: single aggressive orders move price materially"
+ ],
+ "notes": "Subagent read: series + 2 markets, ETH.pdf, CF page, methodology v17.0, constituent list, CF REST docs. CF offers on-chain-signed values (cfb-da-v1) under licence."
+}
