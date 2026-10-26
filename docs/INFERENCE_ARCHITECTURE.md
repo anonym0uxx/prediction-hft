@@ -104,3 +104,22 @@ fusion coefficients, not by prompting harder.
 3. Scoreboard + fusion fit on Kalshi settled history.
 4. Econ-print and sports-final verifiers.
 5. J3 forecaster on probation; promote only via G1.
+
+
+## Implementation status (2026-10-26 evening PT)
+| Component | Status |
+|---|---|
+| Universe store (`predhft.universe`, SQLite) | live; refreshed by J2 cron |
+| J2 rules reader | subagent cards: KXBTCD, KXETHD, KXSOLD, KXHIGHNY (+47 template-derived HIGH/LOW city cards); 6 more dispatched (INX, NDX, RAIN, NBA, NFL, AAA gas); daily cron 10:00 PT |
+| Trigger engine | weather time triggers, staleness detector (`inference_queue stale`), J4 feed watcher task (10 min), ESPN live-game trigger in S6 |
+| J1 verifiers | Weather (live, determined-state only), AAA gas (recorder; trading gated on card), crypto TWAP awareness in S7 |
+| J3 forecaster | cron 16:00 PT, scored only (`data/j3/scoreboard.jsonl`), never sees price |
+| J4 news repricer | cron hourly :15, scored only; feeds: Fed, NWS alerts, ESPN (BLS/AP 403 — need alternate) |
+| Fusion | `predhft.fusion fit/blend` (logistic, per family, >=100 resolved rows); runners fall back to 50/50 shrink until fit |
+| Decision/risk | `predhft.risk`: toxicity multipliers from cards, fractional Kelly (bankroll $250 paper), per-market/series/day caps, daily-loss and error-rate kill switches — wired into S7, S7-index, weather, AAA, S1 |
+| Flow/sentiment feature | taker imbalance (30 min prints) recorded in S1 rows; S1 skips posting into a stampede on its side |
+| Recorder | Kalshi KXBTC range books + Polymarket 5PM ladder, last 10 min of each hour |
+| Scoreboard | `predhft.scoreboard` Brier skill vs market per family; in daily summary |
+| Execution | paper only, no account, no orders |
+
+Finding: Kalshi closes economic-release markets one minute BEFORE the print (CPI 13:29Z, Fed 17:59Z) — the data-release verifier class does not exist here; J1 applies only where markets stay open past observability (weather, crypto TWAP window, AAA gas/diesel, ERCOT peak demand — candidate).
