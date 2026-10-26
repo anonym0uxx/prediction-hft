@@ -13,12 +13,12 @@ from .fees import kalshi_taker_fee
 def ts(s: str) -> int: return int(dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp())
 def Phi(x: float) -> float: return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
-def coinbase_minutes(t0: int, t1: int) -> dict[int, float]:
+def coinbase_minutes(t0: int, t1: int, product: str = "BTC-USD") -> dict[int, float]:
     out = {}; cur = t0
     while cur < t1:
         end = min(cur + 300 * 60, t1)
         iso = lambda t: dt.datetime.fromtimestamp(t, dt.timezone.utc).isoformat()
-        u = f"https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=60&start={iso(cur)}&end={iso(end)}"
+        u = f"https://api.exchange.coinbase.com/products/{product}/candles?granularity=60&start={iso(cur)}&end={iso(end)}"
         for attempt in range(4):
             try:
                 d = json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "predhft"}), timeout=20).read()); break
@@ -36,16 +36,16 @@ def trailing_sigma(spot: dict[int, float], t: int, n: int = 120) -> float | None
         if a and b: rets.append(math.log(b / a))
     return st.pstdev(rets) if len(rets) >= 60 else None
 
-def run(pages: int, horizons: list[int], out_dir: pathlib.Path, rep_dir: pathlib.Path) -> dict:
+def run(pages: int, horizons: list[int], out_dir: pathlib.Path, rep_dir: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD") -> dict:
     k = KalshiPublic(); ms = []
-    for m in k.markets(series_ticker="KXBTCD", status="settled", limit=200, max_pages=pages):
+    for m in k.markets(series_ticker=series, status="settled", limit=200, max_pages=pages):
         if m.get("result") in ("yes", "no") and m.get("floor_strike") and (f(m, "volume_fp") or 0) > 0: ms.append(m)
     closes = sorted({m["close_time"] for m in ms})
-    spot = coinbase_minutes(ts(closes[0]) - 4 * 3600, ts(closes[-1]) + 60)
+    spot = coinbase_minutes(ts(closes[0]) - 4 * 3600, ts(closes[-1]) + 60, product)
     rows = []
     for m in ms:
         ct = ts(m["close_time"]); K = float(m["floor_strike"]); y = 1 if m["result"] == "yes" else 0
-        try: cs = k.candlesticks("KXBTCD", m["ticker"], ct - 15 * 60, ct, 1)
+        try: cs = k.candlesticks(series, m["ticker"], ct - 15 * 60, ct, 1)
         except Exception: continue
         bym = {int(c["end_period_ts"]): c for c in cs}
         for h in horizons:
@@ -59,12 +59,12 @@ def run(pages: int, horizons: list[int], out_dir: pathlib.Path, rep_dir: pathlib
             rows.append({"ticker": m["ticker"], "close": m["close_time"], "h": h, "K": K, "spot": s, "sigma1": sig, "z": z, "p_model": p,
                          "yes_bid": yb, "yes_ask": ya, "y": y, "vol": f(m, "volume_fp") or 0, "vol_1m": float(c.get("volume_fp") or 0)})
     out_dir.mkdir(parents=True, exist_ok=True); (out_dir / "rows.json").write_text(json.dumps(rows))
-    return summarize(rows, closes, rep_dir)
+    return summarize(rows, closes, rep_dir, series)
 
-def summarize(rows, closes, rep_dir: pathlib.Path) -> dict:
+def summarize(rows, closes, rep_dir: pathlib.Path, series: str = "KXBTCD") -> dict:
     by = defaultdict(list)
     for r in rows: by[r["h"]].append(r)
-    lines = [f"# S7 lag study — KXBTCD vs Coinbase spot", f"hours={len(closes)} ({closes[0]} → {closes[-1]}), decision rows={len(rows)}", "",
+    lines = [f"# S7 lag study — {series} vs Coinbase spot", f"hours={len(closes)} ({closes[0]} → {closes[-1]}), decision rows={len(rows)}", "",
              "## Calibration (Brier): model vs market mid", "| horizon | n | model | market mid |", "|---|---|---|---|"]
     for h in sorted(by, reverse=True):
         g = by[h]; mb = st.fmean((r["p_model"] - r["y"]) ** 2 for r in g); kb = st.fmean(((r["yes_bid"] + r["yes_ask"]) / 2 - r["y"]) ** 2 for r in g)
@@ -90,10 +90,10 @@ def summarize(rows, closes, rep_dir: pathlib.Path) -> dict:
                 res[(h, thr)] = {"n": n, "avg": a, "se": se, "hit": hit, "hours_pos": pos, "hours": len(hrs)}
     lines += ["", "Caveats: taker fills assumed at the 1-min candle close touch; settlement index is BRTI 60-s average (Coinbase used as proxy); sigma trailing 120 min, no lookahead."]
     rep_dir.mkdir(parents=True, exist_ok=True)
-    (rep_dir / f"s7-lag-{dt.date.today().isoformat()}.md").write_text("\n".join(lines), encoding="utf-8")
+    (rep_dir / f"s7-lag-{series}-{dt.date.today().isoformat()}.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
     return res
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--pages", type=int, default=60); ap.add_argument("--horizons", default="10,5,3,2,1")
-    a = ap.parse_args(); run(a.pages, [int(x) for x in a.horizons.split(",")], pathlib.Path("data/s7"), pathlib.Path("reports"))
+    ap = argparse.ArgumentParser(); ap.add_argument("--pages", type=int, default=60); ap.add_argument("--horizons", default="10,5,3,2,1"); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    a = ap.parse_args(); run(a.pages, [int(x) for x in a.horizons.split(",")], pathlib.Path(f"data/s7/{a.series}"), pathlib.Path("reports"), a.series, a.product)
