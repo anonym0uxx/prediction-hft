@@ -100,7 +100,10 @@ external feeds: Coinbase/Deribit (BTC), NWS/ASOS obs + NBM/GEFS (weather),      
 | S3 | Digital-option MM on SPX/NDX hourly strikes | KXINXU/KXNASDAQ100U | Same as S2 with intraday vol seasonality; retail prices flat vol | Todorov intraday vol; delayed index data acceptable for paper | Same |
 | S4 | Weather nowcast confirmation | KXHIGH{7 cities}, KXRAIN | In the final 6 h, live ASOS obs + NBM move fair faster than the book reprices; forecast-vs-market disagreement alone has **no** edge (Turbine) | NBM/GEFS + station persistence; EMOS-lite calibration | Positive after fees with ≥ 150 resolved positions |
 | S5 | Data-feed nowcast | KXAAAGASD, KXDIESELD, KXTXERCOTPEAKD, YouTube/Netflix charts | Settlement source observable before close; tracker vs price gap ≥ fees | Kalman-style tracker + change-point detection | Positive; capacity reported (expected small) |
+| S7 | Late-window reactive loading on BTC hourly strikes | KXBTCD (hourly strikes; 15-min flips stay excluded) | Kalshi's book lags the settlement index/spot in the final 3–5 min before settlement; a position opened maker-side early (paired cost < $1.00) and loaded onto the dominant side late — held to expiry, no take-profit — is positive after fees. Source: Polymarket "Slip-Me" 5-min BTC bot forensics (r/PredictionsMarkets, 2026): +$111k on $4.3M deployed in 23 days (2.6 %/month), 22/23 green days; its passive two-sided leg LOST $97k (paired cost $1.02) and the late directional loads MADE $204k; ≥5× skew ⇒ 99.8 % dominant-side win rate (1 loss / 520). Our fee reality differs: Kalshi taker 1–1.75¢/contract, so only the late load may ever cross and the lag must exceed that | Spot/settlement-index feed vs candlestick lag study first; leg-balance watchdog; settlement-source tracking as a first-class feed | Lag ≥ 2¢ in ≥ 25 % of strike-hours in history; paper positive after fees with ≥ 200 settled strike-hours |
 | S6 (observe only) | Sports maker vs sharp line | NBA/NFL game, spread, total | Kalshi deviates from Shin-devigged sharp consensus by ≥ 3¢ on popular sides; makers on the unpopular side profit | Shin devig; Stern/Markov in-play for later | Paper-quote but **no capital plan** until a sharp-odds feed is licensed (cost item) |
+
+Rules inherited from documented winners: settlement-based strategies hold to expiry (no take-profit logic — selling mid-window breaks the economics); a leg-balance watchdog flags lopsided inventory after any feed lag; track the venue's *settlement source* (index/oracle), not generic spot.
 
 Excluded in Phase 1: 15-min crypto flips, Mentions/politics (worst calibration = most informed flow), long-dated futures, any taker strategy, any LLM layer.
 
@@ -137,6 +140,9 @@ Excluded in Phase 1: 15-min crypto flips, Mentions/politics (worst calibration =
 - Most plausible outcome from the evidence: S1 shows a small, real, capacity-limited edge; S2/S3 depend on how many bots already price Kalshi strikes off Deribit (unknown until measured); S4 is the family most likely to be killed by its own audit; S5 is small and reliable.
 - $200–400/day requires bankroll ≈ target ÷ (edge/day on deployed capital); with maker edges of 0.3–1 % per turnover and daily turnover, that implies **$30k–130k deployed** — Phase 1's job is to replace this range with a measured number.
 - Competition is bots (14/20 top Polymarket wallets). Our advantages: Kalshi's slower, retail-heavier flow; strict audit discipline the failed cases lacked; no subsidy dependence.
+
+## 8b. Bankroll note (Alon: $100–250 to start)
+A $100–250 Phase 2 bankroll is a **learning bankroll**: at maker edges of 0.3–1 % per turnover it earns ~$1–3/day. Its purpose is to validate execution, fills, settlement accounting and the audit chain with real money, not income. Consequences for Phase 1: G6 (capacity) is trivially met and is replaced by a small-lot check — Kalshi rounds fees up to the cent per order, so 1-contract taker orders pay up to 2× the nominal rate; all paper sizing uses realistic 1–20 contract lots and the rounded fee.
 
 ## 9. Needed from Alon
 1. Repo URL (empty is fine).
