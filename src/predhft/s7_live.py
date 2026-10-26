@@ -13,6 +13,9 @@ CB_BASE = "https://api.exchange.coinbase.com/products"
 def utcnow() -> float: return time.time()
 def ts(s: str) -> int: return int(dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp())
 def Phi(x): return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+def twap_horizon(mins_left: float) -> float:
+    """Settlement is the mean of the index over the final minute (rules card): Var(mean_[T-1,T] - S_t) = sigma^2 (tau - 1 + 1/3)."""
+    return max(mins_left - 2.0 / 3.0, 0.05)
 def jget(u):
     return json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "predhft"}), timeout=10).read())
 
@@ -97,7 +100,7 @@ def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pa
                 try: ob = k.orderbook(tk)
                 except Exception: continue
                 yb, ya, ybs, yas = book_touch(ob)
-                p = Phi(math.log(spot / K) / ((sig or 0.0006) * math.sqrt(max(mins_left, 0.25))))
+                p = Phi(math.log(spot / K) / ((sig or 0.0006) * math.sqrt(twap_horizon(mins_left))))
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "sigma1": sig, "p_model": p,
                         "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas}
                 state.append(state.books, snap)

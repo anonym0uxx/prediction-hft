@@ -55,7 +55,7 @@ def run(pages: int, horizons: list[int], out_dir: pathlib.Path, rep_dir: pathlib
             except (KeyError, TypeError, ValueError): continue
             sig = trailing_sigma(spot, t)
             if not sig: continue
-            z = math.log(s / K) / (sig * math.sqrt(h)); p = Phi(z)
+            z = math.log(s / K) / (sig * math.sqrt(max(h - 2.0 / 3.0, 0.05))); p = Phi(z)  # TWAP settlement: mean over final minute
             rows.append({"ticker": m["ticker"], "close": m["close_time"], "h": h, "K": K, "spot": s, "sigma1": sig, "z": z, "p_model": p,
                          "yes_bid": yb, "yes_ask": ya, "y": y, "vol": f(m, "volume_fp") or 0, "vol_1m": float(c.get("volume_fp") or 0)})
     out_dir.mkdir(parents=True, exist_ok=True); (out_dir / "rows.json").write_text(json.dumps(rows))
