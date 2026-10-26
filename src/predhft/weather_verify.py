@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 from .kalshi_public import KalshiPublic, f
 from .fees import kalshi_taker_fee
 from .s7_live import book_touch
+from .risk import Ledger, size as risk_size
 
 H = {"User-Agent": "predhft research (alon)"}
 def jget(u, timeout=20):
@@ -178,9 +179,12 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
             if p >= 0.97 and p - ya >= margin and 0 < ya < 1 and yas > 0: side, price, avail = "yes", ya, yas
             elif p <= 0.03 and yb - p >= margin and 0 < yb < 1 and ybs > 0: side, price, avail = "no", 1 - yb, ybs
             if side:
-                qty = int(min(lot, avail)); cost = qty * price; fee = kalshi_taker_fee(qty, price)
+                p_side = p if side == "yes" else 1 - p
+                qty, why = risk_size(series, p_side, price, avail, Ledger(paper.root), lot_cap=lot)
+                if qty <= 0: paper.logline(f"SKIP {m['ticker']} {side} {why}"); continue
+                cost = qty * price; fee = kalshi_taker_fee(qty, price)
                 t = {"t": time.time(), "ticker": m["ticker"], "series": series, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "cost": cost, "fee": fee,
-                     "p_model": p, "basis": basis, "status": "open", "local_time": local_now.isoformat(timespec="minutes")}
+                     "p_model": p, "basis": basis, "status": "open", "risk": why, "local_time": local_now.isoformat(timespec="minutes")}
                 paper.append(paper.trades, t); paper.open.add(m["ticker"])
                 paper.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {m['ticker']} p={p:.2f} basis={basis} cli_max={cli_today and cli_today.get('max')} metar_max={metar.get('max')} avail={avail:.0f}")
 
@@ -192,7 +196,7 @@ def main():
     paper.logline(f"start weather J1 verifier lot={a.lot} margin={a.margin}")
     while True:
         try: run_once(k, paper, a.lot, a.margin, pathlib.Path("data/universe.db")); settle(k, paper)
-        except Exception as e: paper.logline(f"error {type(e).__name__}: {str(e)[:160]}")
+        except Exception as e: paper.logline(f"error {type(e).__name__}: {str(e)[:160]}"); Ledger(paper.root).record_error(str(e))
         if not a.loop: break
         time.sleep(a.poll)
 

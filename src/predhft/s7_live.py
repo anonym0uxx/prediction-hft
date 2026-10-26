@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse, datetime as dt, json, math, pathlib, statistics as st, time, urllib.request
 from .kalshi_public import KalshiPublic, f
 from .fees import kalshi_taker_fee
+from .risk import Ledger, size as risk_size
 
 CB_BASE = "https://api.exchange.coinbase.com/products"
 def utcnow() -> float: return time.time()
@@ -109,15 +110,19 @@ def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pa
                 if p - ya >= thr and 0 < ya < 1 and yas > 0: side, price, avail = "yes", ya, yas
                 elif (yb - p) >= thr and 0 < yb < 1 and ybs > 0: side, price, avail = "no", 1 - yb, ybs
                 if side:
-                    qty = int(min(lot, avail)); cost = qty * price; fee = kalshi_taker_fee(qty, price)
+                    p_side = p if side == "yes" else 1 - p
+                    qty, why = risk_size(series, p_side, price, avail, Ledger(root), lot_cap=lot)
+                    if qty <= 0:
+                        state.logline(f"SKIP {tk} {side} {why}"); continue
+                    cost = qty * price; fee = kalshi_taker_fee(qty, price)
                     t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail,
-                         "cost": cost, "fee": fee, "p_model": p, "spot": spot, "K": K, "mins_left": round(mins_left, 2), "status": "open"}
+                         "cost": cost, "fee": fee, "p_model": p, "spot": spot, "K": K, "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why}
                     state.append(state.trades, t); state.open_positions[tk] = t
                     state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m")
             time.sleep(poll_s)
         except KeyboardInterrupt: raise
         except Exception as e:
-            state.logline(f"error {type(e).__name__}: {str(e)[:160]}"); time.sleep(5)
+            state.logline(f"error {type(e).__name__}: {str(e)[:160]}"); Ledger(root).record_error(f"{type(e).__name__}: {e}"); time.sleep(5)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=int, default=8)

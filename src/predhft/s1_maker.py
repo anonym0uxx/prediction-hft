@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse, datetime as dt, json, pathlib, re, time
 from .kalshi_public import KalshiPublic, f
 from .s7_live import book_touch, single_instance
+from .risk import series_multiplier, Ledger, halted
 
 SERIES_GLOBS = [r"^KXHIGH", r"^KXLOW(T|[A-Z]{2,4}$)", r"^KXRAIN", r"^KXINXU$", r"^KXNASDAQ100U$", r"^KXAAAGASD$", r"^KXBTCD$", r"^KXETHD$"]
 SELL_LO, SELL_HI, BUY_LO, BUY_HI = 0.05, 0.30, 0.50, 0.95
@@ -36,6 +37,8 @@ def eligible_series(k: KalshiPublic, db_path: pathlib.Path) -> list[str]:
 
 def scan(k: KalshiPublic, book: Book, lot: int, max_open_per_series: int, db_path: pathlib.Path):
     now = time.time(); open_by_series: dict[str, int] = {}
+    h = halted(Ledger(book.root, "orders.jsonl"))
+    if h: book.logline(f"HALTED: {h}"); return
     for o in book.items:
         if o["status"] in ("resting", "filled"): open_by_series[o["series"]] = open_by_series.get(o["series"], 0) + 1
     have = book.by_ticker()
@@ -56,13 +59,14 @@ def scan(k: KalshiPublic, book: Book, lot: int, max_open_per_series: int, db_pat
             try: b = k.orderbook(m["ticker"]); byb, bya, bbs, bas = book_touch(b)
             except Exception: continue
             queue_ahead = bas if side == "sell_yes" else bbs
+            lot_eff = max(1, int(lot * series_multiplier(series)))
             if side == "sell_yes" and abs(bya - price) > 1e-9: price = bya
             if side == "buy_yes" and abs(byb - price) > 1e-9: price = byb
-            o = {"t": now, "ticker": m["ticker"], "series": series, "side": side, "price": price, "qty": lot, "queue_ahead": queue_ahead, "filled": 0.0,
+            o = {"t": now, "ticker": m["ticker"], "series": series, "side": side, "price": price, "qty": lot_eff, "queue_ahead": queue_ahead, "filled": 0.0,
                  "close_ts": ts(m["close_time"]), "hours_to_close": round(h, 1), "mid_at_post": mid, "status": "resting", "fill_prints": 0}
             book.items.append(o); have[m["ticker"]] = o; open_by_series[series] = open_by_series.get(series, 0) + 1
             book.score.open("a").write(json.dumps({"t": now, "family": "s1_maker", "ticker": m["ticker"], "series": series, "side": side, "price": price, "p_market": mid, "hours": round(h, 1)}) + "\n")
-            book.logline(f"POST {side} {lot}@{price:.2f} {m['ticker']} queue_ahead={queue_ahead:.0f} T-{h:.1f}h")
+            book.logline(f"POST {side} {lot_eff}@{price:.2f} {m['ticker']} queue_ahead={queue_ahead:.0f} T-{h:.1f}h")
             if open_by_series[series] >= max_open_per_series: break
     book.save()
 
