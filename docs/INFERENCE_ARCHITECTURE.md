@@ -7,8 +7,9 @@ Author stance: 15-yr prediction-market quant. Target: Kalshi (now), Polymarket U
 | # | Edge | Who wins | LLM useful? |
 |---|---|---|---|
 | E1 | Speed: book lags the settlement variable | fastest feed + colocated execution | **No** (adds 20–120 s) — S7 |
-| E2 | Behavioral bias: favorite-longshot, round-number, recency | maker with patience + fee discipline | **No** — S1 |
-| E3 | Information: know/verify the resolving fact before the crowd reprices | whoever reads the resolution source first and correctly | **Yes — primary** |
+| E2 | Behavioral bias and crowd flow: favorite-longshot, round-number, recency, herding into one side | maker with patience + fee discipline; fade crowded flow | **No for direction; sentiment/flow used as a *flow* feature** — S1 |
+| E3a | Information (resolving): verify the resolving fact before the crowd reprices | whoever reads the resolution source first and correctly | **Yes — primary (J1)** |
+| E3b | Information (shifting): translate a news shock into probability deltas before the book reprices | fastest *reader* of wires/official feeds on slow-repricing markets | **Yes (J4)** |
 | E4 | Aggregation/calibration: combine market + outside evidence better than the mid | careful forecaster with reference classes + extremizing | **Yes — secondary, must be hindcast-proven** |
 | E5 | Liquidity provision: earn spread, manage inventory to resolution | Feil–Nendel style quoting, inventory limits | **No** (LLM only sets slow priors) |
 
@@ -41,6 +42,18 @@ Only for markets ≥ 24 h to resolution without a J1 path. The subagent returns 
 key scheduled catalysts, 3 strongest for/against evidence items with dates, p, and a self-reported confidence. It never sees the
 current market price (prevents anchoring; we fuse afterwards). It is scored, not trusted: see §3.
 
+### J4 — News-shock repricer (E3b)
+Python feed watchers (wires/RSS, official accounts, ESPN injury API, BLS/BEA/Fed calendars, court dockets, campaign/poll releases)
+emit items; a subagent maps each to affected markets and returns {market, direction, delta_logit, confidence, evidence_ts}. Only
+markets with a measured repricing half-life > 10 min (from candlestick history) are eligible — the fill must beat the book's own
+repricing. Fusion/sizing mechanical. Scored like J3 (p* vs market at ts). Barred on minute-scale strikes.
+
+### Sentiment: flow feature, never a direction signal
+Social/news sentiment is not information about the outcome (the market already aggregates it; minute–hour horizons show no
+predictive power). It *is* information about retail order flow: herding pushes price away from fair value and is faded (E2).
+Primary flow signal = Kalshi trade/volume imbalance and one-sided book growth; social sentiment is a secondary, scored input.
+Used to skew S1 quotes and to shrink J3/J4 beliefs when the crowd is already stampeding in the same direction.
+
 ## 2. Pipeline (slow layer = inference, fast layer = Python)
 ```
 Universe (Kalshi /markets, /series, /events)                           every 15 min
@@ -50,6 +63,7 @@ Universe (Kalshi /markets, /series, /events)                           every 15 
        • observation triggers: ASOS/METAR max ≥ strike, score final, print published (dedicated fetchers where a feed exists)
        • staleness trigger: market mid unchanged N min after a trigger while implied p ≠ 0/1
        • J3 schedule: once per market per day, ≥ 24 h out, liquidity ≥ threshold
+       • J4 news feed watchers → item dedupe → eligible-market filter (repricing half-life > 10 min)
   → Inference dispatcher (Hermes delegate_task, parallel ≤ 10, strict JSON output_schema, 90 s budget, cache by (market, evidence_ts))
   → Belief fusion (Python): logit p* = a_s·logit(p_market) + b_s·logit(p_agent) + c_s, coefficients fit per series class on
        hindcast; shrink toward market when series skill is unproven; J1 with dual-source p ≥ .9 bypasses fusion (p* = p_agent)
@@ -74,6 +88,7 @@ Subagent tokens ≈ 20–60k each → bounded, cached, no per-tick inference. S7
 - Position sizing, fee math, order placement, risk limits (mechanical only).
 - "Sentiment" as a direction signal; at most a slow regime feature in J3 after it shows skill in the scoreboard.
 - Any output not conforming to the JSON schema (dropped, counted as an inference error).
+- Sentiment as a direction signal; social sentiment enters only as a scored flow feature.
 
 ## 5. Why this is the edge-providing version
 The crowd's weakness on Kalshi is not reasoning — it is **attention and reading**: thousands of markets, public resolution sources
