@@ -65,7 +65,18 @@ def settle(k: KalshiPublic, state: State):
             state.logline(f"SETTLED {t['ticker']} side={t['side']} result={res} qty={t['qty']} pnl={t['pnl']:+.2f}")
     if changed: state.rewrite_trades(trades)
 
+def single_instance(root: pathlib.Path):
+    """Windows-safe exclusive lock: a file opened with O_EXCL-style semantics via msvcrt locking; held for process lifetime."""
+    import os, msvcrt
+    root.mkdir(parents=True, exist_ok=True)
+    fh = open(root / "runner.lock", "a+")
+    try: msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+    except OSError:
+        print("another runner holds the lock; exiting", flush=True); raise SystemExit(0)
+    return fh
+
 def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD"):
+    _lock = single_instance(root)
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0
     state.logline(f"start {series}/{product} thr={thr} window=T-{t_open}..T-{t_close}min lot={lot}")
     while True:
