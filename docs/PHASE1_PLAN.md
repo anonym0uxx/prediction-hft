@@ -149,3 +149,12 @@ A $100–250 Phase 2 bankroll is a **learning bankroll**: at maker edges of 0.3�
 2. Later: Polymarket US app account + API key stored via the secret-store helper (not needed for weeks 1–4).
 3. Later: the bankroll figure you'd actually deploy — it sets the capacity gate G6.
 4. Decision whether to license a sharp-odds feed for S6 (≈$30–100/mo) or leave sports observe-only.
+
+## Live paper system (as of 2026-10-26 evening PT)
+Runners are Windows scheduled tasks (auto-restart, single-instance locks), all paper, zero orders:
+- `PredHFT-S7-Paper{,-ETH,-SOL}` — S7 late-window taker on KXBTCD/KXETHD/KXSOLD, T-5..T-2 min, 5c threshold, TWAP-aware horizon (rules card: settlement = 60-s index average), fills vs resting touch size. Data `data/s7live*`.
+- `PredHFT-Weather-J1` — J1 verifier on all KXHIGH*/KXLOW* cities: NWS preliminary CLI (exact official max/min-so-far) + METAR running proxy; trades ONLY determined states (p>=0.97 / <=0.03) with >=5c gap; every evaluation scored. Data `data/weather-j1`.
+- `PredHFT-S1-Maker` — S1 favorite-longshot maker: joins ask on 5-30c and bid on 50-95c contracts 6-36 h out; fills only from public prints after post exceeding queue-ahead; cancels inside final hour. Data `data/s1-maker`.
+- Cron `PredHFT rules-card batch (J2)` 10:00 PT — refreshes the universe store and produces up to 4 rules cards/day (`data/rules-cards`, `universe.db`).
+- Daily summary 09:05 PT (script-only) with per-family PnL, touch-size capacity and the scoreboard (Brier skill vs market).
+Gates unchanged: G1 skill, G2 fee-positive paper PnL (>=200 trades / 28 days), G3 error audit — per family — before any live promotion.

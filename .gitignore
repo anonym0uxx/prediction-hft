@@ -1,2 +1,3 @@
 data/\n.venv/\n__pycache__/\n*.pyc\n.pytest_cache/\nreports/*.parquet\n*.key\n*.secret\n.env\ndata/universe.db
 data/rules-input-*.json
+data/scoreboard-results.json
