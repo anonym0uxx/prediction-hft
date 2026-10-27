@@ -36,6 +36,9 @@ def PhiInv(p: float) -> float:
 
 # P6 sigma-regime gate (docs/EDGE_PLAN_2026-10-26.md A1): fixed thresholds, bp/min of 1-min log returns, never re-estimated
 SIGMA_MAX = {"KXBTCD": 0.000439, "KXETHD": 0.000571, "KXSOLD": 0.000575}
+# P13 projection-side rule (docs/FOCUS_2026-10-27.md §7): replica basis (official expiration_value - replica), bp, measured on settled markets
+BASIS_BP = {"BTC": 0.44, "ETH": 0.7, "SOL": 1.2}
+D_MIN_BP = {"KXBTC15M": 1.0, "KXETH15M": 1.0, "KXSOL15M": 2.0, "KXBTCD": 1.0, "KXETHD": 1.0, "KXSOLD": 2.0}
 def twap_horizon(mins_left: float) -> float:
     """Settlement is the mean of the index over the final minute (rules card): Var(mean_[T-1,T] - S_t) = sigma^2 (tau - 1 + 1/3) for tau >= 1."""
     return max(mins_left - 2.0 / 3.0, 0.05)
@@ -140,7 +143,7 @@ def settle(k: KalshiPublic, state: State):
         res = m.get("result")
         if res in ("yes", "no"):
             win = (res == t["side"])
-            t["status"] = "settled"; t["result"] = res; t["pnl"] = (1.0 if win else 0.0) * t["qty"] - t["cost"] - t["fee"]
+            t["status"] = "settled"; t["result"] = res; t["expiration_value"] = m.get("expiration_value"); t["pnl"] = (1.0 if win else 0.0) * t["qty"] - t["cost"] - t["fee"]
             state.open_positions.pop(t["ticker"], None); changed = True; Ledger(state.root, family=state.root.name).record_settle(t["ticker"], t["pnl"])
             state.logline(f"SETTLED {t['ticker']} side={t['side']} result={res} qty={t['qty']} pnl={t['pnl']:+.2f}")
     if changed: state.rewrite_trades(trades)
@@ -181,11 +184,11 @@ def single_instance(root: pathlib.Path):
     return fh
 
 def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD", sigma_gate: bool = False,
-        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600):
+        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600, proj_gate: bool = False):
     _lock = single_instance(root)
     import os; os.environ["PREDHFT_PRIORITY"] = "1"
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set()
-    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score}")
+    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate}")
     while True:
         try:
             now = utcnow(); next_hour = (int(now) // period_s + 1) * period_s; mins_left = (next_hour - now) / 60
@@ -197,6 +200,10 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             rep = replica_latest(product.split("-")[0])          # BRTI replica (median of constituent mids) if fresh, else Coinbase last trade
             spot = rep["replica"] if rep else float(jget(f"{CB_BASE}/{product}/ticker")["price"])
             partial, partial_n = (rep.get("partial_twap"), rep.get("partial_n", 0)) if rep else (None, 0)
+            basis_used = 0.0
+            if proj_gate and rep:                                   # basis correction: replica runs systematically low vs the official index
+                basis_used = BASIS_BP.get(product.split("-")[0], 0.0); spot *= (1 + basis_used * 1e-4)
+                if partial: partial *= (1 + basis_used * 1e-4)
             cands = [m for m in k.markets(series_ticker=series, status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")]
             # near the money: within 4 sigma*sqrt(t) in log space
             band = 4 * (sig or 0.0006) * math.sqrt(max(mins_left, 0.5))
@@ -236,32 +243,45 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         maker_posted.add(tk)
                 if scored_only or have_hour or tk in state.open_positions or not (t_close <= mins_left <= t_open): continue
                 if sigma_gate and regime == "hi": continue        # P6: sigma-hi is scored only, never traded
-                if ya - yb > 0.06 or not (mid and 0.03 <= mid <= 0.97): continue
                 side = None
-                if p - ya >= thr_used and 0 < ya < 1 and yas >= lot: side, edge = "yes", p - ya
-                elif (yb - p) >= thr_used and 0 < yb < 1 and ybs >= lot: side, edge = "no", yb - p
+                if proj_gate:
+                    # P13: side = sign(projected settlement average - K); no model threshold; buy the favoured side if offered <= .95 with size >= lot
+                    if partial is None or partial_n < 3 or mins_left >= 1.0: continue
+                    r_ = max(min(mins_left, 1.0), 0.02); proj = (1 - r_) * partial + r_ * spot; d_bp = 1e4 * (proj / K - 1)
+                    if abs(d_bp) < D_MIN_BP.get(series, 1.0): continue
+                    if d_bp > 0 and 0 < ya <= 0.95 and yas >= lot: side, edge = "yes", p - ya
+                    elif d_bp < 0 and 0 < yb < 1 and (1 - yb) <= 0.95 and ybs >= lot: side, edge = "no", yb - p
+                    if side: edge = max(edge, 0.01); proj_d_bp = d_bp
+                else:
+                    if ya - yb > 0.06 or not (mid and 0.03 <= mid <= 0.97): continue
+                    if p - ya >= thr_used and 0 < ya < 1 and yas >= lot: side, edge = "yes", p - ya
+                    elif (yb - p) >= thr_used and 0 < yb < 1 and ybs >= lot: side, edge = "no", yb - p
                 if side:
                     score = edge / math.sqrt(max(p * (1 - p), 1e-4))
-                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z}
+                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z, "d_bp": (proj_d_bp if proj_gate else None), "partial_n": partial_n}
             if best:
                 tk, side, p = best["tk"], best["side"], best["p"]
                 try: yb2, ya2, ybs2, yas2 = book_touch(k.orderbook(tk))
                 except Exception: yb2 = None
                 latency = time.time() - best["t_dec"]
-                ok = yb2 is not None and ((side == "yes" and p - ya2 >= best["thr_used"] and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= best["thr_used"] and 0 < yb2 < 1 and ybs2 > 0))
+                if proj_gate:
+                    ok = yb2 is not None and latency <= 1.0 and ((side == "yes" and 0 < ya2 <= 0.95 and yas2 >= lot) or (side == "no" and 0 < yb2 < 1 and (1 - yb2) <= 0.95 and ybs2 >= lot))
+                else:
+                    ok = yb2 is not None and ((side == "yes" and p - ya2 >= best["thr_used"] and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= best["thr_used"] and 0 < yb2 < 1 and ybs2 > 0))
                 if not ok:
                     state.logline(f"STALE {tk} {side} touch moved before fill (latency {latency:.2f}s)"); state.append(state.books, {"t": now, "ticker": tk, "stale_fill": True})
                 else:
                     price = min((ya2 if side == "yes" else 1 - yb2) + 0.01, 0.99); avail = yas2 if side == "yes" else ybs2   # +1 tick slippage
                     p_side = p if side == "yes" else 1 - p; pm_side = best["mid"] if side == "yes" else 1 - best["mid"]
                     led = Ledger(root, family=root.name)
-                    qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=pm_side, fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
+                    if proj_gate: p_side = max(p_side, 0.95)       # projection-locked sign: belief floor .95 (measured 10/11, 11/11); no market shrink
+                    qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=(None if proj_gate else pm_side), fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
                     if qty <= 0: state.logline(f"SKIP {tk} {side} {why}")
                     else:
                         cost = qty * price; fee = kalshi_taker_fee(qty, price)
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
-                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode}
+                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate}
                         state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(1.0 if mins_left < 1.5 else poll_s)
@@ -273,6 +293,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=float, default=8)
     ap.add_argument("--t-close", type=float, default=2); ap.add_argument("--root", default=None); ap.add_argument("--sigma-gate", action="store_true")
     ap.add_argument("--sigma", default="trail120", choices=["trail120", "ewma94"]); ap.add_argument("--dist", default="normal", choices=["normal", "t"]); ap.add_argument("--nu", type=float, default=8.0); ap.add_argument("--scale", type=float, default=0.8)
-    ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--period", type=int, default=3600); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--period", type=int, default=3600); ap.add_argument("--proj-gate", action="store_true"); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
     a = ap.parse_args(); root = pathlib.Path(a.root) if a.root else (pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}"))
-    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period)
+    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period, a.proj_gate)
