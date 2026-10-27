@@ -12,6 +12,7 @@ from __future__ import annotations
 import json, pathlib, sqlite3, time, datetime as dt
 
 CFG = {
+    "paper_mode": True,   # halts shadow-logged only; set False for live
     "bankroll": 250.0, "kelly_fraction": 0.25, "max_lot": 20, "min_lot": 5,
     "max_cost_per_market": 15.0, "max_cost_per_series_day": 60.0,
     "family_daily_loss": 15.0, "global_daily_loss": 25.0, "global_weekly_loss": 50.0,
@@ -119,7 +120,8 @@ def halted(ledger: Ledger) -> str | None:
 def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_cap: int | None = None, p_market: float | None = None,
          fee_per_contract: float = 0.0, close_ts: float | None = None, event_date: str | None = None, family: str | None = None) -> tuple[int, str]:
     h = halted(ledger)
-    if h: return 0, h
+    if h and not CFG.get("paper_mode", True): return 0, h
+    if h: ledger._ev(kind="halt_shadow", reason=h)       # PAPER MODE (user 2026-10-27): loss halts are recorded, not enforced — we are collecting data. Live mode enforces.
     pb = blend(family or ledger.family, p, p_market)
     eq = ledger.equity(); scale = min(4.0, eq / CFG["bankroll"])          # compounding: Kelly and per-market caps scale with equity (max 4x until live review)
     k = kelly_contracts(pb, price, fee_per_contract, bankroll=eq)
