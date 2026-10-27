@@ -16,6 +16,12 @@ def replica_latest(asset: str):
         return latest(asset)
     except Exception: return None
 
+def perp_latest(asset: str):
+    try:
+        from .perp_feed import latest
+        return latest(asset)
+    except Exception: return None
+
 CB_BASE = "https://api.exchange.coinbase.com/products"
 def utcnow() -> float: return time.time()
 def ts(s: str) -> int: return int(dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp())
@@ -38,6 +44,8 @@ def PhiInv(p: float) -> float:
 SIGMA_MAX = {"KXBTCD": 0.000439, "KXETHD": 0.000571, "KXSOLD": 0.000575}
 # P13 projection-side rule (docs/FOCUS_2026-10-27.md §7): replica basis (official expiration_value - replica), bp, measured on settled markets
 BASIS_BP = {"BTC": 0.44, "ETH": 0.7, "SOL": 1.2}
+LATENCY_GUARD_S = 1.5   # SHARPE_PLAN §5.1: price re-check is the real guard
+BELIEF_FLOOR = 0.97     # P13 sign accuracy >= .995 at |d| >= 1 bp
 D_MIN_BP = {"KXBTC15M": 1.0, "KXETH15M": 1.0, "KXSOL15M": 2.0, "KXBTCD": 1.0, "KXETHD": 1.0, "KXSOLD": 2.0}
 def twap_horizon(mins_left: float) -> float:
     """Settlement is the mean of the index over the final minute (rules card): Var(mean_[T-1,T] - S_t) = sigma^2 (tau - 1 + 1/3) for tau >= 1."""
@@ -198,8 +206,9 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             if mins_left > t_open + 1 or mins_left < t_close:
                 for ct in [c for c in list(nofill) if isinstance(c, int) and c <= now]:
                     g = nofill.pop(ct)
-                    if not any(t.get("close_ts") == ct for t in state.open_positions.values()) and not any(t.get("close_ts") == ct for t in state.trades_tail()):
-                        state.logline(f"NOFILL {g['tk']} reasons={g['reasons']} min_fav={g['min_fav']:.3f}")
+                    traded = any(t.get("close_ts") == ct for t in state.open_positions.values()) or any(t.get("close_ts") == ct for t in state.trades_tail())
+                    if not traded: state.logline(f"NOFILL {g['tk']} reasons={g['reasons']} min_fav={g['min_fav']:.3f}")
+                    sup = g.get("supply", {}); state.append(state.root / "supply.jsonl", {"close_ts": ct, "ticker": g["tk"], "min_fav": g["min_fav"], "traded": traded, "utc_hour": dt.datetime.fromtimestamp(ct, dt.timezone.utc).hour, "reasons": g["reasons"], **sup})
                 settle(k, state); maker_settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
             if sig is None or now - sig_ts > 900:                   # P13 diag: never fetch Coinbase candles inside the final minute (38 s hang class)
                 s = (sigma_ewma(product) if sigma_mode == "ewma94" else sigma_1m(product)); sig = s or sig; sig_ts = now
@@ -208,6 +217,10 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             spot = rep["replica"] if rep else float(jget(f"{CB_BASE}/{product}/ticker")["price"])
             partial, partial_n = (rep.get("partial_twap"), rep.get("partial_n", 0)) if rep else (None, 0)
             basis_used = 0.0
+            perp = perp_latest(product.split("-")[0]); perp_spot = perp_age = perp_basis = None
+            if perp and perp.get("basis_med_bp") is not None:
+                perp_age = round(now - perp["t"], 2); perp_basis = perp["basis_med_bp"]
+                if perp_age <= 2.0: perp_spot = perp["px"] / (1 + perp_basis * 1e-4) * (1 + BASIS_BP.get(product.split("-")[0], 0.0) * 1e-4)
             if proj_gate and rep:                                   # basis correction: replica runs systematically low vs the official index
                 basis_used = BASIS_BP.get(product.split("-")[0], 0.0); spot *= (1 + basis_used * 1e-4)
                 if partial: partial *= (1 + basis_used * 1e-4)
@@ -241,7 +254,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     try: sig_mkt = abs(math.log(spot / K)) / (abs(PhiInv(mid)) * math.sqrt(twap_horizon(mins_left)))
                     except (ZeroDivisionError, ValueError): sig_mkt = None
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
-                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour}
+                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis}
                 state.append(state.books, snap)
                 # scored rows (P6 regime split / P9 final-minute books skill): one row per strike per poll inside the trading window
                 if mid and (t_close <= mins_left <= t_open):
@@ -264,6 +277,11 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     else: pin.pop(tk, None)
                     if partial is None or partial_n < 3 or mins_left >= 1.0: g["reasons"]["partial"] = g["reasons"].get("partial", 0) + 1; continue
                     r_ = max(min(mins_left, 1.0), 0.02); proj = (1 - r_) * partial + r_ * spot; d_bp = 1e4 * (proj / K - 1)
+                    d_perp_bp = (1e4 * (((1 - r_) * partial + r_ * perp_spot) / K - 1)) if perp_spot else None   # P14 scored-only
+                    sup = g.setdefault("supply", {"first_t_d_ge_1bp": None, "fav_at_first_d_ge_1bp": None, "t_min_fav": None, "d_at_min_fav": None, "pinned_at_T55": None})
+                    if sup["pinned_at_T55"] is None and mins_left <= 0.92: sup["pinned_at_T55"] = bool(fav_px >= 0.99)
+                    if fav_px <= g["min_fav"]: sup["t_min_fav"] = now; sup["d_at_min_fav"] = round(d_bp, 2)
+                    if sup["first_t_d_ge_1bp"] is None and abs(d_bp) >= D_MIN_BP.get(series, 1.0): sup["first_t_d_ge_1bp"] = now; sup["fav_at_first_d_ge_1bp"] = fav_px
                     if abs(d_bp) < D_MIN_BP.get(series, 1.0): g["reasons"]["d_small"] = g["reasons"].get("d_small", 0) + 1; continue
                     if d_bp > 0 and 0 < ya <= 0.95 and yas >= lot: side, edge = "yes", p - ya
                     elif d_bp < 0 and 0 < yb < 1 and (1 - yb) <= 0.95 and ybs >= lot: side, edge = "no", yb - p
@@ -275,7 +293,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     elif (yb - p) >= thr_used and 0 < yb < 1 and ybs >= lot: side, edge = "no", yb - p
                 if side:
                     score = edge / math.sqrt(max(p * (1 - p), 1e-4))
-                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z, "d_bp": (proj_d_bp if proj_gate else None), "partial_n": partial_n}
+                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z, "d_bp": (proj_d_bp if proj_gate else None), "partial_n": partial_n, "d_perp_bp": (d_perp_bp if proj_gate else None)}
                     if proj_gate: break                            # re-check immediately (BTCD 1.65 s latency came from fetching further strikes first)
             if best:
                 tk, side, p = best["tk"], best["side"], best["p"]
@@ -283,7 +301,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 except Exception: yb2 = None
                 latency = time.time() - best["t_dec"]
                 if proj_gate:
-                    ok = yb2 is not None and latency <= 1.0 and ((side == "yes" and 0 < ya2 <= 0.95 and yas2 >= lot) or (side == "no" and 0 < yb2 < 1 and (1 - yb2) <= 0.95 and ybs2 >= lot))
+                    ok = yb2 is not None and latency <= LATENCY_GUARD_S and ((side == "yes" and 0 < ya2 <= 0.95 and yas2 >= lot) or (side == "no" and 0 < yb2 < 1 and (1 - yb2) <= 0.95 and ybs2 >= lot))
                 else:
                     ok = yb2 is not None and ((side == "yes" and p - ya2 >= best["thr_used"] and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= best["thr_used"] and 0 < yb2 < 1 and ybs2 > 0))
                 if not ok:
@@ -292,14 +310,16 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     price = min((ya2 if side == "yes" else 1 - yb2) + 0.01, 0.99); avail = yas2 if side == "yes" else ybs2   # +1 tick slippage
                     p_side = p if side == "yes" else 1 - p; pm_side = best["mid"] if side == "yes" else 1 - best["mid"]
                     led = Ledger(root, family=root.name)
-                    if proj_gate: p_side = max(p_side, 0.95)       # projection-locked sign: belief floor .95 (measured 10/11, 11/11); no market shrink
+                    if proj_gate: p_side = max(p_side, BELIEF_FLOOR)   # projection-locked sign: belief floor (SHARPE_PLAN §5.1); no market shrink
                     qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=(None if proj_gate else pm_side), fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
-                    if qty <= 0: state.logline(f"SKIP {tk} {side} {why}")
+                    if qty <= 0:
+                        state.logline(f"SKIP {tk} {side} {why}")
+                        if proj_gate: g2 = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}); g2["reasons"]["kelly_zero"] = g2["reasons"].get("kelly_zero", 0) + 1
                     else:
                         cost = qty * price; fee = kalshi_taker_fee(qty, price)
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
-                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate}
+                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate, "floor_used": (BELIEF_FLOOR if proj_gate else None), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis}
                         state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(0.7 if mins_left < 1.5 else poll_s)

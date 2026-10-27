@@ -16,7 +16,9 @@ CFG = {
     "max_cost_per_market": 15.0, "max_cost_per_series_day": 60.0,
     "family_daily_loss": 15.0, "global_daily_loss": 25.0, "global_weekly_loss": 50.0,
     "max_cost_per_settlement_ts": 60.0,  # global per close_ts (net per ticker); plus per rule-group cap below (P13 diag 2026-10-27)
-    "max_cost_per_settlement_ts_group": 30.0,   # same close_ts within one rule group (s7p13-*, s7p15-*, s7p10-*): 3 assets x lot 10
+    "max_cost_per_settlement_ts_group": 30.0,
+    "max_cost_per_settlement_ts_crypto": 15.0,   # SHARPE_PLAN §5.3: rho ~.9 across BTC/ETH/SOL at the same close -> one bet per close_ts
+    "crypto_series": ["KXBTC15M", "KXETH15M", "KXSOL15M", "KXBTCD", "KXETHD", "KXSOLD"],   # same close_ts within one rule group (s7p13-*, s7p15-*, s7p10-*): 3 assets x lot 10
     "max_cost_per_event_date": 30.0,
     "max_errors_per_hour": 30,
     "observability_mult": {"high": 1.0, "partial": 0.6, "none": 0.3, None: 0.5},
@@ -83,12 +85,13 @@ class Ledger:
         return sum(e["pnl"] for e in self.events(time.time() - 7 * 86400) if e["kind"] == "settle")
     def cost_series_today(self, series: str) -> float:
         return sum(e["cost"] for e in self.events(self._day0()) if e["kind"] == "open" and e.get("series") == series)
-    def cost_settlement(self, close_ts: float, group: str | None = None) -> float:
+    def cost_settlement(self, close_ts: float, group: str | None = None, series_set: list | None = None) -> float:
         # net exposure per ticker (a YES and a NO on the same market hedge, not add); optionally restricted to one rule group (family name prefix before the first '-')
         by_tk: dict[str, float] = {}
         for e in self.events(time.time() - 3 * 86400):
             if e["kind"] != "open" or not e.get("close_ts") or abs(e["close_ts"] - close_ts) >= 60: continue
             if group and (e.get("family") or "").split("-")[0] != group: continue
+            if series_set and e.get("series") not in series_set: continue
             sgn = -1.0 if e.get("side") == "no" else 1.0
             by_tk[e["ticker"]] = by_tk.get(e["ticker"], 0.0) + sgn * e["cost"]
         return sum(abs(v) for v in by_tk.values())
@@ -121,5 +124,8 @@ def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_
     if ledger.cost_series_today(series) + q * price > CFG["max_cost_per_series_day"]: return 0, "series daily cost cap"
     if close_ts and ledger.cost_settlement(close_ts) + q * price > CFG["max_cost_per_settlement_ts"]: return 0, "settlement-timestamp exposure cap"
     if close_ts and ledger.cost_settlement(close_ts, group=(ledger.family or "").split("-")[0]) + q * price > CFG["max_cost_per_settlement_ts_group"]: return 0, "settlement-timestamp group cap"
+    if close_ts and series in CFG["crypto_series"]:
+        if ledger.cost_settlement(close_ts, series_set=CFG["crypto_series"]) + q * price > CFG["max_cost_per_settlement_ts_crypto"]: return 0, "crypto close_ts cap (one bet per close)"
+        if (ledger.family or "").startswith("s7p15-") and ledger.cost_settlement(close_ts, group="s7p13") > 0: return 0, "p13_holds_close_ts"
     if event_date and ledger.cost_event_date(event_date) + q * price > CFG["max_cost_per_event_date"]: return 0, "event-date exposure cap"
     return q, f"kelly={k} p_blend={pb:.2f} cap={cap} mult={mult:.2f}"

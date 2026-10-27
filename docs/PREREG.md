@@ -51,3 +51,10 @@ Nothing below may be changed after seeing results. New families get a new number
 - Rule: window T-55..T-10 s; proj = (1-r)*partial_twap + r*spot with replica basis correction (+0.44/+0.7/+1.2 bp BTC/ETH/SOL); side = sign(proj - K); require |proj-K|/K >= 1 bp (SOL 2), partial_n >= 3; buy the favoured side only if offered <= .95 with resting size >= lot; +1 tick; re-check before fill; skip if latency > 1 s; no model threshold, no market shrink (belief floor .95); one position per market; lot 10.
 - Pass: n >= 60 pooled BTC+ETH, mean net > 0 at 95% market-clustered AND hit >= 85%. Pause if hit < 70% at n >= 20. SOL evaluated separately. Promotion to live-micro per EDGE_PLAN ladder.
 - Simultaneously: s7live x3 STOPPED (P1 paused); s1-maker STOPPED (82 fills projected -$32.9, -5.2c/ct); s7p10 ETH/SOL -> scored-only; P12 15M runners keep running unchanged for their own evaluation.
+
+## Amendments 2026-10-27 10:30 PT (docs/SHARPE_PLAN_2026-10-27.md §5)
+- P13 executability: latency guard 1.0 -> 1.5 s (price re-check remains the guard); belief floor .95 -> .97 (sign accuracy >= .995 at |d| >= 1 bp). Same pass rule. Report the price .94-.96 sub-cell separately; revert floor to .95 if its hit < .95 at n >= 30.
+- P14 (scored-only): OKX perp-adjusted spot/projection logged alongside d_bp (spot_perp, d_perp_bp, perp_age_s, perp_basis_bp). Trade on d_perp only when perp side is right >= 95% on >= 40 disagreement/flip markets AND sign accuracy at |d_perp| >= 1 bp >= .99 on >= 100 markets.
+- Crypto one-bet-per-close: $15 cap per close_ts across all crypto families; P12 (s7p15) yields when P13 holds the close. Evaluation unchanged.
+- P10 BTC paper trading paused at n=7 (-22c +- 19 clustered); evaluation continues scored-only (P10/P11 Brier). P2 (s7final-KXBTCD) stopped, superseded by s7p13-KXBTCD.
+- P13 supply logging (data/<fam>/supply.jsonl); no hour-of-day sizing until a bucket has >= 40 opportunities.

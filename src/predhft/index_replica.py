@@ -23,16 +23,16 @@ VENUES = {
 }
 
 def sample(product: str) -> dict:
-    out: dict[str, tuple] = {}
+    out: dict[str, tuple] = {}; t_s = time.time()
     def one(v, fn):
         try: out[v] = fn(product)
         except Exception: pass
     th = [threading.Thread(target=one, args=(v, fn), daemon=True) for v, fn in VENUES.items()]
-    [t.start() for t in th]; [t.join(timeout=2.5) for t in th]
+    [t.start() for t in th]; [t.join(timeout=1.2) for t in th]
     mids = {v: (b + a) / 2 for v, (b, a, _) in out.items() if b and a and a >= b and (a - b) / a < 0.005}
     rep = statistics.median(mids.values()) if len(mids) >= 2 else None
     cb_last = out.get("coinbase", (None, None, None))[2]
-    return {"t": time.time(), "mids": {v: round(m, 4) for v, m in mids.items()}, "replica": rep, "cb_last": cb_last,
+    return {"t": time.time(), "mids": {v: round(m, 4) for v, m in mids.items()}, "replica": rep, "cb_last": cb_last, "n_venues": len(mids), "sample_ms": int((time.time() - t_s) * 1000),
             "basis_bp": (round((cb_last / rep - 1) * 1e4, 2) if rep and cb_last else None)}
 
 def loop(products: list[str], root: pathlib.Path):
