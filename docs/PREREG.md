@@ -36,3 +36,7 @@ Nothing below may be changed after seeing results. New families get a new number
 - Secondary scored-only maker family s7p10-KXBTCD-maker5: post p_side - 0.02 at T-5..T-3.5, cancel at T-3, fill iff strictly traded through; evaluate adverse selection (filled vs unfilled P&L).
 
 - P10 amendment 2026-10-26 22:20 PT (user decision, before any ETH/SOL paper result): ETH/SOL trade the P10 model on paper at lot 10 for sampling; evaluated as separate families (s7p10-KXETHD, s7p10-KXSOLD) with the same pass/pause rules; hindcast prior for ETH is negative (-2.9c +-6.6).
+
+## P11 — Hour-of-day tilt for P10 crypto (registered 2026-10-26 22:40 PT, before any overnight P10 result)
+- Hypothesis (from the no-lookahead BTC hindcast, P10 recipe, T-3): the 04-11Z bucket (21:00-04:00 PT) has positive edge and model Brier < mid (04-07Z +44c n=7; 08-11Z +14c n=16), US hours 12-19Z do not. Thin hours, fewer MMs.
+- Test: per-bucket per-contract P&L and Brier vs mid from the live P10 tape, hour-clustered. Lot stays 10 everywhere until a bucket has >= 60 trade-hours with mean - 1.96 se > 0; then that bucket may run lot 20 (still within all caps); buckets with CI < 0 at n >= 40 go scored-only. No bucket is ever "guaranteed"; sizing follows the measured edge only.
