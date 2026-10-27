@@ -1,0 +1,54 @@
+{
+ "series": "KXMLBGAME",
+ "settlement_source": "Official final result per governing league, then ESPN/others in hierarchical order. Kalshi series sources: ESPN, Fox Sports, the Governing League (mlb.com). Terms https://assets.kalshi.com/contract_terms/BASEBALLGAMEWIN.pdf.",
+ "settlement_variable": "Team X strictly outscores opponent (more runs) over the full game incl. all extra innings, per first official final result (mlb.com/scores per non-binding instructions); corrections accepted only before Contract Expiration if clearly erroneous.",
+ "timezone": "Eastern Time (ET) for time periods; API close_time UTC authoritative. Expiration time per terms 10:00 AM ET.",
+ "tie_handling": "Tie after all extra innings (e.g. All-Star format): no Tie strike -> each team pays $1/n rounded down ($0.50); Tie strike -> YES and team strikes NO. Normal MLB games cannot tie.",
+ "rounding": "n/a (strictly greater score); ties paid per tie clause",
+ "trading_close_vs_settlement": "API close_time is set days after scheduled game start (sample: game Oct 28 -> close Oct 30 23:00Z), but the contract expires earlier once a winner is reported (Rule 7.2); trading is live in-play. Settlement timer 120s. Last Trading Time = Expiration time.",
+ "early_close_or_void_clauses": "Postponed, rescheduled and started within 48 h of original start: stays open, resolves on result; not started in 48 h / cancelled / abandoned: last fair price (sole discretion). Suspended and resumed within 48 h: resolves on completed game. Shortened/called game declared official by governing body with a winner: resolves on that result. Forfeit before first pitch: last fair price; after start: NO for forfeiting team. Venue change within 48 h same home/away OK; reversed: last fair price. Disqualification pre-game: last fair price; post-start: NO. Doubleheader/multi-postponement makeup mapping rules. Series-game number not reached: last fair price. Market Outcome Review (Rule 7.1) at sole discretion. can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Title 'X wins' omits 48-h postponement/fair-price clause",
+  "rules_secondary says market closes after rescheduled game 'within two days' while terms say expiry 10:00 AM ET, latest 3 days after original date",
+  "Shortened/rain-called games count as full-game result",
+  "Fair-price resolution is discretionary, not $0/$1",
+  "Opponent pre-game forfeit does NOT pay YES"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "MLB scores (mlb.com / MLB Stats API)",
+   "url": "https://www.mlb.com/scores",
+   "latency": "approx seconds (not measured)",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN MLB scoreboard",
+   "url": "https://www.espn.com/mlb/scoreboard",
+   "latency": "approx seconds to tens of seconds (not measured)",
+   "cost": "free"
+  },
+  {
+   "name": "TV broadcast",
+   "url": "n/a",
+   "latency": "real-time",
+   "cost": "varies"
+  },
+  {
+   "name": "Licensed sports data (Sportradar, Genius)",
+   "url": "https://sportradar.com",
+   "latency": "sub-second to seconds",
+   "cost": "paid"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "In-play outcome revealed progressively while market trades live; faster feeds beat web scoreboards (feed-latency adverse selection)",
+  "Weather delays/postponements resolve to 'last fair price' at Exchange discretion",
+  "Rain-shortened games settle on official result",
+  "Doubleheader makeup-game mapping rules are complicated",
+  "Insider prohibitions (players, staff, owners) imply information asymmetry",
+  "Market Outcome Review (Rule 7.1) at sole discretion",
+  "fee_multiplier 0.5 with quadratic_with_maker_fees; few open markets (World Series period: 2 open, ~$62k 24h)"
+ ],
+ "notes": "Read Kalshi series/markets and BASEBALLGAMEWIN.pdf (middle via cached file). Did not fetch mlb.com/ESPN pages; latencies are estimates."
+}

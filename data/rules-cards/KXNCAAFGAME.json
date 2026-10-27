@@ -1,0 +1,53 @@
+{
+ "series": "KXNCAAFGAME",
+ "settlement_source": "Official final result per governing league, then ESPN/others in hierarchical order. Kalshi series sources: NCAA (ncaa.com), ESPN. Terms https://assets.kalshi.com/contract_terms/FOOTBALLGAMEWIN.pdf.",
+ "settlement_variable": "Team X strictly outscores opponent in full regulation incl. all overtime in the specified college football game; first official final result reported (corrections accepted only before Contract Expiration if clearly erroneous).",
+ "timezone": "Eastern Time (ET) for time periods; API close_time UTC authoritative. Expiration time per terms 10:00 AM ET.",
+ "tie_handling": "If tied with no Tie strike listed YES and NO each pay $0.50; if Tie strike listed it resolves YES and team strikes NO. (College OT rarely ends tied.)",
+ "rounding": "n/a (strictly greater score); ties paid per tie clause",
+ "trading_close_vs_settlement": "API close_time is set days after scheduled game start (sample: game Oct 28 -> close Oct 30 23:00Z), but the contract expires earlier once a winner is reported (Rule 7.2); trading is live in-play. Settlement timer 90s. Last Trading Time = Expiration time.",
+ "early_close_or_void_clauses": "Postponed but starts within 48 h of original start: stays open, resolves on result. Not started within 48 h / cancelled: last fair price (Exchange sole discretion). Suspended/abandoned before 55 min of play and not resuming within 48 h: last fair price; after 55 min or league declares game final: settle on state at that point. Forfeit before kickoff: last fair price; after kickoff: per official result. Venue change within 48 h same home/away OK; reversed home/away: last fair price. Disqualification/vacated pre-game: last fair price; post-start: NO for DQ'd team. Market Outcome Review at sole discretion (Rule 7.1). can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Title 'X wins' omits the 48-h postponement/fair-price clause and the 55-minute suspension rule",
+  "'Win' includes overtime",
+  "Fair-price resolution is discretionary, not a $0/$1 payout",
+  "Opponent forfeit before kickoff does NOT pay YES"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPN scoreboard / game pages (unofficial JSON endpoints)",
+   "url": "https://www.espn.com/college-football/scoreboard",
+   "latency": "approx seconds to tens of seconds (not measured)",
+   "cost": "free"
+  },
+  {
+   "name": "NCAA.com scoreboard",
+   "url": "https://www.ncaa.com/scoreboard/football/fbs",
+   "latency": "approx seconds-minutes (not measured)",
+   "cost": "free"
+  },
+  {
+   "name": "TV broadcast",
+   "url": "n/a",
+   "latency": "real-time",
+   "cost": "varies"
+  },
+  {
+   "name": "Licensed low-latency sports data (Sportradar, Genius)",
+   "url": "https://sportradar.com",
+   "latency": "sub-second to seconds",
+   "cost": "paid"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Outcome revealed in-play while trading stays open: decided/late-game states observable by faster feeds (feed-latency adverse selection)",
+  "Web scoreboard latency vs broadcast/stadium creates informed flow",
+  "Fair-price (last price) resolution on postponement/cancellation/suspension at Exchange sole discretion",
+  "Suspension rule keyed to 55 minutes of play: clock basis ambiguous",
+  "Insider prohibitions (players, coaches, staff, owners) imply known information-asymmetry risk",
+  "Market Outcome Review (Rule 7.1) at sole discretion; close_time days after game despite early expiration",
+  "quadratic_with_maker_fees fee type"
+ ],
+ "notes": "Read Kalshi series/markets and FOOTBALLGAMEWIN.pdf (middle via cached file). Did not fetch ncaa.com/ESPN pages; latency figures are estimates. 472 open markets; ~$870k 24h volume."
+}

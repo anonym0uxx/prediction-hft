@@ -1,0 +1,53 @@
+{
+ "series": "KXBTC",
+ "settlement_source": "CF Benchmarks Bitcoin Real-Time Index (BRTI); https://www.cfbenchmarks.com/data/indices/BRTI; terms https://assets.kalshi.com/contract_terms/BTC.pdf. Source Agency = CF Benchmarks (Kraken-owned; Kraken is a constituent).",
+ "settlement_variable": "Simple average of the 60 BRTI values in the minute (60 s) prior to close time T (5 PM EDT on the listed date); bucket market 'between' floor..cap inclusive (cap = X.99): YES iff floor <= average <= cap. Revisions after Expiration ignored. Unspecified: 1-s vs 200-ms sampling, window boundary, behavior with <60 values.",
+ "timezone": "Rules in US Eastern (EDT/EST label); API close_time UTC authoritative (21:00Z = 5 PM EDT). DST ends Nov 1 2026, so UTC offset of 5 PM changes for later dates; verify via close_time.",
+ "tie_handling": "'Between' inclusive on both ends of the listed pair. Unrounded averages in the gap (X.99, X+1) fall in no bucket as written; how Kalshi resolves is unknown.",
+ "rounding": "unknown: unspecified by Kalshi; index published to 0.01 USD, average may carry more decimals.",
+ "trading_close_vs_settlement": "close_time == T == end of the 60-s averaging window, so the entire settlement window is inside live trading. Settlement timer 60 s; API expiration_time up to 1 week later (sooner of first minute after T with data, or one week); Settlement Date no later than next day unless under review.",
+ "early_close_or_void_clauses": "can_close_early=1 (no condition stated). No data at Expiration Time -> resolves NO (not void). Kalshi may at sole discretion start Market Outcome Review (Rule 6.3(c)); settlement delay Rule 7.1. Position accountability $25,000/strike/member. Source-agency employees and MNPI holders barred.",
+ "title_vs_rules_divergences": [
+  "Title 'Bitcoin price range on <date>?' omits the 5 PM EDT time that rules_primary specifies",
+  "Title implies spot price at an instant; rules use 60-s trailing average of the real-time index (not Coinbase/Google spot)",
+  "No data -> NO, not void",
+  "'60 prices collected in the last minute before expiration' while trading continues through that minute"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "CF Benchmarks BRTI page (official)",
+   "url": "https://www.cfbenchmarks.com/data/indices/BRTI",
+   "latency": "~1 s",
+   "cost": "free to view; programmatic access licensed"
+  },
+  {
+   "name": "CF Benchmarks licensed REST/WS API",
+   "url": "https://docs.cfbenchmarks.com/api/rest/values/",
+   "latency": "real-time (1 s / 200 ms)",
+   "cost": "paid, price not public"
+  },
+  {
+   "name": "Constituent exchange public books (Coinbase, Kraken, Bitstamp, Gemini, etc.) to replicate BRTI",
+   "url": "https://docs.cfbenchmarks.com/CME%20CF%20Real%20Time%20Indices%20Methodology.pdf",
+   "latency": "sub-second; small replica error",
+   "cost": "free"
+  },
+  {
+   "name": "Kalshi public API market result",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTC",
+   "latency": "minutes after close",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Averaging window (T-60s..T) lies entirely inside live trading: anyone streaming the index can compute the running 60-s average; resting orders near bucket edges are adversely selected",
+  "Settlement is a 60-s TWAP of an order-book index, not a last-trade print; exchange tickers are proxies only",
+  "Rounding/precision and window boundary unspecified",
+  "No data at expiration -> NO (not void)",
+  "Kalshi Market Outcome Review and settlement delay at sole discretion",
+  "CF Benchmarks is Kraken-owned and Kraken is a constituent; methodology permits expert judgement",
+  "Narrow bucket ladder: most buckets resolve NO; can_close_early=1 unconditional"
+ ],
+ "notes": "Read: Kalshi series/markets via universe show, contract terms PDF. Did NOT independently re-read CF methodology for this card (see KXBTCD card for methodology v17.0 detail; same index family). Series frequency field says hourly but sampled markets are date-specific 5 PM EDT buckets opened ~7 days ahead."
+}
