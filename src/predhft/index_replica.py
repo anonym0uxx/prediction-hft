@@ -38,7 +38,7 @@ def sample(product: str) -> dict:
 def loop(products: list[str], root: pathlib.Path):
     partial: dict[str, list] = {p: [] for p in products}; win: dict[str, int] = {p: 0 for p in products}
     while True:
-        t0 = time.time(); next_hour = (int(t0) // 3600 + 1) * 3600; wstart = next_hour - 60
+        t0 = time.time(); next_hour = (int(t0) // 900 + 1) * 900; wstart = next_hour - 60   # next 15-min boundary (hourly closes are a subset)
         for p in products:
             r = sample(p)
             if r["replica"] is None: continue

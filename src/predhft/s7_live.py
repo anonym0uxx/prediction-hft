@@ -181,14 +181,14 @@ def single_instance(root: pathlib.Path):
     return fh
 
 def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD", sigma_gate: bool = False,
-        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False):
+        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600):
     _lock = single_instance(root)
     import os; os.environ["PREDHFT_PRIORITY"] = "1"
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set()
-    state.logline(f"start {series}/{product} thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score}")
+    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score}")
     while True:
         try:
-            now = utcnow(); next_hour = (int(now) // 3600 + 1) * 3600; mins_left = (next_hour - now) / 60
+            now = utcnow(); next_hour = (int(now) // period_s + 1) * period_s; mins_left = (next_hour - now) / 60
             if mins_left > t_open + 1 or mins_left < t_close:
                 settle(k, state); maker_settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
             if sigma_mode == "ewma94" or now - sig_ts > 900:
@@ -273,6 +273,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=float, default=8)
     ap.add_argument("--t-close", type=float, default=2); ap.add_argument("--root", default=None); ap.add_argument("--sigma-gate", action="store_true")
     ap.add_argument("--sigma", default="trail120", choices=["trail120", "ewma94"]); ap.add_argument("--dist", default="normal", choices=["normal", "t"]); ap.add_argument("--nu", type=float, default=8.0); ap.add_argument("--scale", type=float, default=0.8)
-    ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--period", type=int, default=3600); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
     a = ap.parse_args(); root = pathlib.Path(a.root) if a.root else (pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}"))
-    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score)
+    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period)
