@@ -85,6 +85,13 @@ class Ledger:
         return sum(e["pnl"] for e in self.events(time.time() - 7 * 86400) if e["kind"] == "settle")
     def cost_series_today(self, series: str) -> float:
         return sum(e["cost"] for e in self.events(self._day0()) if e["kind"] == "open" and e.get("series") == series)
+    def equity(self) -> float:
+        """Paper equity = base bankroll + realized P&L since the architecture reset (all families, global ledger).
+        Kelly sizes on this, so stakes compound with results; the dollar loss halts stay fixed (they protect the base)."""
+        try: t0 = json.loads((pathlib.Path("data") / "RESET.json").read_text()).get("reset_at", 0)
+        except Exception: t0 = 0
+        pnl = sum(e.get("pnl", 0.0) for e in self.events(max(t0, time.time() - 90 * 86400)) if e["kind"] == "settle" and e["t"] >= t0)
+        return max(CFG["bankroll"] * 0.5, CFG["bankroll"] + pnl)
     def cost_settlement(self, close_ts: float, group: str | None = None, series_set: list | None = None) -> float:
         # net exposure per ticker (a YES and a NO on the same market hedge, not add); optionally restricted to one rule group (family name prefix before the first '-')
         by_tk: dict[str, float] = {}
@@ -114,9 +121,10 @@ def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_
     h = halted(ledger)
     if h: return 0, h
     pb = blend(family or ledger.family, p, p_market)
-    k = kelly_contracts(pb, price, fee_per_contract)
+    eq = ledger.equity(); scale = min(4.0, eq / CFG["bankroll"])          # compounding: Kelly and per-market caps scale with equity (max 4x until live review)
+    k = kelly_contracts(pb, price, fee_per_contract, bankroll=eq)
     if k <= 0: return 0, f"no edge after shrink (p={p:.2f} p_blend={pb:.2f} c={price + fee_per_contract:.2f})"
-    cap = min(lot_cap or CFG["max_lot"], CFG["max_lot"], int(CFG["max_cost_per_market"] / max(price, 0.01)))
+    cap = min(round((lot_cap or CFG["max_lot"]) * scale), round(CFG["max_lot"] * scale), int(CFG["max_cost_per_market"] * scale / max(price, 0.01)))
     mult = series_multiplier(series)
     av = avail * (CFG["thin_fraction"] if avail < CFG["thin_book"] else 1.0)
     q = int(min(k, cap * mult, av))
@@ -128,4 +136,4 @@ def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_
         if ledger.cost_settlement(close_ts, series_set=CFG["crypto_series"]) + q * price > CFG["max_cost_per_settlement_ts_crypto"]: return 0, "crypto close_ts cap (one bet per close)"
         if (ledger.family or "").startswith("s7p15-") and ledger.cost_settlement(close_ts, group="s7p13") > 0: return 0, "p13_holds_close_ts"
     if event_date and ledger.cost_event_date(event_date) + q * price > CFG["max_cost_per_event_date"]: return 0, "event-date exposure cap"
-    return q, f"kelly={k} p_blend={pb:.2f} cap={cap} mult={mult:.2f}"
+    return q, f"kelly={k} p_blend={pb:.2f} cap={cap} mult={mult:.2f} equity={eq:.2f}"

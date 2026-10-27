@@ -57,4 +57,5 @@ Nothing below may be changed after seeing results. New families get a new number
 - P14 (scored-only): OKX perp-adjusted spot/projection logged alongside d_bp (spot_perp, d_perp_bp, perp_age_s, perp_basis_bp). Trade on d_perp only when perp side is right >= 95% on >= 40 disagreement/flip markets AND sign accuracy at |d_perp| >= 1 bp >= .99 on >= 100 markets.
 - Crypto one-bet-per-close: $15 cap per close_ts across all crypto families; P12 (s7p15) yields when P13 holds the close. Evaluation unchanged.
 - P10 BTC paper trading paused at n=7 (-22c +- 19 clustered); evaluation continues scored-only (P10/P11 Brier). P2 (s7final-KXBTCD) stopped, superseded by s7p13-KXBTCD.
+- Sizing compounds: Kelly bankroll and per-market lot caps scale with paper equity (base 250 + realized P&L since reset; floor 0.5x, ceiling 4x pending live review); dollar loss halts fixed.
 - P13 supply logging (data/<fam>/supply.jsonl); no hour-of-day sizing until a bucket has >= 40 opportunities.
