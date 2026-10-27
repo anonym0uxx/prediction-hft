@@ -1,0 +1,73 @@
+# pattern	weight	kind	note	ctx
+# kind: word (whole word, literal), phrase (multi-word literal, whole-word bounded), regex (raw, wrapped in \b..\b unless it starts with ^ or (?<)
+# ctx (optional 5th col): regex that must match within +-5 tokens of the hit, else the hit is dropped (spec 3.6 "only with ...")
+# lex_version: see data/lexicon/VERSION
+# --- bullish ---
+rally(ing|ied|ies)?	1.8	regex	rally
+breakout	1.8	word	breakout
+break(s|ing)? out	1.5	regex	breaking out
+pump(ing|ed|s)?(?!\s*(?:\.\s*fun|swap|\s*dot\s*fun))	1.5	regex	pump; not pump.fun/pumpswap (also stoplisted); capitalised Pump removed in normalize
+(?:to the )?moon(ing|ed)?	2.0	regex	moon; 'moons' on r/CryptoCurrency is stoplisted
+ath	1.5	word	all-time high abbrev
+all[- ]time high(s)?	1.5	regex	all-time high
+bull(ish|s|run)?	2.0	regex	bull
+bull run	2.0	phrase	bull run
+buy the dip	1.5	phrase	buy the dip
+btfd	1.5	word	buy the dip abbrev
+accumulat(e|ing|ion|ed)	1.2	regex	accumulate
+bottom is in	2.0	phrase	bottom is in
+undervalued	1.2	word	undervalued
+send it	0.8	phrase	send it (weak: "send it to my wallet" is common on r/Bitcoin)
+green (candle|day|week|dildo)s?	0.8	regex	green only as candle/day/week
+long(ing|ed)?(?![- ]term)	1.0	regex	long; longer/belongs excluded by word boundary; long-term excluded
+hodl(ing|ed|er|ers)?	1.0	regex	hodl
+diamond hands	1.0	phrase	diamond hands
+squeeze	1.0	word	short squeeze
+supercycle	1.5	word	supercycle
+bid(ding)?	0.8	regex	bid
+recover(y|ing|ed|s)?	1.0	regex	recovery
+surg(e|ing|ed|es)	1.5	regex	surge
+soar(ing|ed|s)?	1.5	regex	soar
+new high(s)?	1.5	regex	new highs
+higher high(s)?	1.2	regex	higher highs
+institutional (buying|inflows|demand|adoption)	1.2	regex	institutional buying
+inflows	1.0	word	inflows
+upside	1.0	word	upside
+up only	1.5	phrase	up only
+bullish divergence	1.5	phrase	
+# --- bearish ---
+dump(ing|ed|s)?	-1.8	regex	dump; 'pump and dump' in rules text is sticky-excluded
+crash(ing|ed|es)?	-2.0	regex	crash
+capitulat(e|ion|ing|ed)	-2.0	regex	capitulation
+liquidat(ed|ion|ions|ing)?	-1.5	regex	liquidation; only near long|cascade|$|m|k|short	\b(?:long|longs|short|shorts|cascade|\$\S+|\d+\s*[mk]|million|billion)\b
+plung(e|ing|ed|es)	-1.8	regex	plunge
+tank(ing|ed|s)?	-1.8	regex	tank
+nuke(d|s)?	-1.8	regex	nuked
+collaps(e|ing|ed|es)	-2.0	regex	collapse
+rug(ged|pull|pulled|pulls)?	-2.0	regex	rug pull
+rug pull(s|ed)?	-2.0	regex	rug pull
+bear(ish|s)?	-2.0	regex	bear; 'last/2022/2018 bear market' stoplisted
+short(ing|ed|s)?(?![- ]term)	-1.0	regex	short; shortwave stoplisted, shorter excluded by boundary; 'in short' stoplisted
+sell(ing|off|s)?	-1.2	regex	sell
+sell[- ]off(s)?	-1.2	regex	sell-off
+red (candle|day|week|month)s?	-1.0	regex	red only as candle/day/week/month
+fear	-1.0	word	fear
+panic	-1.5	word	panic
+bubble	-1.5	word	bubble
+overvalued	-1.2	word	overvalued
+scam(mer|mers|s|my)?	-1.0	regex	scam; sticky/rules posts are excluded from direction
+ponzi	-1.5	word	ponzi
+dead cat	-1.5	phrase	dead cat bounce
+lower low(s)?	-1.5	regex	lower lows
+bleed(ing|s)?	-1.5	regex	bleeding
+rekt	-2.0	word	rekt
+outflows	-1.0	word	outflows
+bottom (is )?not in	-1.5	regex	bottom not in
+new low(s)?	-1.5	regex	new lows
+bagholder(s)?|bags	-1.0	regex	bags
+cope|copium	-1.0	regex	cope
+downside	-1.0	word	downside
+bearish divergence	-1.5	phrase	
+terrible	-1.2	word	terrible
+worthless	-2.0	word	worthless
+dip(s|ping|ped)?	-0.8	regex	dip (buy the dip is matched first as a phrase)

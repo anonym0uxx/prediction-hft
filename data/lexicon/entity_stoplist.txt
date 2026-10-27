@@ -1,0 +1,17 @@
+# regex (applied to the normalised lower-cased text, whole-word bounded)	[scope sub]
+pump\.?\s*fun
+pumpswap
+pump dot fun
+moons	CryptoCurrency
+shortwave
+red[- ]teaming
+subreddit
+reddit
+redd\.it
+bitcoin magazine
+bitcoinmagazine
+bull market media
+(?:last|2022|2018|2014|previous) bear market
+in short
+long[- ]term
+short[- ]term

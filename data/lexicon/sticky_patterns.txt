@@ -1,0 +1,8 @@
+^Daily (General |Crypto )?Discussion
+^Daily Discussion,
+Ecosystem News - 
+This Week in Media
+Weekly
+^Monthly .*Thread
+^Mentor Monday
+^Daily Thread

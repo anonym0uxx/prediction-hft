@@ -224,10 +224,13 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             partial, partial_n = (rep.get("partial_twap"), rep.get("partial_n", 0)) if rep else (None, 0)
             basis_used = 0.0
             ctx = context_latest(product.split("-")[0]) or {}; ctx_f = {k: ctx.get(k) for k in ("cb_imb_60s", "cb_imb_300s", "okx_taker_imb_5m", "funding", "premium", "oi_chg_15m_bp", "ls_ratio", "liq_long_15m", "liq_short_15m", "fng")}
+            # P15 sentiment leg (docs/SENTIMENT_DESIGN_2026-10-27.md §3.4): social_features.latest(); old reddit_* names kept as null
+            ctx_f.update({"reddit_mentions": None, "reddit_sent": None})
+            SENT_KEYS = ("rd_z_posts_60m", "rd_dir_ewma_120", "rd_n_dir_180m", "st_bull_ratio_60m", "st_z_msgs_60m", "st_dir_ewma_30", "st_disag_60m", "st_users_60m", "sent_as_of", "sent_age_s", "lex_version")
             try:
-                from .reddit_feed import latest as reddit_latest
-                rd = reddit_latest(product.split("-")[0]) or {}; ctx_f.update({"reddit_mentions": rd.get("mentions_recent"), "reddit_sent": rd.get("sent")})
-            except Exception: pass
+                from .social_features import latest as social_latest
+                sl = social_latest(product.split("-")[0]) or {}; ctx_f.update({k: sl.get(k) for k in SENT_KEYS})
+            except Exception: ctx_f.update({k: None for k in SENT_KEYS})
             perp = perp_latest(product.split("-")[0]); perp_spot = perp_age = perp_basis = None
             if perp and perp.get("basis_med_bp") is not None:
                 perp_age = round(now - perp["t"], 2); perp_basis = perp["basis_med_bp"]

@@ -1,0 +1,55 @@
+{
+ "built_at": 1793130970.5201523,
+ "days": 7,
+ "lex_version": "2026-10-27a",
+ "priors": {
+  "reddit:Bitcoin": {
+   "n": 100,
+   "span_h": 103.72,
+   "posts_per_h": 0.964,
+   "s_doc_mean": -0.0083,
+   "s_doc_sd": 0.2414,
+   "n_val": 26
+  },
+  "reddit:CryptoCurrency": {
+   "n": 65,
+   "span_h": 164.97,
+   "posts_per_h": 0.394,
+   "s_doc_mean": -0.0243,
+   "s_doc_sd": 0.2662,
+   "n_val": 14
+  },
+  "stocktwits:BTC.X": {
+   "n": 36,
+   "span_h": 0.82,
+   "posts_per_h": 43.977,
+   "s_doc_mean": 0.2611,
+   "s_doc_sd": 0.3256,
+   "n_val": 20
+  },
+  "stocktwits:ETH.X": {
+   "n": 28,
+   "span_h": 2.35,
+   "posts_per_h": 11.929,
+   "s_doc_mean": 0.1516,
+   "s_doc_sd": 0.2911,
+   "n_val": 7
+  },
+  "stocktwits:SOL.X": {
+   "n": 22,
+   "span_h": 10.05,
+   "posts_per_h": 2.189,
+   "s_doc_mean": 0.1048,
+   "s_doc_sd": 0.3224,
+   "n_val": 4
+  },
+  "reddit:ethereum": {
+   "n": 14,
+   "span_h": 155.29,
+   "posts_per_h": 0.09,
+   "s_doc_mean": -0.0298,
+   "s_doc_sd": 0.2656,
+   "n_val": 3
+  }
+ }
+}

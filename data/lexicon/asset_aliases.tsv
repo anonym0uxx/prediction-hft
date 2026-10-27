@@ -1,0 +1,4 @@
+# asset	pattern	implicit_sub (asset is implied on this sub when no other asset is named; - = none)
+BTC	\bbitcoin(s)?\b|\bbtc\b|\$btc(\.x)?\b|\bsats\b	Bitcoin
+ETH	\bethereum\b|\beth\b|\$eth(\.x)?\b|\bether\b	ethereum
+SOL	\bsolana\b|\bsol\b|\$sol(\.x)?\b	solana
