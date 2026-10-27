@@ -131,7 +131,7 @@ def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_
     av = avail * (CFG["thin_fraction"] if avail < CFG["thin_book"] else 1.0)
     q = int(min(k, cap * mult, av))
     if q < CFG["min_lot"]: return 0, f"below min lot (kelly={k} cap={cap} mult={mult:.2f} avail={avail:.0f})"
-    if ledger.cost_series_today(series) + q * price > CFG["max_cost_per_series_day"]: return 0, "series daily cost cap"
+    if ledger.cost_series_today(series) + q * price > CFG["max_cost_per_series_day"] * (5 if CFG.get("paper_mode", True) else 1): return 0, "series daily cost cap"   # paper: 5x (data collection), live: 1x
     if close_ts and ledger.cost_settlement(close_ts) + q * price > CFG["max_cost_per_settlement_ts"]: return 0, "settlement-timestamp exposure cap"
     if close_ts and ledger.cost_settlement(close_ts, group=(ledger.family or "").split("-")[0]) + q * price > CFG["max_cost_per_settlement_ts_group"]: return 0, "settlement-timestamp group cap"
     if close_ts and series in CFG["crypto_series"]:
