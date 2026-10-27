@@ -16,6 +16,12 @@ def replica_latest(asset: str):
         return latest(asset)
     except Exception: return None
 
+def context_latest(asset: str):
+    try:
+        from .context_feed import latest
+        return latest(asset)
+    except Exception: return None
+
 def perp_latest(asset: str):
     try:
         from .perp_feed import latest
@@ -217,6 +223,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             spot = rep["replica"] if rep else float(jget(f"{CB_BASE}/{product}/ticker")["price"])
             partial, partial_n = (rep.get("partial_twap"), rep.get("partial_n", 0)) if rep else (None, 0)
             basis_used = 0.0
+            ctx = context_latest(product.split("-")[0]) or {}; ctx_f = {k: ctx.get(k) for k in ("cb_imb_60s", "cb_imb_300s", "okx_taker_imb_5m", "funding", "premium", "oi_chg_15m_bp", "ls_ratio", "liq_long_15m", "liq_short_15m", "fng")}
             perp = perp_latest(product.split("-")[0]); perp_spot = perp_age = perp_basis = None
             if perp and perp.get("basis_med_bp") is not None:
                 perp_age = round(now - perp["t"], 2); perp_basis = perp["basis_med_bp"]
@@ -254,7 +261,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     try: sig_mkt = abs(math.log(spot / K)) / (abs(PhiInv(mid)) * math.sqrt(twap_horizon(mins_left)))
                     except (ZeroDivisionError, ValueError): sig_mkt = None
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
-                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis}
+                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
                 state.append(state.books, snap)
                 # scored rows (P6 regime split / P9 final-minute books skill): one row per strike per poll inside the trading window
                 if mid and (t_close <= mins_left <= t_open):
@@ -319,7 +326,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         cost = qty * price; fee = kalshi_taker_fee(qty, price)
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
-                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate, "floor_used": (BELIEF_FLOOR if proj_gate else None), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis}
+                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate, "floor_used": (BELIEF_FLOOR if proj_gate else None), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
                         state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(0.7 if mins_left < 1.5 else poll_s)
