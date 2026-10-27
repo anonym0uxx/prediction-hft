@@ -51,7 +51,7 @@ SIGMA_MAX = {"KXBTCD": 0.000439, "KXETHD": 0.000571, "KXSOLD": 0.000575}
 # P13 projection-side rule (docs/FOCUS_2026-10-27.md §7): replica basis (official expiration_value - replica), bp, measured on settled markets
 BASIS_BP = {"BTC": 0.44, "ETH": 0.7, "SOL": 1.2}
 LATENCY_GUARD_S = 1.5   # SHARPE_PLAN §5.1: price re-check is the real guard
-BELIEF_FLOOR = 0.97     # P13 sign accuracy >= .995 at |d| >= 1 bp
+BELIEF_FLOOR = None     # falsified (REBASE_2026-10-27 §2: 15/18 at |d| 1-2 bp); P13 sizes on p_cal instead
 D_MIN_BP = {"KXBTC15M": 1.0, "KXETH15M": 1.0, "KXSOL15M": 2.0, "KXBTCD": 1.0, "KXETHD": 1.0, "KXSOLD": 2.0}
 def twap_horizon(mins_left: float) -> float:
     """Settlement is the mean of the index over the final minute (rules card): Var(mean_[T-1,T] - S_t) = sigma^2 (tau - 1 + 1/3) for tau >= 1."""
@@ -74,6 +74,12 @@ def p_yes_t(spot: float, K: float, sig1: float, mins_left: float, nu: float = 8.
     r = max(min(mins_left, 1.0), 0.02); k_eff = (K - (1 - r) * partial_twap) / r
     if k_eff <= 0: return 0.999, 9.0
     z = math.log(spot / k_eff) / (sig1 * math.sqrt(r / 3.0)); return tcdf(z / scale, nu), z
+BASIS_NOISE_BP = 0.6   # replica-vs-official residual sd (REBASE_2026-10-27 §2); 0 once the official cfbenchmarks feed is used
+def p_cal(d_bp: float, sig1: float, mins_left: float, basis_noise_bp: float = BASIS_NOISE_BP) -> float:
+    """Calibrated final-minute probability that the settlement average lands above K given projection distance d_bp (bp):
+    remaining-variance sd = 1.5 * sig1 * r * sqrt(r/3) (realised tails ~1.5x Gaussian), plus replica basis noise. REBASE §5."""
+    r = max(min(mins_left, 1.0), 0.02); sd_bp = math.sqrt((1.5 * sig1 * 1e4 * r * math.sqrt(r / 3.0)) ** 2 + basis_noise_bp ** 2)
+    return Phi(d_bp / sd_bp) if sd_bp > 0 else (1.0 if d_bp > 0 else 0.0)
 def jget(u):
     return json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "predhft"}), timeout=10).read())
 
@@ -273,7 +279,8 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     try: sig_mkt = abs(math.log(spot / K)) / (abs(PhiInv(mid)) * math.sqrt(twap_horizon(mins_left)))
                     except (ZeroDivisionError, ValueError): sig_mkt = None
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
-                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
+                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f,
+                        "p_cal": (p_cal(1e4 * ((((1 - max(min(mins_left, 1.0), 0.02)) * partial + max(min(mins_left, 1.0), 0.02) * spot) / K) - 1), sig, mins_left) if (partial and partial_n >= 3 and mins_left < 1.0) else None)}
                 state.append(state.books, snap)
                 # scored rows (P6 regime split / P9 final-minute books skill): one row per strike per poll inside the trading window
                 if mid and (t_close <= mins_left <= t_open):
@@ -307,6 +314,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     else: g["reasons"]["fav_gt_95_or_size"] = g["reasons"].get("fav_gt_95_or_size", 0) + 1
                     if side: edge = max(edge, 0.01); proj_d_bp = d_bp
                 else:
+                    if mins_left < 1.0 and (partial is None or partial_n < 3): continue    # REBASE item 4: no spot-only final-minute decisions
                     if ya - yb > 0.06 or not (mid and 0.03 <= mid <= 0.97): continue
                     if p - ya >= thr_used and 0 < ya < 1 and yas >= lot: side, edge = "yes", p - ya
                     elif (yb - p) >= thr_used and 0 < yb < 1 and ybs >= lot: side, edge = "no", yb - p
@@ -329,7 +337,11 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     price = min((ya2 if side == "yes" else 1 - yb2) + 0.01, 0.99); avail = yas2 if side == "yes" else ybs2   # +1 tick slippage
                     p_side = p if side == "yes" else 1 - p; pm_side = best["mid"] if side == "yes" else 1 - best["mid"]
                     led = Ledger(root, family=root.name)
-                    if proj_gate: p_side = max(p_side, BELIEF_FLOOR)   # projection-locked sign: belief floor (SHARPE_PLAN §5.1); no market shrink
+                    if proj_gate:                                      # REBASE: belief = calibrated p_cal (no floor, no market shrink)
+                        pc = p_cal(best["d_bp"], sig, mins_left); p_side = pc if side == "yes" else 1 - pc; best["p_cal"] = pc
+                        if p_side - price - kalshi_taker_fee(10, price) / 10 < 0.05:      # P16: calibrated edge >= 5c after fee
+                            g3 = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}); g3["reasons"]["p16_edge_lt_5c"] = g3["reasons"].get("p16_edge_lt_5c", 0) + 1
+                            state.logline(f"SKIP {tk} {side} p16 edge {p_side - price:.3f} < .05 (p_cal={pc:.3f} price={price:.3f} d={best['d_bp']:.2f}bp)"); continue
                     qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=(None if proj_gate else pm_side), fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
                     if qty <= 0:
                         state.logline(f"SKIP {tk} {side} {why}")
@@ -338,7 +350,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         cost = qty * price; fee = kalshi_taker_fee(qty, price)
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
-                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate, "floor_used": (BELIEF_FLOOR if proj_gate else None), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
+                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate, "floor_used": None, "p_cal": best.get("p_cal"), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
                         state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(0.7 if mins_left < 1.5 else poll_s)
