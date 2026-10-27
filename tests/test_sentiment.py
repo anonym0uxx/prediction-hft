@@ -176,13 +176,13 @@ def test_reddit_to_doc_and_allowlist():
     assert rf.to_doc({"title": "x", "url": "https://example.com"}, NOW, LEX) is None
 
 
-def test_reddit_schedule_rotation_and_eth_every_30min():
+def test_reddit_schedule_multi_feed_rotation():
     clock = {"t": 0.0}; g = rf.schedule(lambda: clock["t"])
-    first = [next(g) for _ in range(5)]
-    assert first[0] == ("sub", "ethereum") and first[1:] == rf.ROTATION
-    assert next(g) == rf.ROTATION[0]                      # no eth before 30 min
-    clock["t"] = 1801.0
-    assert next(g) == ("sub", "ethereum")
+    seq = [next(g) for _ in range(len(rf.ROTATION) * 2)]
+    assert ("sub", "ethereum") not in seq                  # ethereum is covered by the multi-sub feed
+    assert seq[:len(rf.ROTATION)] == rf.ROTATION and seq[len(rf.ROTATION):] == rf.ROTATION
+    assert sum(1 for k, t in rf.ROTATION if k == "sub" and "+" in t) == 4 and sum(1 for k, _ in rf.ROTATION if k == "search") == 1
+    assert all(s in rf.MULTI for s in ("Bitcoin", "ethereum", "solana", "CryptoCurrency"))
 
 
 def test_reddit_fetch_error_row_has_no_by_asset(tmp_path, monkeypatch):

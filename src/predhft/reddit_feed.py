@@ -13,8 +13,12 @@ from . import social_features as sf
 ROOT = pathlib.Path("data/context"); LOG = ROOT / "reddit.jsonl"
 SCRIPT = pathlib.Path.home() / "AppData/Local/hermes/skills/social-media/reddit-reading/scripts/reddit.py"
 SEARCH_QUERY = "bitcoin OR ethereum OR solana"
-ROTATION = [("sub", "Bitcoin"), ("search", SEARCH_QUERY), ("sub", "solana"), ("sub", "CryptoCurrency")]
-ETH_SUB, ETH_EVERY = "ethereum", 1800.0
+# Latency design 2026-10-27: ONE multi-subreddit Atom request covers all tracked subs (100 newest posts across them), so every sub is
+# refreshed every cycle instead of once per rotation (5 min -> ~60-75 s). Site search every 5th cycle for off-sub coverage.
+MULTI_SUBS = ["Bitcoin", "ethereum", "solana", "CryptoCurrency", "BitcoinMarkets", "ethtrader", "CryptoMarkets", "ethfinance"]
+MULTI = "+".join(MULTI_SUBS)
+ROTATION = [("sub", MULTI), ("sub", MULTI), ("sub", MULTI), ("sub", MULTI), ("search", SEARCH_QUERY)]
+ETH_SUB, ETH_EVERY = "ethereum", 1e12   # ethereum is inside MULTI; dedicated fetch disabled
 SEARCH_ALLOW = {"bitcoin", "ethereum", "solana", "cryptocurrency", "cryptomarkets", "bitcoinmarkets", "ethtrader", "ethfinance", "btc",
                 "cryptocurrencytrading", "altcoin", "solanatrading", "ethstaker", "bitcoinbeginners", "cryptomoonshots", "defi", "web3"}
 LAST_ERR = {"msg": ""}
@@ -95,8 +99,8 @@ def step(kind: str, target: str, lex=None) -> dict:
     if posts:
         docs = to_docs(posts, t0, kind, lex); row["n_docs"] = len(docs); row["n_new"] = sf.ingest(docs, sf.STORE)
         row["n_sticky"] = sum(d["is_sticky"] for d in docs)
-        sf.mark_fetched("reddit", target if kind == "sub" else "search", t0)
-        for s in ({d["sub"] for d in docs} if kind == "search" else set()): sf.mark_fetched("reddit", s, t0)
+        sf.mark_fetched("reddit", "search" if kind == "search" else ("multi" if "+" in target else target), t0)
+        for s in ({d["sub"] for d in docs} if kind == "search" else (set(target.split("+")) if "+" in target else set())): sf.mark_fetched("reddit", s, t0)
         _log(row)
     else: row["err"] = LAST_ERR["msg"]  # error row already logged by fetch()
     try: sf.emit(time.time())
@@ -104,7 +108,7 @@ def step(kind: str, target: str, lex=None) -> dict:
     return row
 
 
-def loop(every: float = 75.0, baseline_every: float = 3600.0):
+def loop(every: float = 62.0, baseline_every: float = 3600.0):
     ROOT.mkdir(parents=True, exist_ok=True); lex = load_lexicon(); last_base = 0.0
     for kind, target in schedule():
         t0 = time.time()

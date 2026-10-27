@@ -12,7 +12,7 @@ from . import social_features as sf
 ROOT = pathlib.Path("data/context"); LOG = ROOT / "stocktwits.jsonl"
 BASE = "https://api.stocktwits.com/api/2/streams/symbol/{sym}.json"
 UA = {"User-Agent": "predhft/0.1 (research; contact via github)", "Accept": "application/json"}
-SYMBOLS = ("BTC.X", "ETH.X", "SOL.X")
+SYMBOLS = ("BTC.X", "ETH.X", "BTC.X", "SOL.X", "BTC.X", "ETH.X", "BTC.X", "SOL.X", "BTC.X", "ETH.X")   # volume-weighted rotation within the 90 req/h budget: BTC every 80 s, ETH ~130 s, SOL 200 s
 ASSET_OF = {"BTC.X": "BTC", "ETH.X": "ETH", "SOL.X": "SOL"}
 LAST = {"err": "", "cursor": None, "status": None}
 
