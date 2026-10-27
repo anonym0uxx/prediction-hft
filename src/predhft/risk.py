@@ -17,7 +17,7 @@ CFG = {
     "family_daily_loss": 15.0, "global_daily_loss": 25.0, "global_weekly_loss": 50.0,
     "max_cost_per_settlement_ts": 60.0,  # global per close_ts (net per ticker); plus per rule-group cap below (P13 diag 2026-10-27)
     "max_cost_per_settlement_ts_group": 30.0,
-    "max_cost_per_settlement_ts_crypto": 15.0,   # SHARPE_PLAN §5.3: rho ~.9 across BTC/ETH/SOL at the same close -> one bet per close_ts
+    "max_cost_per_settlement_ts_crypto": 30.0,   # 2026-10-27 11:20 PT: was 15 (one bet per close); user judged over-corrected -> up to three lot-10 crypto bets per close (rho .86-.94 noted; Sharpe-neutral, EV x3)
     "crypto_series": ["KXBTC15M", "KXETH15M", "KXSOL15M", "KXBTCD", "KXETHD", "KXSOLD"],   # same close_ts within one rule group (s7p13-*, s7p15-*, s7p10-*): 3 assets x lot 10
     "max_cost_per_event_date": 30.0,
     "max_errors_per_hour": 30,
@@ -134,6 +134,6 @@ def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_
     if close_ts and ledger.cost_settlement(close_ts, group=(ledger.family or "").split("-")[0]) + q * price > CFG["max_cost_per_settlement_ts_group"]: return 0, "settlement-timestamp group cap"
     if close_ts and series in CFG["crypto_series"]:
         if ledger.cost_settlement(close_ts, series_set=CFG["crypto_series"]) + q * price > CFG["max_cost_per_settlement_ts_crypto"]: return 0, "crypto close_ts cap (one bet per close)"
-        if (ledger.family or "").startswith("s7p15-") and ledger.cost_settlement(close_ts, group="s7p13") > 0: return 0, "p13_holds_close_ts"
+        if (ledger.family or "").startswith("s7p15-") and ledger.cost_settlement(close_ts, group="s7p13", series_set=[series]) > 0: return 0, "p13_holds_ticker"   # P12 yields only on the same asset
     if event_date and ledger.cost_event_date(event_date) + q * price > CFG["max_cost_per_event_date"]: return 0, "event-date exposure cap"
     return q, f"kelly={k} p_blend={pb:.2f} cap={cap} mult={mult:.2f} equity={eq:.2f}"

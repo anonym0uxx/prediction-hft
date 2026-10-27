@@ -59,3 +59,4 @@ Nothing below may be changed after seeing results. New families get a new number
 - P10 BTC paper trading paused at n=7 (-22c +- 19 clustered); evaluation continues scored-only (P10/P11 Brier). P2 (s7final-KXBTCD) stopped, superseded by s7p13-KXBTCD.
 - Sizing compounds: Kelly bankroll and per-market lot caps scale with paper equity (base 250 + realized P&L since reset; floor 0.5x, ceiling 4x pending live review); dollar loss halts fixed.
 - P13 supply logging (data/<fam>/supply.jsonl); no hour-of-day sizing until a bucket has >= 40 opportunities.
+- 2026-10-27 11:20 PT (user decision): crypto per-close cap 15 -> 30 (up to three lot-10 bets per close; correlation .86-.94 accepted for EV); P12 yields to P13 per asset, not per close.
