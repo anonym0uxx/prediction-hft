@@ -15,7 +15,8 @@ CFG = {
     "bankroll": 250.0, "kelly_fraction": 0.25, "max_lot": 20, "min_lot": 5,
     "max_cost_per_market": 15.0, "max_cost_per_series_day": 60.0,
     "family_daily_loss": 15.0, "global_daily_loss": 25.0, "global_weekly_loss": 50.0,
-    "max_cost_per_settlement_ts": 40.0,  # 6 crypto families share each 15-min close; $20 blocked ETH P13 on 2026-10-27 07:30 PT
+    "max_cost_per_settlement_ts": 60.0,  # global per close_ts (net per ticker); plus per rule-group cap below (P13 diag 2026-10-27)
+    "max_cost_per_settlement_ts_group": 30.0,   # same close_ts within one rule group (s7p13-*, s7p15-*, s7p10-*): 3 assets x lot 10
     "max_cost_per_event_date": 30.0,
     "max_errors_per_hour": 30,
     "observability_mult": {"high": 1.0, "partial": 0.6, "none": 0.3, None: 0.5},
@@ -58,8 +59,8 @@ class Ledger:
         GLOBAL.parent.mkdir(parents=True, exist_ok=True)
     def _ev(self, **e):
         e.setdefault("t", time.time()); e["family"] = self.family; GLOBAL.open("a").write(json.dumps(e) + "\n")
-    def record_open(self, ticker: str, series: str, cost: float, close_ts: float | None = None, event_date: str | None = None):
-        self._ev(kind="open", ticker=ticker, series=series, cost=cost, close_ts=close_ts, event_date=event_date)
+    def record_open(self, ticker: str, series: str, cost: float, close_ts: float | None = None, event_date: str | None = None, side: str | None = None):
+        self._ev(kind="open", ticker=ticker, series=series, cost=cost, close_ts=close_ts, event_date=event_date, side=side)
     def record_settle(self, ticker: str, pnl: float): self._ev(kind="settle", ticker=ticker, pnl=pnl)
     def record_error(self, msg: str):
         self.errors.open("a").write(json.dumps({"t": time.time(), "msg": msg[:200]}) + "\n")
@@ -82,8 +83,15 @@ class Ledger:
         return sum(e["pnl"] for e in self.events(time.time() - 7 * 86400) if e["kind"] == "settle")
     def cost_series_today(self, series: str) -> float:
         return sum(e["cost"] for e in self.events(self._day0()) if e["kind"] == "open" and e.get("series") == series)
-    def cost_settlement(self, close_ts: float) -> float:
-        return sum(e["cost"] for e in self.events(time.time() - 3 * 86400) if e["kind"] == "open" and e.get("close_ts") and abs(e["close_ts"] - close_ts) < 60)
+    def cost_settlement(self, close_ts: float, group: str | None = None) -> float:
+        # net exposure per ticker (a YES and a NO on the same market hedge, not add); optionally restricted to one rule group (family name prefix before the first '-')
+        by_tk: dict[str, float] = {}
+        for e in self.events(time.time() - 3 * 86400):
+            if e["kind"] != "open" or not e.get("close_ts") or abs(e["close_ts"] - close_ts) >= 60: continue
+            if group and (e.get("family") or "").split("-")[0] != group: continue
+            sgn = -1.0 if e.get("side") == "no" else 1.0
+            by_tk[e["ticker"]] = by_tk.get(e["ticker"], 0.0) + sgn * e["cost"]
+        return sum(abs(v) for v in by_tk.values())
     def cost_event_date(self, event_date: str) -> float:
         return sum(e["cost"] for e in self.events(time.time() - 3 * 86400) if e["kind"] == "open" and e.get("event_date") == event_date)
     def errors_last_hour(self) -> int:
@@ -112,5 +120,6 @@ def size(series: str, p: float, price: float, avail: float, ledger: Ledger, lot_
     if q < CFG["min_lot"]: return 0, f"below min lot (kelly={k} cap={cap} mult={mult:.2f} avail={avail:.0f})"
     if ledger.cost_series_today(series) + q * price > CFG["max_cost_per_series_day"]: return 0, "series daily cost cap"
     if close_ts and ledger.cost_settlement(close_ts) + q * price > CFG["max_cost_per_settlement_ts"]: return 0, "settlement-timestamp exposure cap"
+    if close_ts and ledger.cost_settlement(close_ts, group=(ledger.family or "").split("-")[0]) + q * price > CFG["max_cost_per_settlement_ts_group"]: return 0, "settlement-timestamp group cap"
     if event_date and ledger.cost_event_date(event_date) + q * price > CFG["max_cost_per_event_date"]: return 0, "event-date exposure cap"
     return q, f"kelly={k} p_blend={pb:.2f} cap={cap} mult={mult:.2f}"

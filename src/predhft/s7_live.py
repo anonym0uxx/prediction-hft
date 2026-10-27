@@ -72,6 +72,9 @@ class State:
             for l in self.trades.read_text().splitlines():
                 t = json.loads(l)
                 if t.get("status") == "open": self.open_positions[t["ticker"]] = t
+    def trades_tail(self, n: int = 20):
+        try: return [json.loads(l) for l in self.trades.read_text(encoding="utf-8").splitlines()[-n:] if l.strip()]
+        except FileNotFoundError: return []
     def logline(self, m):
         line = f"{dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')} {m}"
         print(line, flush=True); self.log.open("a").write(line + "\n")
@@ -187,14 +190,18 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
         sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600, proj_gate: bool = False):
     _lock = single_instance(root)
     import os; os.environ["PREDHFT_PRIORITY"] = "1"
-    k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set()
+    k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set(); cands_cache = (None, []); nofill = {}
     state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate}")
     while True:
         try:
             now = utcnow(); next_hour = (int(now) // period_s + 1) * period_s; mins_left = (next_hour - now) / 60
             if mins_left > t_open + 1 or mins_left < t_close:
+                for ct in [c for c in list(nofill) if isinstance(c, int) and c <= now]:
+                    g = nofill.pop(ct)
+                    if not any(t.get("close_ts") == ct for t in state.open_positions.values()) and not any(t.get("close_ts") == ct for t in state.trades_tail()):
+                        state.logline(f"NOFILL {g['tk']} reasons={g['reasons']} min_fav={g['min_fav']:.3f}")
                 settle(k, state); maker_settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
-            if sigma_mode == "ewma94" or now - sig_ts > 900:
+            if sig is None or now - sig_ts > 900:                   # P13 diag: never fetch Coinbase candles inside the final minute (38 s hang class)
                 s = (sigma_ewma(product) if sigma_mode == "ewma94" else sigma_1m(product)); sig = s or sig; sig_ts = now
             close_iso = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             rep = replica_latest(product.split("-")[0])          # BRTI replica (median of constituent mids) if fresh, else Coinbase last trade
@@ -204,11 +211,16 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             if proj_gate and rep:                                   # basis correction: replica runs systematically low vs the official index
                 basis_used = BASIS_BP.get(product.split("-")[0], 0.0); spot *= (1 + basis_used * 1e-4)
                 if partial: partial *= (1 + basis_used * 1e-4)
-            cands = [m for m in k.markets(series_ticker=series, status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")]
+            if cands_cache[0] != close_iso or (not cands_cache[1] and now % 10 < 2):
+                cands_cache = (close_iso, [m for m in k.markets(series_ticker=series, status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")])
+            cands = cands_cache[1]
             # near the money: within 4 sigma*sqrt(t) in log space
             band = 4 * (sig or 0.0006) * math.sqrt(max(mins_left, 0.5))
-            near = sorted([m for m in cands if abs(math.log(spot / float(m["floor_strike"]))) <= band], key=lambda m: abs(math.log(spot / float(m["floor_strike"]))))
-            if mins_left < 1.5: near = near[:3]                 # final minute: only the 3 nearest strikes (shared rate limiter)
+            near = sorted([m for m in cands if period_s < 3600 or abs(math.log(spot / float(m["floor_strike"]))) <= band], key=lambda m: abs(math.log(spot / float(m["floor_strike"]))))   # 15M: single market, no band
+            if mins_left < 1.5: near = near[:3]
+            # pinned markets (favourite >= .99 or empty offer twice) are polled every 5 s only
+            pinned = {tk for tk, (cnt, ts) in nofill.get("pinned", {}).items() if cnt >= 2 and now - ts < 5}
+            near = [m for m in near if m["ticker"] not in pinned]                 # final minute: only the 3 nearest strikes (shared rate limiter)
             # one directional position per asset-hour (review C6): collect candidates, take the best edge/sd, re-check the book before filling (F2)
             have_hour = any(t.get("close_ts") == next_hour for t in state.open_positions.values())
             best = None
@@ -246,11 +258,16 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 side = None
                 if proj_gate:
                     # P13: side = sign(projected settlement average - K); no model threshold; buy the favoured side if offered <= .95 with size >= lot
-                    if partial is None or partial_n < 3 or mins_left >= 1.0: continue
+                    g = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}); pin = nofill.setdefault("pinned", {})
+                    fav_px = ya if yb >= 0.5 else (1 - yb if 0 < yb else 1.0); g["min_fav"] = min(g["min_fav"], fav_px)
+                    if ya >= 0.99 or yas <= 0 or yb <= 0.01: pin[tk] = (pin.get(tk, (0, 0))[0] + 1, now)
+                    else: pin.pop(tk, None)
+                    if partial is None or partial_n < 3 or mins_left >= 1.0: g["reasons"]["partial"] = g["reasons"].get("partial", 0) + 1; continue
                     r_ = max(min(mins_left, 1.0), 0.02); proj = (1 - r_) * partial + r_ * spot; d_bp = 1e4 * (proj / K - 1)
-                    if abs(d_bp) < D_MIN_BP.get(series, 1.0): continue
+                    if abs(d_bp) < D_MIN_BP.get(series, 1.0): g["reasons"]["d_small"] = g["reasons"].get("d_small", 0) + 1; continue
                     if d_bp > 0 and 0 < ya <= 0.95 and yas >= lot: side, edge = "yes", p - ya
                     elif d_bp < 0 and 0 < yb < 1 and (1 - yb) <= 0.95 and ybs >= lot: side, edge = "no", yb - p
+                    else: g["reasons"]["fav_gt_95_or_size"] = g["reasons"].get("fav_gt_95_or_size", 0) + 1
                     if side: edge = max(edge, 0.01); proj_d_bp = d_bp
                 else:
                     if ya - yb > 0.06 or not (mid and 0.03 <= mid <= 0.97): continue
@@ -259,6 +276,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 if side:
                     score = edge / math.sqrt(max(p * (1 - p), 1e-4))
                     if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z, "d_bp": (proj_d_bp if proj_gate else None), "partial_n": partial_n}
+                    if proj_gate: break                            # re-check immediately (BTCD 1.65 s latency came from fetching further strikes first)
             if best:
                 tk, side, p = best["tk"], best["side"], best["p"]
                 try: yb2, ya2, ybs2, yas2 = book_touch(k.orderbook(tk))
@@ -282,9 +300,9 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
                              "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "proj_gate": proj_gate}
-                        state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour)
+                        state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
-            time.sleep(1.0 if mins_left < 1.5 else poll_s)
+            time.sleep(0.7 if mins_left < 1.5 else poll_s)
         except KeyboardInterrupt: raise
         except Exception as e:
             state.logline(f"error {type(e).__name__}: {str(e)[:160]}"); Ledger(root).record_error(f"{type(e).__name__}: {e}"); time.sleep(5)

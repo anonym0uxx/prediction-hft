@@ -28,7 +28,7 @@ def sample(product: str) -> dict:
         try: out[v] = fn(product)
         except Exception: pass
     th = [threading.Thread(target=one, args=(v, fn), daemon=True) for v, fn in VENUES.items()]
-    [t.start() for t in th]; [t.join(timeout=3.5) for t in th]
+    [t.start() for t in th]; [t.join(timeout=2.5) for t in th]
     mids = {v: (b + a) / 2 for v, (b, a, _) in out.items() if b and a and a >= b and (a - b) / a < 0.005}
     rep = statistics.median(mids.values()) if len(mids) >= 2 else None
     cb_last = out.get("coinbase", (None, None, None))[2]
@@ -39,9 +39,12 @@ def loop(products: list[str], root: pathlib.Path):
     partial: dict[str, list] = {p: [] for p in products}; win: dict[str, int] = {p: 0 for p in products}
     while True:
         t0 = time.time(); next_hour = (int(t0) // 900 + 1) * 900; wstart = next_hour - 60   # next 15-min boundary (hourly closes are a subset)
+        res: dict[str, dict] = {}
+        ths = [threading.Thread(target=lambda p=p: res.__setitem__(p, sample(p)), daemon=True) for p in products]   # products in parallel: cadence 1.22 -> 1.0 s
+        [t.start() for t in ths]; [t.join(timeout=4.0) for t in ths]
         for p in products:
-            r = sample(p)
-            if r["replica"] is None: continue
+            r = res.get(p)
+            if not r or r["replica"] is None: continue
             (root / f"{p}.jsonl").open("a").write(json.dumps(r) + "\n")
             if win[p] != wstart: win[p] = wstart; partial[p] = []
             if r["t"] >= wstart: partial[p].append(r["replica"])
@@ -49,7 +52,7 @@ def loop(products: list[str], root: pathlib.Path):
                                                                "window_start": wstart, "partial_n": len(partial[p]), "partial_twap": (sum(partial[p]) / len(partial[p]) if partial[p] else None)}))
         time.sleep(max(0.0, 1.0 - (time.time() - t0)))
 
-def latest(product: str, root: pathlib.Path = pathlib.Path("data/replica"), max_age: float = 3.0) -> dict | None:
+def latest(product: str, root: pathlib.Path = pathlib.Path("data/replica"), max_age: float = 2.5) -> dict | None:
     p = root / f"{product}.latest.json"
     if not p.exists(): return None
     try: d = json.loads(p.read_text())
