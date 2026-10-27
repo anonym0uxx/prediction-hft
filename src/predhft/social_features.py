@@ -144,7 +144,8 @@ def features(asset: str, as_of: float, docs: list[dict], baselines: dict | None,
     rd_block = {"posts_60m": len(r60), "posts_180m": len(r180), "authors_60m": len({d.get("author") for d in r60}),
                 "dir_60m": dir60, "dir_180m": dir180, "n_dir_180m": n_a180, "dir_ewma_120": _ewma(_dir_docs(r240), as_of, hl_1h),
                 "disag_180m": _disag(_dir_docs(r180)), "z_posts_60m": _z(baselines, "reddit", asset, "posts_60m", as_of, len(r60), log=True),
-                "stale_s": (round(rd_stale) if rd_stale is not None else None), "subs_fresh": sorted(subs_fresh)}
+                "stale_s": (round(rd_stale) if rd_stale is not None else None), "subs_fresh": sorted(subs_fresh),
+                "newest_age_s": (round(as_of - max(d["created_ts"] for d in rd_all)) if rd_all else None)}
     st_all = [d for d in docs if d.get("src") == "stocktwits" and (d.get("fetched_ts") or 0) <= as_of]
     st = lambda w: [d for d in st_all if _in(d, asset, as_of, w, "stocktwits") and d.get("dup_of") is None]
     s15, s60 = st(900), st(3600)
@@ -159,7 +160,8 @@ def features(asset: str, as_of: float, docs: list[dict], baselines: dict | None,
                 "disag_60m": _disag(s60, use_label=True), "z_msgs_60m": _z(baselines, "stocktwits", asset, "msgs_60m", as_of, len(s60), log=True),
                 "z_users_60m": _z(baselines, "stocktwits", asset, "users_60m", as_of, users60, log=True),
                 "z_bull_ratio_60m": _z(baselines, "stocktwits", asset, "bull_ratio_60m", as_of, ratio),
-                "stale_s": (round(st_stale) if st_stale is not None else None)}
+                "stale_s": (round(st_stale) if st_stale is not None else None),
+                "newest_age_s": (round(as_of - max(d["created_ts"] for d in st_all)) if st_all else None)}
     news = any(d.get("is_news") for d in r60 if d.get("fetched_ts", 0) <= as_of) or any(d.get("is_news") for d in s15)
     return {"asset": asset, "as_of": as_of, "rd": rd_block, "st": st_block, "news_flag": bool(news)}
 
@@ -177,6 +179,28 @@ def emit(as_of: float | None = None, store: pathlib.Path | None = None, root: pa
     (root / LATEST.name).write_text(json.dumps(row), encoding="utf-8")
     return row
 
+
+def _flat(b: dict, as_of: float, lex_version: str | None, now: float) -> dict:
+    rd, st = b.get("rd", {}), b.get("st", {})
+    return {"rd_z_posts_60m": rd.get("z_posts_60m"), "rd_dir_ewma_120": rd.get("dir_ewma_120"), "rd_n_dir_180m": rd.get("n_dir_180m"),
+            "st_bull_ratio_60m": st.get("bull_ratio_60m"), "st_z_msgs_60m": st.get("z_msgs_60m"), "st_dir_ewma_30": st.get("dir_ewma_30"),
+            "st_disag_60m": st.get("disag_60m"), "st_users_60m": st.get("users_60m"), "st_msgs_15m": st.get("msgs_15m"),
+            "rd_newest_age_s": rd.get("newest_age_s"), "st_newest_age_s": st.get("newest_age_s"), "rd_stale_s": rd.get("stale_s"), "st_stale_s": st.get("stale_s"),
+            "sent_as_of": as_of, "sent_age_s": round(now - as_of, 1), "lex_version": lex_version, "news_flag": b.get("news_flag"), "rd": rd, "st": st}
+
+def features_now(asset: str, as_of: float | None = None, root: pathlib.Path | None = None) -> dict | None:
+    """Decision-time features computed directly from the store at as_of (default now), so the newest fetched posts are always used
+    rather than the last emitted snapshot (which can be up to one feed cycle old). Causal: only docs with fetched_ts <= as_of."""
+    root = root or ROOT; store = root / STORE.name; as_of = as_of or time.time()
+    if not store.exists(): return None
+    try:
+        docs = load_window(store, as_of)
+        bl = json.loads((root / BASELINES.name).read_text(encoding="utf-8")) if (root / BASELINES.name).exists() else None
+        b = features(asset, as_of, docs, bl)
+        try: lv = (root.parent / "lexicon" / "VERSION").read_text(encoding="utf-8").strip().split("=")[-1]
+        except Exception: lv = None
+        return _flat(b, as_of, lv, time.time())
+    except Exception: return None
 
 def latest(asset: str, root: pathlib.Path | None = None, max_age: float = 900.0) -> dict | None:
     """Flat dict of the s7_live ctx fields for `asset` (plus as_of, sent_age_s, lex_version) or None if missing/stale."""

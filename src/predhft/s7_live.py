@@ -204,7 +204,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
         sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600, proj_gate: bool = False):
     _lock = single_instance(root)
     import os; os.environ["PREDHFT_PRIORITY"] = "1"
-    k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set(); cands_cache = (None, []); nofill = {}
+    k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set(); cands_cache = (None, []); nofill = {}; _sent_cache: dict = {}
     state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate}")
     while True:
         try:
@@ -226,10 +226,15 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             ctx = context_latest(product.split("-")[0]) or {}; ctx_f = {k: ctx.get(k) for k in ("cb_imb_60s", "cb_imb_300s", "okx_taker_imb_5m", "funding", "premium", "oi_chg_15m_bp", "ls_ratio", "liq_long_15m", "liq_short_15m", "fng")}
             # P15 sentiment leg (docs/SENTIMENT_DESIGN_2026-10-27.md §3.4): social_features.latest(); old reddit_* names kept as null
             ctx_f.update({"reddit_mentions": None, "reddit_sent": None})
-            SENT_KEYS = ("rd_z_posts_60m", "rd_dir_ewma_120", "rd_n_dir_180m", "st_bull_ratio_60m", "st_z_msgs_60m", "st_dir_ewma_30", "st_disag_60m", "st_users_60m", "sent_as_of", "sent_age_s", "lex_version")
+            SENT_KEYS = ("rd_z_posts_60m", "rd_dir_ewma_120", "rd_n_dir_180m", "st_bull_ratio_60m", "st_z_msgs_60m", "st_dir_ewma_30", "st_disag_60m", "st_users_60m", "st_msgs_15m",
+                         "rd_newest_age_s", "st_newest_age_s", "rd_stale_s", "st_stale_s", "sent_as_of", "sent_age_s", "lex_version", "news_flag")
+            # computed at decision time from the store (newest fetched posts, causal on fetched_ts); recomputed at most once per 20 s per runner
             try:
-                from .social_features import latest as social_latest
-                sl = social_latest(product.split("-")[0]) or {}; ctx_f.update({k: sl.get(k) for k in SENT_KEYS})
+                from .social_features import features_now, latest as social_latest
+                if now - _sent_cache.get("t", 0) > 20:
+                    _sent_cache["v"] = features_now(product.split("-")[0]) or social_latest(product.split("-")[0]) or {}; _sent_cache["t"] = now
+                sl = dict(_sent_cache.get("v") or {}); sl["sent_age_s"] = round(now - sl["sent_as_of"], 1) if sl.get("sent_as_of") else None
+                ctx_f.update({k: sl.get(k) for k in SENT_KEYS})
             except Exception: ctx_f.update({k: None for k in SENT_KEYS})
             perp = perp_latest(product.split("-")[0]); perp_spot = perp_age = perp_basis = None
             if perp and perp.get("basis_med_bp") is not None:
