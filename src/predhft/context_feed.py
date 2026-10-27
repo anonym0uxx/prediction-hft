@@ -5,7 +5,7 @@ long/short account ratio, recent liquidations (long vs short notional, last 15 m
 These features cannot move a 60-s settlement average; they are evaluated against HOURLY outcomes (P10 scored rows) and as
 P13 pre-filters, never as live sizing inputs until a pre-registered test passes (docs/PREREG.md P15)."""
 from __future__ import annotations
-import json, pathlib, sys, time, urllib.request
+import calendar, json, pathlib, sys, time, urllib.request
 ROOT = pathlib.Path("data/context"); UA = {"User-Agent": "predhft/0.1"}
 
 def g(url: str, timeout: float = 6.0):
@@ -16,7 +16,7 @@ def cb_imbalance(product: str) -> dict:
     for w in (60, 300):
         buy = sell = 0.0
         for t in tr:
-            ts = time.mktime(time.strptime(t["time"][:19], "%Y-%m-%dT%H:%M:%S")) - time.timezone
+            ts = calendar.timegm(time.strptime(t["time"][:19], "%Y-%m-%dT%H:%M:%S"))
             if now - ts > w: continue
             v = float(t["size"]) * float(t["price"])
             # Coinbase 'side' is the MAKER side: side=sell means the taker bought
