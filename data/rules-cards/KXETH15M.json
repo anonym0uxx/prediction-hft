@@ -1,0 +1,101 @@
+{
+ "settlement_source": "CF Benchmarks real-time index (BRTI/ETHUSD_RTI/SOLUSD_RTI): consolidated-order-book mid of constituent exchanges (Coinbase, Kraken, Bitstamp, Gemini, LMAX Digital, Bullish, Crypto.com; SOL without Bullish), 200 ms calc, 1-s dissemination, 0.01 USD precision; contract terms CRYPTO.pdf.",
+ "settlement_variable": "YES iff avg of 60 index values in the minute before close_time >= avg in the minute before open_time. floor_strike == previous market's expiration_value (39/39 chained) and is visible for the whole 15-min life. Rounded to 2 dp (BTC/ETH) / 4 dp (SOL). Which 60 ticks of the 1-s/200-ms feed are sampled is unknown (Kalshi websocket avg_60s_data suggests 1/s).",
+ "timezone": "ET in rules, UTC in API; 24/7 on :00/:15/:30/:45; open_time = prior close_time.",
+ "tie_handling": "'at least' -> equality resolves YES (structural YES edge at zero move).",
+ "rounding": "2 dp settlement average (SOL 4 dp); index 0.01 USD.",
+ "trading_close_vs_settlement": "Trading open through the ENTIRE closing 60-s averaging window; last trades 0.01-3 s before close; settlement_ts - close_time median 5.0 s (min 4.9, max 11.5, n=40); min tick $0.001 sub-penny.",
+ "early_close_or_void_clauses": "can_close_early=true (template, none observed); no data/incomplete -> affected strikes resolve NO (not void); revisions after expiration ignored; Market Outcome Review at Kalshi discretion; settlement ~5 s after close leaves no appeal window.",
+ "title_vs_rules_divergences": [
+  "'price up in next 15 mins' is really 60-s average vs 60-s average (~14.5 min midpoint to midpoint)",
+  "equal -> YES ('up')",
+  "no_sub_title 'Target price: TBD' placeholder",
+  "generic contract template times superseded by rules_primary"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Kalshi websocket cfbenchmarks_value (index value + running avg_60s_data) \u2014 THE settlement feed",
+   "url": "https://docs.kalshi.com/websockets/cfbenchmarks-value",
+   "latency": "sub-second",
+   "cost": "free with a Kalshi API key (account required)"
+  },
+  {
+   "name": "CF Benchmarks index page",
+   "url": "https://www.cfbenchmarks.com/data/indices/BRTI",
+   "latency": "~1 s",
+   "cost": "free to view, no API"
+  },
+  {
+   "name": "CF Benchmarks websocket v4",
+   "url": "wss://www.cfbenchmarks.com/ws/v4",
+   "latency": "200 ms-1 s",
+   "cost": "licensed"
+  },
+  {
+   "name": "Constituent L2 websockets (Coinbase, Kraken, Bitstamp, Gemini, Crypto.com, Bullish)",
+   "url": "wss://ws-feed.exchange.coinbase.com etc.",
+   "latency": "<100 ms",
+   "cost": "free"
+  },
+  {
+   "name": "LMAX Digital",
+   "url": "https://www.lmaxdigital.com",
+   "latency": "unknown",
+   "cost": "no free public L2"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement variable fully observable in real time while trading stays open -> final minute is a pure latency race; resting quotes near 0.5 are picked off",
+  "Opening strike known to index streamers before the API field populates",
+  "Depth-weighted index movable by thin constituent books during the window",
+  "Equal -> YES and rounding create small structural YES edge",
+  "No-data -> NO (not void)",
+  "Sole-discretion review, 5-s settlement",
+  "At T-60 s the favourite is already 0.999 in ~75% of markets; tradable edge only in markets with |move| < ~15 USD (BTC) where informed flow concentrates",
+  "~10x less volume than BTC (median 196k/market): thinner final-minute book; last trade can be 60 s before close"
+ ],
+ "series": "KXETH15M",
+ "final_minute_microstructure": {
+  "sample": "12 settled",
+  "fav_T-60": {
+   "min": 0.37,
+   "median": 0.998,
+   "share_ge_0.99": "10/12"
+  },
+  "fav_T-30": {
+   "min": 0.79,
+   "median": 0.999
+  },
+  "fav_T-10": {
+   "min": 0.994,
+   "median": 0.999,
+   "share_ge_0.99": "12/12"
+  },
+  "median_trade_size": {
+   "T-60..-50": 40.0,
+   "T-30..-20": 25.0,
+   "T-10..0": 94.8
+  },
+  "first_sustained_ge_0.95_s_before_close": {
+   "min": 14.2,
+   "median": 220
+  },
+  "first_sustained_ge_0.99_s_before_close": {
+   "min": 9.3,
+   "median": 99
+  },
+  "volume_last_90s": {
+   "min": 7297,
+   "median": 23087,
+   "max": 113841
+  },
+  "last_trade_s_before_close": {
+   "median": 5.96,
+   "max": 60.3
+  },
+  "fav_at_T-60_lost": "1/12 (a 0.63 favourite); >=0.90 11/11 won",
+  "median_market_volume": 195989
+ },
+ "notes": "Subagent rules reader 2026-10-27 (deleg_0679578b). Differences across BTC/ETH/SOL: index, constituents (SOL no Bullish), rounding (SOL 4 dp), liquidity. Kalshi websocket publishes the running 60-s average \u2014 requires an API key (account); our 4-venue replica approximates it."
+}

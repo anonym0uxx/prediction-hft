@@ -12,7 +12,7 @@ import argparse, json, pathlib, sqlite3, time, datetime as dt
 from .kalshi_public import KalshiPublic, f
 
 DB = pathlib.Path("data/universe.db")
-PRIORITY = ["KXBTCD", "KXETHD", "KXSOLD", "KXBTC", "KXETH", "KXSOL", "KXHIGHNY", "KXHIGHCHI", "KXHIGHMIA", "KXHIGHLAX", "KXHIGHDEN", "KXHIGHAUS",
+PRIORITY = ["KXBTC15M", "KXETH15M", "KXSOL15M", "KXBTCD", "KXETHD", "KXSOLD", "KXBTC", "KXETH", "KXSOL", "KXHIGHNY", "KXHIGHCHI", "KXHIGHMIA", "KXHIGHLAX", "KXHIGHDEN", "KXHIGHAUS",
             "KXRAIN", "KXINXU", "KXNASDAQ100U", "KXNBAGAME", "KXNFLGAME", "KXNCAAFGAME", "KXMLBGAME", "KXAAAGASD", "KXTRUMPMENTION", "KXRT"]
 
 SCHEMA = """
