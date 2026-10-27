@@ -34,3 +34,5 @@ Nothing below may be changed after seeing results. New families get a new number
 - Parameters (nu, scale, lambda, thr formula) FROZEN. n_required 222 trade-hours (5c edge) / 616 (3c). Pass: mean net > 0 at 95% hour-clustered. Pause if 95% CI upper < 0 at n >= 60.
 - ETH/SOL: identical model, scored-only (families s7p10-KXETHD/-KXSOLD) until their own books-Brier beats mid at 95% on >= 100 hours.
 - Secondary scored-only maker family s7p10-KXBTCD-maker5: post p_side - 0.02 at T-5..T-3.5, cancel at T-3, fill iff strictly traded through; evaluate adverse selection (filled vs unfilled P&L).
+
+- P10 amendment 2026-10-26 22:20 PT (user decision, before any ETH/SOL paper result): ETH/SOL trade the P10 model on paper at lot 10 for sampling; evaluated as separate families (s7p10-KXETHD, s7p10-KXSOLD) with the same pass/pause rules; hindcast prior for ETH is negative (-2.9c +-6.6).

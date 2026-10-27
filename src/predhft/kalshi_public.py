@@ -33,7 +33,8 @@ def _shared_slot():
                 except Exception: last = 0.0
                 try: bo = float((_RL / "backoff.until").read_text()) if (_RL / "backoff.until").exists() else 0.0
                 except Exception: bo = 0.0
-                wait = max(last + _RL_INTERVAL, bo) - time.time()
+                interval = 0.15 if _os.environ.get("PREDHFT_PRIORITY") else _RL_INTERVAL   # S7 decision loops get a priority lane (6.5 s latency seen)
+                wait = max(last + interval, bo) - time.time()
                 if wait > 0: time.sleep(wait)
                 stamp.write_text(repr(time.time()))
             finally:
