@@ -1,0 +1,37 @@
+# S7 lag study — KXBTCD vs Coinbase spot
+hours=130 (2026-10-21T09:00:00Z → 2026-10-27T00:00:00Z), decision rows=12465
+
+## Calibration (Brier): model vs market mid
+| horizon | n | model | market mid |
+|---|---|---|---|
+| T-10m | 2377 | 0.0256 | 0.0255 |
+| T-5m | 2463 | 0.0177 | 0.0175 |
+| T-3m | 2446 | 0.0126 | 0.0125 |
+| T-2m | 2635 | 0.0079 | 0.0076 |
+| T-1m | 2544 | 0.0041 | 0.0041 |
+
+## Taker rule at the touch, hold to expiry, 10-lot fee (net cents/contract)
+| horizon | thr | n | avg | 1se (hour-clustered) | hit | hours>0/hours |
+|---|---|---|---|---|---|---|
+| T-10m | 0.03 | 309 | +2.0c | 2.3c | 24% | 55/118 |
+| T-10m | 0.05 | 202 | +3.6c | 3.0c | 25% | 39/99 |
+| T-10m | 0.08 | 85 | +2.8c | 4.2c | 21% | 16/55 |
+| T-10m | 0.12 | 21 | +11.6c | 8.1c | 29% | 6/18 |
+| T-5m | 0.03 | 203 | +1.5c | 2.6c | 23% | 39/104 |
+| T-5m | 0.05 | 149 | -0.1c | 3.4c | 21% | 28/90 |
+| T-5m | 0.08 | 89 | +5.5c | 4.3c | 26% | 21/64 |
+| T-5m | 0.12 | 33 | +11.6c | 7.2c | 30% | 10/29 |
+| T-3m | 0.03 | 153 | +2.1c | 3.1c | 24% | 33/99 |
+| T-3m | 0.05 | 113 | +2.3c | 3.8c | 24% | 24/79 |
+| T-3m | 0.08 | 61 | +4.3c | 5.0c | 23% | 13/48 |
+| T-3m | 0.12 | 33 | +10.5c | 6.9c | 27% | 9/29 |
+| T-2m | 0.03 | 122 | +0.2c | 3.2c | 25% | 27/93 |
+| T-2m | 0.05 | 92 | +0.5c | 3.5c | 24% | 21/76 |
+| T-2m | 0.08 | 59 | -1.3c | 4.3c | 22% | 13/53 |
+| T-2m | 0.12 | 25 | +1.6c | 7.4c | 24% | 6/23 |
+| T-1m | 0.03 | 65 | +4.4c | 4.5c | 34% | 21/64 |
+| T-1m | 0.05 | 52 | +5.8c | 4.9c | 31% | 16/52 |
+| T-1m | 0.08 | 33 | +5.7c | 7.0c | 30% | 10/33 |
+| T-1m | 0.12 | 19 | +7.5c | 8.4c | 32% | 6/19 |
+
+Caveats: taker fills assumed at the 1-min candle close touch; settlement index is BRTI 60-s average (Coinbase used as proxy); sigma trailing 120 min; Coinbase candles keyed by bucket END (lookahead fix 2026-10-26); se clustered by settlement hour.
