@@ -3,7 +3,7 @@ no account). Round-robin over subreddits, one request every 75 s (-> each sub re
 last 60/180 min, lexicon sentiment of titles+bodies (bull/bear word counts), and asset mention counts. Writes
 data/context/reddit.jsonl and reddit.latest.json {t, subs:{sub:{...}}, by_asset:{BTC:{posts_60m, bull, bear, score}}}."""
 from __future__ import annotations
-import json, pathlib, subprocess, sys, time
+import calendar, json, pathlib, subprocess, sys, time
 ROOT = pathlib.Path("data/context"); SCRIPT = pathlib.Path.home() / "AppData/Local/hermes/skills/social-media/reddit-reading/scripts/reddit.py"
 SUBS = {"Bitcoin": ["BTC"], "ethereum": ["ETH"], "solana": ["SOL"], "CryptoCurrency": ["BTC", "ETH", "SOL"]}
 BULL = ["bull", "moon", "pump", "rally", "breakout", "ath", "buy the dip", "accumulate", "long", "green", "surge", "soar", "up only", "undervalued"]
@@ -18,7 +18,7 @@ def fetch(sub: str, limit: int = 25) -> list[dict]:
 def score(posts: list[dict], now: float) -> dict:
     out = {"posts_60m": 0, "posts_180m": 0, "bull": 0, "bear": 0, "by_asset": {a: {"mentions": 0, "bull": 0, "bear": 0} for a in KEYS}}
     for p in posts:
-        try: ts = time.mktime(time.strptime(p["created"][:19], "%Y-%m-%dT%H:%M:%S")) - time.timezone
+        try: ts = calendar.timegm(time.strptime(p["created"][:19], "%Y-%m-%dT%H:%M:%S"))
         except Exception: continue
         age = now - ts
         if age <= 3600: out["posts_60m"] += 1
