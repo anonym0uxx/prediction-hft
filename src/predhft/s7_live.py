@@ -49,6 +49,14 @@ def p_yes(spot: float, K: float, sig1: float, mins_left: float, partial_twap: fl
     k_eff = (K - (1 - r) * partial_twap) / r              # level the remaining average must exceed
     if k_eff <= 0: return 0.999
     return Phi(math.log(spot / k_eff) / (sig1 * math.sqrt(r / 3.0)))
+
+def p_yes_t(spot: float, K: float, sig1: float, mins_left: float, nu: float = 8.0, scale: float = 0.8, partial_twap: float | None = None, partial_n: int = 0) -> tuple[float, float]:
+    """Student-t version of p_yes (S7_REDESIGN 3.1): returns (p, z). Leptokurtic settlement moves: tighter core, fatter tails."""
+    if mins_left >= 1.0 or partial_twap is None or partial_n < 3:
+        z = math.log(spot / K) / (sig1 * math.sqrt(twap_horizon(mins_left))); return tcdf(z / scale, nu), z
+    r = max(min(mins_left, 1.0), 0.02); k_eff = (K - (1 - r) * partial_twap) / r
+    if k_eff <= 0: return 0.999, 9.0
+    z = math.log(spot / k_eff) / (sig1 * math.sqrt(r / 3.0)); return tcdf(z / scale, nu), z
 def jget(u):
     return json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "predhft"}), timeout=10).read())
 
@@ -66,6 +74,42 @@ class State:
         print(line, flush=True); self.log.open("a").write(line + "\n")
     def append(self, path, obj): path.open("a").write(json.dumps(obj) + "\n")
     def rewrite_trades(self, trades): self.trades.write_text("".join(json.dumps(t) + "\n" for t in trades))
+
+def tcdf(x: float, nu: float) -> float:
+    """Student-t CDF via the regularized incomplete beta (continued fraction; no scipy)."""
+    def betacf(a, b, x):
+        MAXIT, EPS, FPMIN = 200, 3e-14, 1e-300
+        qab, qap, qam = a + b, a + 1, a - 1; c, d = 1.0, 1 - qab * x / qap
+        d = 1 / (d if abs(d) > FPMIN else FPMIN); h = d
+        for m in range(1, MAXIT + 1):
+            m2 = 2 * m; aa = m * (b - m) * x / ((qam + m2) * (a + m2))
+            d = 1 + aa * d; d = 1 / (d if abs(d) > FPMIN else FPMIN); c = 1 + aa / c; c = c if abs(c) > FPMIN else FPMIN; h *= d * c
+            aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
+            d = 1 + aa * d; d = 1 / (d if abs(d) > FPMIN else FPMIN); c = 1 + aa / c; c = c if abs(c) > FPMIN else FPMIN; de = d * c; h *= de
+            if abs(de - 1) < EPS: break
+        return h
+    def ibeta(a, b, x):
+        if x <= 0: return 0.0
+        if x >= 1: return 1.0
+        lb = math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b) + a * math.log(x) + b * math.log(1 - x)
+        return math.exp(lb) * betacf(a, b, x) / a if x < (a + 1) / (a + b + 2) else 1 - math.exp(lb) * betacf(b, a, 1 - x) / b
+    xx = nu / (nu + x * x); p = 0.5 * ibeta(nu / 2, 0.5, xx)
+    return 1 - p if x > 0 else p
+
+def phi(x): return math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
+def dyn_thr(z: float, spread: float, relse: float = 0.17, base: float = 0.02) -> float:
+    """Edge required = base + sigma-uncertainty term (|z| phi(z) relse) + half the spread (S7_REDESIGN 4)."""
+    return base + abs(z) * phi(z) * relse + spread / 2
+
+def sigma_ewma(product: str = "BTC-USD", lam: float = 0.94) -> float | None:
+    end = dt.datetime.now(dt.timezone.utc); start = end - dt.timedelta(minutes=180)
+    d = jget(f"{CB_BASE}/{product}/candles?granularity=60&start={start.isoformat()}&end={end.isoformat()}")
+    px = [float(c[4]) for c in sorted(d)]
+    rets = [math.log(px[i] / px[i - 1]) for i in range(1, len(px))]
+    if len(rets) < 90: return None
+    v = st.fmean(r * r for r in rets[:60])
+    for r in rets[60:]: v = lam * v + (1 - lam) * r * r
+    return math.sqrt(v)
 
 def sigma_1m(product: str = "BTC-USD") -> float | None:
     end = dt.datetime.now(dt.timezone.utc); start = end - dt.timedelta(minutes=180)
@@ -101,6 +145,31 @@ def settle(k: KalshiPublic, state: State):
             state.logline(f"SETTLED {t['ticker']} side={t['side']} result={res} qty={t['qty']} pnl={t['pnl']:+.2f}")
     if changed: state.rewrite_trades(trades)
 
+def maker_settle(k: KalshiPublic, state: State):
+    """Scored-only maker family: fill iff a print on our side went strictly through q between post and T-3; P&L = y_side - q (maker fee 0)."""
+    f = state.root / "maker_posts.jsonl"
+    if not f.exists(): return
+    rows = [json.loads(l) for l in f.read_text().splitlines() if l.strip()]; changed = False; now = utcnow()
+    for r in rows:
+        if r["status"] != "posted" or now < r["close_ts"] + 300: continue
+        try:
+            m = k.get(f"/markets/{r['ticker']}")["market"]; res = m.get("result")
+            if res not in ("yes", "no"): continue
+            tr = k.get("/markets/trades", ticker=r["ticker"], limit=200).get("trades", [])
+        except Exception: continue
+        filled = 0.0
+        for t in tr:
+            ts_ = dt.datetime.fromisoformat(t["created_time"].replace("Z", "+00:00")).timestamp()
+            if not (r["t_post"] < ts_ <= r["close_ts"] - 180): continue
+            yp = float(t["yes_price_dollars"]); cnt = float(t["count_fp"])
+            # we rest a YES bid at q (side yes) -> filled when a NO-taker print occurs strictly below q; NO bid at q -> YES-taker print strictly above 1-q
+            if r["side"] == "yes" and t["taker_side"] == "no" and yp < r["q"] - 1e-9: filled += cnt
+            if r["side"] == "no" and t["taker_side"] == "yes" and yp > 1 - r["q"] + 1e-9: filled += cnt
+        r["status"] = "filled" if filled > 0 else "unfilled"; r["fill_size"] = filled; r["result"] = res
+        r["pnl_pc"] = ((1.0 if res == r["side"] else 0.0) - r["q"]); changed = True
+        state.append(state.score, {"t": now, "family": r["family"], "ticker": r["ticker"], "p_model": r["p_model"], "p_market": r["mid"], "close_ts": r["close_ts"], "maker_status": r["status"], "pnl_pc": r["pnl_pc"]})
+    if changed: f.write_text("".join(json.dumps(r) + "\n" for r in rows))
+
 def single_instance(root: pathlib.Path):
     """Windows-safe exclusive lock: a file opened with O_EXCL-style semantics via msvcrt locking; held for process lifetime."""
     import os, msvcrt
@@ -111,17 +180,18 @@ def single_instance(root: pathlib.Path):
         print("another runner holds the lock; exiting", flush=True); raise SystemExit(0)
     return fh
 
-def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD", sigma_gate: bool = False):
+def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD", sigma_gate: bool = False,
+        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False):
     _lock = single_instance(root)
-    k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0
-    state.logline(f"start {series}/{product} thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma_max={SIGMA_MAX.get(series)}")
+    k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set()
+    state.logline(f"start {series}/{product} thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score}")
     while True:
         try:
             now = utcnow(); next_hour = (int(now) // 3600 + 1) * 3600; mins_left = (next_hour - now) / 60
             if mins_left > t_open + 1 or mins_left < t_close:
-                settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
-            if now - sig_ts > 900:
-                s = sigma_1m(product); sig = s or sig; sig_ts = now
+                settle(k, state); maker_settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
+            if sigma_mode == "ewma94" or now - sig_ts > 900:
+                s = (sigma_ewma(product) if sigma_mode == "ewma94" else sigma_1m(product)); sig = s or sig; sig_ts = now
             close_iso = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             rep = replica_latest(product.split("-")[0])          # BRTI replica (median of constituent mids) if fresh, else Coinbase last trade
             spot = rep["replica"] if rep else float(jget(f"{CB_BASE}/{product}/ticker")["price"])
@@ -139,8 +209,11 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 try: ob = k.orderbook(tk)
                 except Exception: continue
                 yb, ya, ybs, yas = book_touch(ob)
-                p = p_yes(spot, K, sig or 0.0006, mins_left, partial, partial_n)
+                p_n = p_yes(spot, K, sig or 0.0006, mins_left, partial, partial_n)
+                p_t, z = p_yes_t(spot, K, sig or 0.0006, mins_left, nu, scale, partial, partial_n)
+                p = p_t if dist == "t" else p_n
                 mid = (yb + ya) / 2 if 0 < ya < 1 else None
+                thr_used = dyn_thr(z, ya - yb) if thr_mode == "dyn" else thr
                 regime = ("lo" if (sig or 0.0006) < SIGMA_MAX.get(series, 9) else "hi")
                 imb = (ybs - yas) / (ybs + yas) if (ybs + yas) > 0 else None
                 sig_mkt = None
@@ -148,26 +221,33 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     try: sig_mkt = abs(math.log(spot / K)) / (abs(PhiInv(mid)) * math.sqrt(twap_horizon(mins_left)))
                     except (ZeroDivisionError, ValueError): sig_mkt = None
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
-                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour}
+                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour}
                 state.append(state.books, snap)
                 # scored rows (P6 regime split / P9 final-minute books skill): one row per strike per poll inside the trading window
                 if mid and (t_close <= mins_left <= t_open):
-                    state.append(state.score, {"t": now, "family": f"{root.name}-{'books' if mins_left < 1.0 else 'sigma-' + regime}", "ticker": tk, "p_model": p, "p_market": mid, "yes_bid": yb, "yes_ask": ya,
-                                               "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "mins_left": round(mins_left, 2), "sigma1": sig, "sigma_mkt": sig_mkt})
-                if have_hour or tk in state.open_positions or not (t_close <= mins_left <= t_open): continue
+                    state.append(state.score, {"t": now, "family": f"{root.name}-{'books' if mins_left < 1.0 else 'sigma-' + regime}", "ticker": tk, "p_model": p, "p_t": p_t, "p_normal": p_n, "p_market": mid, "yes_bid": yb, "yes_ask": ya,
+                                               "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "mins_left": round(mins_left, 2), "sigma1": sig, "sigma_mkt": sig_mkt, "z": z})
+                # scored-only maker family (S7_REDESIGN 5.1.7): post p_side - 0.02 at T-5..T-3.5, filled iff traded strictly through before T-3
+                if maker_score and 3.5 <= mins_left <= 5.0 and mid and tk not in maker_posted:
+                    side_m = "yes" if p > mid else "no"; p_side_m = p if side_m == "yes" else 1 - p; q = math.floor((p_side_m - 0.02) * 100) / 100
+                    if 0.02 <= q <= 0.97:
+                        state.append(state.root / "maker_posts.jsonl", {"t_post": now, "family": f"{root.name}-maker5", "ticker": tk, "side": side_m, "q": q, "close_ts": next_hour, "p_model": p, "mid": mid, "status": "posted"})
+                        maker_posted.add(tk)
+                if scored_only or have_hour or tk in state.open_positions or not (t_close <= mins_left <= t_open): continue
                 if sigma_gate and regime == "hi": continue        # P6: sigma-hi is scored only, never traded
+                if ya - yb > 0.06 or not (mid and 0.03 <= mid <= 0.97): continue
                 side = None
-                if p - ya >= thr and 0 < ya < 1 and yas > 0: side, edge = "yes", p - ya
-                elif (yb - p) >= thr and 0 < yb < 1 and ybs > 0: side, edge = "no", yb - p
+                if p - ya >= thr_used and 0 < ya < 1 and yas >= lot: side, edge = "yes", p - ya
+                elif (yb - p) >= thr_used and 0 < yb < 1 and ybs >= lot: side, edge = "no", yb - p
                 if side:
                     score = edge / math.sqrt(max(p * (1 - p), 1e-4))
-                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt}
+                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z}
             if best:
                 tk, side, p = best["tk"], best["side"], best["p"]
                 try: yb2, ya2, ybs2, yas2 = book_touch(k.orderbook(tk))
                 except Exception: yb2 = None
                 latency = time.time() - best["t_dec"]
-                ok = yb2 is not None and ((side == "yes" and p - ya2 >= thr and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= thr and 0 < yb2 < 1 and ybs2 > 0))
+                ok = yb2 is not None and ((side == "yes" and p - ya2 >= best["thr_used"] and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= best["thr_used"] and 0 < yb2 < 1 and ybs2 > 0))
                 if not ok:
                     state.logline(f"STALE {tk} {side} touch moved before fill (latency {latency:.2f}s)"); state.append(state.books, {"t": now, "ticker": tk, "stale_fill": True})
                 else:
@@ -180,7 +260,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         cost = qty * price; fee = kalshi_taker_fee(qty, price)
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
-                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"]}
+                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode}
                         state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(1.0 if mins_left < 1.5 else poll_s)
@@ -190,6 +270,8 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=float, default=8)
-    ap.add_argument("--t-close", type=float, default=2); ap.add_argument("--root", default=None); ap.add_argument("--sigma-gate", action="store_true"); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    ap.add_argument("--t-close", type=float, default=2); ap.add_argument("--root", default=None); ap.add_argument("--sigma-gate", action="store_true")
+    ap.add_argument("--sigma", default="trail120", choices=["trail120", "ewma94"]); ap.add_argument("--dist", default="normal", choices=["normal", "t"]); ap.add_argument("--nu", type=float, default=8.0); ap.add_argument("--scale", type=float, default=0.8)
+    ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
     a = ap.parse_args(); root = pathlib.Path(a.root) if a.root else (pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}"))
-    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate)
+    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score)
