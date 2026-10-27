@@ -3,7 +3,7 @@ name = "predhft"
 version = "0.1.0"
 description = "Maker bot for US-legal prediction markets (Kalshi / Polymarket US). Phase 1: paper only."
 requires-python = ">=3.12"
-dependencies = ["httpx>=0.27", "websockets>=12", "pyarrow>=17", "pandas>=2.2", "numpy>=1.26"]
+dependencies = ["httpx>=0.27", "websockets>=12", "cryptography>=42", "pyarrow>=17", "pandas>=2.2", "numpy>=1.26"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
