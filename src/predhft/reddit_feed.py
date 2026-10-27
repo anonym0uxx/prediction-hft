@@ -85,9 +85,9 @@ def to_docs(posts: list[dict], fetched_ts: float, kind: str = "sub", lex=None) -
 
 def schedule(clock=time.time):
     """Infinite (kind, target) generator: ROTATION round-robin, with ('sub','ethereum') inserted when 30 min have passed since its last turn."""
-    last_eth = float("-inf"); i = 0
+    last_eth = clock(); i = 0
     while True:
-        if clock() - last_eth >= ETH_EVERY:
+        if clock() - last_eth >= ETH_EVERY:            # disabled (ETH_EVERY huge): ethereum is inside the multi-sub feed
             last_eth = clock(); yield ("sub", ETH_SUB); continue
         yield ROTATION[i % len(ROTATION)]; i += 1
 
