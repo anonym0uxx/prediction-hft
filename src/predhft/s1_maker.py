@@ -16,7 +16,7 @@ from .s7_live import book_touch, single_instance
 from .risk import series_multiplier, Ledger, halted
 from .fusion import flow
 
-SERIES_GLOBS = [r"^KXHIGH", r"^KXLOW(T|[A-Z]{2,4}$)", r"^KXRAIN", r"^KXINXU$", r"^KXNASDAQ100U$", r"^KXAAAGASD$", r"^KXBTCD$", r"^KXETHD$"]
+SERIES_GLOBS = [r"^KXHIGH", r"^KXLOW(T|[A-Z]{2,4}$)", r"^KXRAIN", r"^KXAAAGASD$", r"^KXBTCD$", r"^KXETHD$"]
 SELL_LO, SELL_HI, BUY_LO, BUY_HI = 0.05, 0.30, 0.50, 0.95
 MIN_H, MAX_H = 6.0, 36.0           # hours to close at decision time
 def ts(s): return dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
@@ -36,9 +36,15 @@ def eligible_series(k: KalshiPublic, db_path: pathlib.Path) -> list[str]:
     c = sqlite3.connect(db_path); rows = [r[0] for r in c.execute("SELECT DISTINCT series FROM markets WHERE series IS NOT NULL")]
     return [s for s in rows if any(re.search(g, s) for g in SERIES_GLOBS)]
 
+FLB_REALIZED = {(0.05, 0.15): 0.032, (0.15, 0.30): 0.168, (0.30, 0.50): 0.40, (0.50, 0.70): 0.75, (0.70, 0.95): 0.93}   # pooled T-24h sweep 2026-10-26 (hindcast prior; re-fit on >=90 d)
+def flb_p(price: float) -> float:
+    for (lo, hi), r in FLB_REALIZED.items():
+        if lo <= price < hi: return r
+    return price
+
 def scan(k: KalshiPublic, book: Book, lot: int, max_open_per_series: int, db_path: pathlib.Path):
     now = time.time(); open_by_series: dict[str, int] = {}
-    h = halted(Ledger(book.root, "orders.jsonl"))
+    h = halted(Ledger(book.root, "orders.jsonl", family="s1-maker"))
     if h: book.logline(f"HALTED: {h}"); return
     for o in book.items:
         if o["status"] in ("resting", "filled"): open_by_series[o["series"]] = open_by_series.get(o["series"], 0) + 1
@@ -70,7 +76,7 @@ def scan(k: KalshiPublic, book: Book, lot: int, max_open_per_series: int, db_pat
             o = {"t": now, "ticker": m["ticker"], "series": series, "side": side, "price": price, "qty": lot_eff, "queue_ahead": queue_ahead, "filled": 0.0,
                  "close_ts": ts(m["close_time"]), "hours_to_close": round(h, 1), "mid_at_post": mid, "status": "resting", "fill_prints": 0, "flow_imbalance": imb, "flow_n": fl.get("n")}
             book.items.append(o); have[m["ticker"]] = o; open_by_series[series] = open_by_series.get(series, 0) + 1
-            book.score.open("a").write(json.dumps({"t": now, "family": "s1_maker", "ticker": m["ticker"], "series": series, "side": side, "price": price, "p_market": mid, "hours": round(h, 1), "flow_imbalance": imb}) + "\n")
+            book.score.open("a").write(json.dumps({"t": now, "family": "s1_maker", "ticker": m["ticker"], "series": series, "side": side, "price": price, "p_market": mid, "p_model": flb_p(mid), "hours": round(h, 1), "flow_imbalance": imb}) + "\n")
             book.logline(f"POST {side} {lot_eff}@{price:.2f} {m['ticker']} queue_ahead={queue_ahead:.0f} T-{h:.1f}h")
             if open_by_series[series] >= max_open_per_series: break
     book.save()
@@ -81,19 +87,29 @@ def match(k: KalshiPublic, book: Book):
     for o in book.items:
         if o["status"] != "resting": continue
         if now > o["close_ts"] - 3600: o["status"] = "cancelled"; changed = True; book.logline(f"CANCEL unfilled {o['ticker']}"); continue
-        try: tr = k.get("/markets/trades", ticker=o["ticker"], limit=200).get("trades", [])
+        tr = []; cur = None
+        try:
+            for _ in range(5):   # paginate past 200 prints (review M3)
+                d = k.get("/markets/trades", ticker=o["ticker"], limit=200, cursor=cur); tr += d.get("trades", []); cur = d.get("cursor")
+                if not cur or not d.get("trades") or ts(d["trades"][-1]["created_time"]) <= o["t"]: break
         except Exception: continue
-        vol = 0.0
+        vol = strict = 0.0
         for t in tr:
             if ts(t["created_time"]) <= o["t"]: continue
             yp = float(t["yes_price_dollars"]); cnt = float(t["count_fp"])
-            if o["side"] == "sell_yes" and t["taker_side"] == "yes" and yp >= o["price"] - 1e-9: vol += cnt
-            if o["side"] == "buy_yes" and t["taker_side"] == "no" and yp <= o["price"] + 1e-9: vol += cnt
-        o["fill_prints"] = vol
+            if o["side"] == "sell_yes" and t["taker_side"] == "yes":
+                if yp >= o["price"] - 1e-9: vol += cnt
+                if yp > o["price"] + 1e-9: strict += cnt            # trade-through: a print at a WORSE price for the taker means our level was cleared
+            if o["side"] == "buy_yes" and t["taker_side"] == "no":
+                if yp <= o["price"] + 1e-9: vol += cnt
+                if yp < o["price"] - 1e-9: strict += cnt
+        o["fill_prints"] = vol; o["fill_prints_strict"] = strict
         fillable = max(0.0, vol - o["queue_ahead"])
+        o["fill_rule"] = "strict" if strict >= o["qty"] else ("lenient" if fillable >= o["qty"] else None)
         if fillable >= o["qty"]:
             o["filled"] = o["qty"]; o["status"] = "filled"; o["fill_t"] = now; changed = True
-            book.logline(f"FILLED {o['side']} {o['qty']}@{o['price']:.2f} {o['ticker']} (prints after post {vol:.0f}, queue {o['queue_ahead']:.0f})")
+            Ledger(book.root, "orders.jsonl", family="s1-maker").record_open(o["ticker"], o["series"], o["qty"] * (1 - o["price"] if o["side"] == "sell_yes" else o["price"]), close_ts=o["close_ts"])
+            book.logline(f"FILLED[{o['fill_rule']}] {o['side']} {o['qty']}@{o['price']:.2f} {o['ticker']} (prints after post {vol:.0f}, strict {strict:.0f}, queue {o['queue_ahead']:.0f})")
     if changed: book.save()
 
 def settle(k: KalshiPublic, book: Book):
@@ -106,7 +122,7 @@ def settle(k: KalshiPublic, book: Book):
         if res in ("yes", "no"):
             q, p = o["qty"], o["price"]
             pnl = (q * p - (q if res == "yes" else 0)) if o["side"] == "sell_yes" else ((q if res == "yes" else 0) - q * p)
-            o["status"] = "settled"; o["result"] = res; o["pnl"] = pnl; o["fee"] = 0.0; changed = True
+            o["status"] = "settled"; o["result"] = res; o["pnl"] = pnl; o["fee"] = 0.0; changed = True; Ledger(book.root, "orders.jsonl", family="s1-maker").record_settle(o["ticker"], pnl)
             book.logline(f"SETTLED {o['ticker']} {o['side']}@{p:.2f} result={res} pnl={pnl:+.2f}")
     if changed: book.save()
 

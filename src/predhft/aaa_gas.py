@@ -17,7 +17,7 @@ H = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 def aaa_national() -> dict:
     html = urllib.request.urlopen(urllib.request.Request("https://gasprices.aaa.com/", headers=H), timeout=20).read().decode("utf-8", "ignore")
     # national average table: Current Avg / Yesterday Avg / Week Ago ... first numeric cells after 'Regular'
-    vals = re.findall(r"\$\s?(\d\.\d{3})", html)
+    vals = re.findall(r"\$\s?(\d\.\d{3,4})", html)
     labels = ["today", "yesterday", "week_ago", "month_ago", "year_ago"]
     out = {labels[i]: float(v) for i, v in enumerate(vals[:5])}
     m = re.search(r"(?:Price as of|as of)\s*([^<]{4,40})", html); out["as_of"] = m.group(1).strip() if m else None
@@ -31,7 +31,7 @@ def run(loop: bool, poll: int, lot: int):
     logline("start AAA gas nowcast recorder")
     while True:
         try:
-            card = get_card("KXAAAGASD"); tradable = bool(card and card.get("observability_before_settlement") == "high")
+            card = get_card("KXAAAGASD"); tradable = False   # review V5: AAA posts after the close; this is a forecast, not a verification. Recorder only; never auto-enable.
             aaa = aaa_national(); ms = list(k.markets(series_ticker="KXAAAGASD", status="open", limit=200, max_pages=1))
             if ms:
                 closes = sorted({m["close_time"] for m in ms}); nxt = [m for m in ms if m["close_time"] == closes[0]]

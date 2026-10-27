@@ -15,6 +15,36 @@ def f(d: dict, key: str) -> float | None:
     except (TypeError, ValueError):
         return None
 
+import json as _json, os as _os, pathlib as _pl
+_RL = _pl.Path("data/risk"); _RL_INTERVAL = 0.4  # one shared slot per 0.4 s across ALL predhft processes (~2.5 req/s < Kalshi public ~3 req/s)
+
+def _shared_slot():
+    """Cross-process token bucket: lock file + last-call timestamp (Windows msvcrt)."""
+    try:
+        import msvcrt
+        _RL.mkdir(parents=True, exist_ok=True); lock = _RL / "kalshi.lock"; stamp = _RL / "kalshi.last"
+        with open(lock, "a+") as fh:
+            for _ in range(300):
+                try: msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1); break
+                except OSError: time.sleep(0.02)
+            else: return
+            try:
+                try: last = float(stamp.read_text() or 0)
+                except Exception: last = 0.0
+                wait = last + _RL_INTERVAL - time.time()
+                if wait > 0: time.sleep(wait)
+                stamp.write_text(repr(time.time()))
+            finally:
+                try: fh.seek(0); msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
+                except OSError: pass
+    except ImportError: pass
+
+def _log429(path: str):
+    try:
+        _RL.mkdir(parents=True, exist_ok=True)
+        (_RL / "429.jsonl").open("a").write(_json.dumps({"t": time.time(), "path": path, "pid": _os.getpid()}) + "\n")
+    except Exception: pass
+
 class KalshiPublic:
     def __init__(self, timeout: float = 20.0, min_interval_s: float = 0.05):
         self._c = httpx.Client(base_url=BASE, headers=UA, timeout=timeout)
@@ -24,10 +54,11 @@ class KalshiPublic:
         dt = time.monotonic() - self._last
         if dt < self._min: time.sleep(self._min - dt)
         for attempt in range(4):
+            _shared_slot()
             r = self._c.get(path, params={k: v for k, v in params.items() if v is not None})
             self._last = time.monotonic()
             if r.status_code == 429:
-                time.sleep(2 ** attempt); continue
+                _log429(path); time.sleep(2 ** attempt); continue
             r.raise_for_status(); return r.json()
         r.raise_for_status(); return r.json()
 

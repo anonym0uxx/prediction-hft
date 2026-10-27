@@ -14,6 +14,8 @@ from .risk import Ledger, size as risk_size
 H = {"User-Agent": "Mozilla/5.0"}
 ET = ZoneInfo("America/New_York")
 AUCTION_BP = 0.0005   # extra std-dev (5 bp) for closing-auction repricing vs last pre-close print
+HEAVY_AUCTION_DAYS = {"2026-11-20", "2026-12-18", "2027-03-19", "2027-06-18"}   # S&P/Nasdaq rebalance + quad witching: auction noise 10-30 bp (review I1)
+def auction_bp(day: str) -> float: return 0.0020 if day in HEAVY_AUCTION_DAYS else AUCTION_BP
 
 def yahoo_bars(symbol: str):
     u = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}?interval=1m&range=1d"
@@ -38,11 +40,12 @@ def run(series: str, symbol: str, thr: float, t_open: int, t_close: int, lot: in
             rets = [math.log(bars[i][1] / bars[i - 1][1]) for i in range(max(1, len(bars) - 120), len(bars))]
             sig = st.pstdev(rets) if len(rets) > 30 else 0.0004
             if age > 90: state.logline(f"feed stale {age:.0f}s — standing down this tick"); time.sleep(poll_s); continue
-            close_iso = close_dt.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            close_iso = close_dt.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"); close_ts = close_dt.timestamp()
             cands = [m for m in k.markets(series_ticker=series, status="open", limit=200, max_pages=1) if m["close_time"] == close_iso and m.get("floor_strike") is not None]
+            if not cands: state.logline(f"ALERT no candidates for close {close_iso} (DST/close-time mismatch?)"); Ledger(root, family=root.name).record_error("no candidates in window")
             for m in cands:
                 K = float(m["floor_strike"]); tk = m["ticker"]
-                sd = math.sqrt(sig ** 2 * max(mins_left, 0.25) + AUCTION_BP ** 2)
+                sd = math.sqrt(sig ** 2 * max(mins_left, 0.25) + auction_bp(close_dt.date().isoformat()) ** 2)
                 if abs(math.log(spot / K)) > 4 * sd: continue
                 try: yb, ya, ybs, yas = book_touch(k.orderbook(tk))
                 except Exception: continue
@@ -54,12 +57,14 @@ def run(series: str, symbol: str, thr: float, t_open: int, t_close: int, lot: in
                 if p - ya >= thr and 0 < ya < 1 and yas > 0: side, price, avail = "yes", ya, yas
                 elif yb - p >= thr and 0 < yb < 1 and ybs > 0: side, price, avail = "no", 1 - yb, ybs
                 if side:
-                    qty, why = risk_size(series, p if side == "yes" else 1 - p, price, avail, Ledger(root), lot_cap=lot)
+                    led = Ledger(root, family=root.name)
+                    qty, why = risk_size(series, p if side == "yes" else 1 - p, price, avail, led, lot_cap=lot, p_market=((yb + ya) / 2 if side == "yes" else 1 - (yb + ya) / 2),
+                                         fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=close_ts)
                     if qty <= 0: state.logline(f"SKIP {tk} {side} {why}"); continue
                     cost = qty * price; fee = kalshi_taker_fee(qty, price)
                     t = {"t": time.time(), "ticker": tk, "series": series, "close_ts": close_dt.timestamp(), "side": side, "price": price, "qty": qty, "avail_at_touch": avail,
                          "cost": cost, "fee": fee, "p_model": p, "spot": spot, "K": K, "mins_left": round(mins_left, 2), "feed_age_s": round(age, 1), "status": "open", "risk": why}
-                    state.append(state.trades, t); state.open_positions[tk] = t
+                    state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, t["cost"], close_ts=close_ts)
                     state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p={p:.2f} spot={spot:.2f} K={K:.2f} T-{mins_left:.1f}m age={age:.0f}s")
             time.sleep(poll_s)
         except KeyboardInterrupt: raise

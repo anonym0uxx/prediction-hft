@@ -10,13 +10,29 @@ from .kalshi_public import KalshiPublic, f
 from .fees import kalshi_taker_fee
 from .risk import Ledger, size as risk_size
 
+def replica_latest(asset: str):
+    try:
+        from .index_replica import latest
+        return latest(asset)
+    except Exception: return None
+
 CB_BASE = "https://api.exchange.coinbase.com/products"
 def utcnow() -> float: return time.time()
 def ts(s: str) -> int: return int(dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp())
 def Phi(x): return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 def twap_horizon(mins_left: float) -> float:
-    """Settlement is the mean of the index over the final minute (rules card): Var(mean_[T-1,T] - S_t) = sigma^2 (tau - 1 + 1/3)."""
+    """Settlement is the mean of the index over the final minute (rules card): Var(mean_[T-1,T] - S_t) = sigma^2 (tau - 1 + 1/3) for tau >= 1."""
     return max(mins_left - 2.0 / 3.0, 0.05)
+
+def p_yes(spot: float, K: float, sig1: float, mins_left: float, partial_twap: float | None = None, partial_n: int = 0) -> float:
+    """P(settlement average > K). Outside the final minute: Brownian to the window mean (twap_horizon). Inside the final minute (review C3):
+    settlement = (1-r)*partial_avg + r*future_avg, r = remaining fraction; future_avg ~ spot * exp(N(0, sig1^2 * r/3)) in minutes units."""
+    if mins_left >= 1.0 or partial_twap is None or partial_n < 3:
+        return Phi(math.log(spot / K) / (sig1 * math.sqrt(twap_horizon(mins_left))))
+    r = max(min(mins_left, 1.0), 0.02)
+    k_eff = (K - (1 - r) * partial_twap) / r              # level the remaining average must exceed
+    if k_eff <= 0: return 0.999
+    return Phi(math.log(spot / k_eff) / (sig1 * math.sqrt(r / 3.0)))
 def jget(u):
     return json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "predhft"}), timeout=10).read())
 
@@ -65,7 +81,7 @@ def settle(k: KalshiPublic, state: State):
         if res in ("yes", "no"):
             win = (res == t["side"])
             t["status"] = "settled"; t["result"] = res; t["pnl"] = (1.0 if win else 0.0) * t["qty"] - t["cost"] - t["fee"]
-            state.open_positions.pop(t["ticker"], None); changed = True
+            state.open_positions.pop(t["ticker"], None); changed = True; Ledger(state.root, family=state.root.name).record_settle(t["ticker"], t["pnl"])
             state.logline(f"SETTLED {t['ticker']} side={t['side']} result={res} qty={t['qty']} pnl={t['pnl']:+.2f}")
     if changed: state.rewrite_trades(trades)
 
@@ -79,7 +95,7 @@ def single_instance(root: pathlib.Path):
         print("another runner holds the lock; exiting", flush=True); raise SystemExit(0)
     return fh
 
-def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD"):
+def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD"):
     _lock = single_instance(root)
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0
     state.logline(f"start {series}/{product} thr={thr} window=T-{t_open}..T-{t_close}min lot={lot}")
@@ -91,41 +107,60 @@ def run(thr: float, t_open: int, t_close: int, lot: int, poll_s: float, root: pa
             if now - sig_ts > 900:
                 s = sigma_1m(product); sig = s or sig; sig_ts = now
             close_iso = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            spot = float(jget(f"{CB_BASE}/{product}/ticker")["price"])
+            rep = replica_latest(product.split("-")[0])          # BRTI replica (median of constituent mids) if fresh, else Coinbase last trade
+            spot = rep["replica"] if rep else float(jget(f"{CB_BASE}/{product}/ticker")["price"])
+            partial, partial_n = (rep.get("partial_twap"), rep.get("partial_n", 0)) if rep else (None, 0)
             cands = [m for m in k.markets(series_ticker=series, status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")]
             # near the money: within 4 sigma*sqrt(t) in log space
             band = 4 * (sig or 0.0006) * math.sqrt(max(mins_left, 0.5))
-            near = [m for m in cands if abs(math.log(spot / float(m["floor_strike"]))) <= band]
+            near = sorted([m for m in cands if abs(math.log(spot / float(m["floor_strike"]))) <= band], key=lambda m: abs(math.log(spot / float(m["floor_strike"]))))
+            if mins_left < 1.5: near = near[:3]                 # final minute: only the 3 nearest strikes (shared rate limiter)
+            # one directional position per asset-hour (review C6): collect candidates, take the best edge/sd, re-check the book before filling (F2)
+            have_hour = any(t.get("close_ts") == next_hour for t in state.open_positions.values())
+            best = None
             for m in near:
                 K = float(m["floor_strike"]); tk = m["ticker"]
                 try: ob = k.orderbook(tk)
                 except Exception: continue
                 yb, ya, ybs, yas = book_touch(ob)
-                p = Phi(math.log(spot / K) / ((sig or 0.0006) * math.sqrt(twap_horizon(mins_left))))
-                snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "sigma1": sig, "p_model": p,
+                p = p_yes(spot, K, sig or 0.0006, mins_left, partial, partial_n)
+                snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "p_model": p,
                         "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas}
                 state.append(state.books, snap)
-                if tk in state.open_positions or not (t_close <= mins_left <= t_open): continue
+                if have_hour or tk in state.open_positions or not (t_close <= mins_left <= t_open): continue
                 side = None
-                if p - ya >= thr and 0 < ya < 1 and yas > 0: side, price, avail = "yes", ya, yas
-                elif (yb - p) >= thr and 0 < yb < 1 and ybs > 0: side, price, avail = "no", 1 - yb, ybs
+                if p - ya >= thr and 0 < ya < 1 and yas > 0: side, edge = "yes", p - ya
+                elif (yb - p) >= thr and 0 < yb < 1 and ybs > 0: side, edge = "no", yb - p
                 if side:
-                    p_side = p if side == "yes" else 1 - p
-                    qty, why = risk_size(series, p_side, price, avail, Ledger(root), lot_cap=lot)
-                    if qty <= 0:
-                        state.logline(f"SKIP {tk} {side} {why}"); continue
-                    cost = qty * price; fee = kalshi_taker_fee(qty, price)
-                    t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail,
-                         "cost": cost, "fee": fee, "p_model": p, "spot": spot, "K": K, "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why}
-                    state.append(state.trades, t); state.open_positions[tk] = t
-                    state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m")
-            time.sleep(poll_s)
+                    score = edge / math.sqrt(max(p * (1 - p), 1e-4))
+                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time()}
+            if best:
+                tk, side, p = best["tk"], best["side"], best["p"]
+                try: yb2, ya2, ybs2, yas2 = book_touch(k.orderbook(tk))
+                except Exception: yb2 = None
+                latency = time.time() - best["t_dec"]
+                ok = yb2 is not None and ((side == "yes" and p - ya2 >= thr and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= thr and 0 < yb2 < 1 and ybs2 > 0))
+                if not ok:
+                    state.logline(f"STALE {tk} {side} touch moved before fill (latency {latency:.2f}s)"); state.append(state.books, {"t": now, "ticker": tk, "stale_fill": True})
+                else:
+                    price = min((ya2 if side == "yes" else 1 - yb2) + 0.01, 0.99); avail = yas2 if side == "yes" else ybs2   # +1 tick slippage
+                    p_side = p if side == "yes" else 1 - p; pm_side = best["mid"] if side == "yes" else 1 - best["mid"]
+                    led = Ledger(root, family=root.name)
+                    qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=pm_side, fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
+                    if qty <= 0: state.logline(f"SKIP {tk} {side} {why}")
+                    else:
+                        cost = qty * price; fee = kalshi_taker_fee(qty, price)
+                        t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
+                             "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why}
+                        state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour)
+                        state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
+            time.sleep(1.0 if mins_left < 1.5 else poll_s)
         except KeyboardInterrupt: raise
         except Exception as e:
             state.logline(f"error {type(e).__name__}: {str(e)[:160]}"); Ledger(root).record_error(f"{type(e).__name__}: {e}"); time.sleep(5)
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=int, default=8)
-    ap.add_argument("--t-close", type=int, default=2); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
-    a = ap.parse_args(); root = pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}")
+    ap = argparse.ArgumentParser(); ap.add_argument("--thr", type=float, default=0.05); ap.add_argument("--t-open", type=float, default=8)
+    ap.add_argument("--t-close", type=float, default=2); ap.add_argument("--root", default=None); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    a = ap.parse_args(); root = pathlib.Path(a.root) if a.root else (pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}"))
     run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product)

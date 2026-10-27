@@ -25,19 +25,53 @@ def results_for(tickers: set[str], k: KalshiPublic) -> dict[str, str]:
         except Exception: pass
     CACHE.write_text(json.dumps(cache)); return cache
 
+def n_required(edge: float, sd: float = 0.40, z: float = 1.96) -> int:
+    """Independent bets needed for a 95% CI on mean per-contract P&L to exclude 0 at the given edge (review G5)."""
+    return int(math.ceil((z * sd / max(edge, 1e-6)) ** 2))
+
+def _cluster_se(d: list[float], keys: list) -> float:
+    """SE of the mean with clustering by key (same event/hour rows share one outcome path)."""
+    by: dict = {}
+    for v, k in zip(d, keys): by.setdefault(k, []).append(v)
+    if len(by) < 2: return st.pstdev(d) / math.sqrt(len(d)) if len(d) > 1 else 0.0
+    tot = [sum(v) for v in by.values()]; G = len(tot); n = len(d); m = sum(tot) / n
+    return math.sqrt(sum((t - m * len(v)) ** 2 for t, v in zip(tot, by.values())) * G / (G - 1)) / n
+
+def _touch(r: dict):
+    """Price we would have traded at for the side the model favors (ask for YES, 1-bid for NO) if the row carries book fields."""
+    yb, ya = r.get("yes_bid"), r.get("yes_ask")
+    if yb is None or ya is None: return None
+    return ya if r["p_model"] >= r["p_market"] else yb   # YES-probability we pay/receive at the touch on our side
+
 def table(rows, res) -> list[str]:
     out = []
     fams = sorted({r["family"] for r in rows})
     for fam in fams:
         rs = [r for r in rows if r["family"] == fam and r["ticker"] in res and r.get("p_model") is not None and r.get("p_market") is not None]
         if not rs: out.append(f"{fam}: no resolved scored rows yet"); continue
-        bm = [(r["p_model"] - (1 if res[r["ticker"]] == "yes" else 0)) ** 2 for r in rs]
-        bk = [(r["p_market"] - (1 if res[r["ticker"]] == "yes" else 0)) ** 2 for r in rs]
+        y = [1 if res[r["ticker"]] == "yes" else 0 for r in rs]
+        bm = [(r["p_model"] - yi) ** 2 for r, yi in zip(rs, y)]
+        bk = [(r["p_market"] - yi) ** 2 for r, yi in zip(rs, y)]
         d = [b - a for a, b in zip(bm, bk)]  # positive = model better
-        se = st.pstdev(d) / math.sqrt(len(d)) if len(d) > 1 else 0
+        keys = [r.get("close_ts") or r.get("ticker", "").rsplit("-", 1)[0] for r in rs]   # cluster by event (ticker minus strike)
+        se = _cluster_se(d, keys); clusters = len(set(keys))
         bss = 1 - st.fmean(bm) / st.fmean(bk) if st.fmean(bk) > 0 else float("nan")
-        out.append(f"{fam}: n={len(rs)} Brier model={st.fmean(bm):.4f} market={st.fmean(bk):.4f} BSS vs market={bss:+.3f} (diff {st.fmean(d)*1e4:+.1f}±{se*1e4:.1f} e-4)")
+        line = f"{fam}: n={len(rs)} clusters={clusters} Brier model={st.fmean(bm):.4f} market(mid)={st.fmean(bk):.4f} BSS vs mid={bss:+.3f} (diff {st.fmean(d)*1e4:+.1f}±{se*1e4:.1f} e-4, clustered)"
+        tt = [(r, yi) for r, yi in zip(rs, y) if _touch(r) is not None]
+        if tt:
+            bt = [(_touch(r) - yi) ** 2 for r, yi in tt]; bmt = [(r["p_model"] - yi) ** 2 for r, yi in tt]
+            bss_t = 1 - st.fmean(bmt) / st.fmean(bt) if st.fmean(bt) > 0 else float("nan")
+            line += f" | vs TOUCH n={len(tt)} BSS={bss_t:+.3f}"
+        out.append(line)
     return out
+
+def pnl_power(trades: list[dict]) -> str:
+    """Per-contract mean, clustered se, n vs n_required for settled paper trades."""
+    st_ = [t for t in trades if t.get("status") == "settled" and t.get("qty")]
+    if len(st_) < 2: return f"n={len(st_)} (need >=2)"
+    pc = [t["pnl"] / t["qty"] for t in st_]; keys = [t.get("close_ts") or t["ticker"].rsplit("-", 1)[0] for t in st_]
+    m = st.fmean(pc); se = _cluster_se(pc, keys); sd = st.pstdev(pc)
+    return f"n={len(st_)} clusters={len(set(keys))} per-contract {m*100:+.1f}c ±{se*100:.1f}c; n_required(|edge|, sd={sd:.2f})={n_required(abs(m), sd) if m else 'inf'}"
 
 if __name__ == "__main__":
     rows = load_rows(); k = KalshiPublic(min_interval_s=0.2)

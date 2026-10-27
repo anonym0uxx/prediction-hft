@@ -13,7 +13,7 @@ from .kalshi_public import KalshiPublic
 from .fees import kalshi_taker_fee
 from .s7_live import book_touch, single_instance
 from .risk import Ledger, size as risk_size
-from .weather_verify import tget, cli_products, parse_series_station, Paper, settle, TZ
+from .weather_verify import tget, cli_products, parse_series_station, Paper, settle, TZ, ts_close
 
 def metar_precip(station: str, local_date: dt.date, tz: str) -> dict:
     raw = tget(f"https://aviationweather.gov/api/data/metar?ids={station}&format=raw&hours=30"); z = ZoneInfo(tz)
@@ -59,16 +59,18 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
         except Exception: continue
         mid = (yb + ya) / 2 if ya < 1 else yb
         paper.append(paper.score, {"t": time.time(), "family": "rain_j1", "series": "KXRAIN", "ticker": m["ticker"], "p_model": p, "p_market": mid, "basis": basis, "metar": met, "cli": cli_v})
-        if not trade or m["ticker"] in paper.open: continue
+        if not trade or m["ticker"] in paper.open or basis == "late_day_dry": continue
         side = None
         if p >= 0.97 and p - ya >= margin and 0 < ya < 1 and yas > 0: side, price, avail = "yes", ya, yas
         elif p <= 0.03 and yb - p >= margin and 0 < yb < 1 and ybs > 0: side, price, avail = "no", 1 - yb, ybs
         if side:
-            qty, why = risk_size("KXRAIN", p if side == "yes" else 1 - p, price, avail, Ledger(paper.root), lot_cap=lot)
+            led = Ledger(paper.root, family="rain-j1")
+            qty, why = risk_size("KXRAIN", p if side == "yes" else 1 - p, price, avail, led, lot_cap=lot, p_market=(mid if side == "yes" else 1 - mid),
+                                 fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=ts_close(m), event_date=today.isoformat())
             if qty <= 0: paper.logline(f"SKIP {m['ticker']} {side} {why}"); continue
             t = {"t": time.time(), "ticker": m["ticker"], "series": "KXRAIN", "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "cost": qty * price,
                  "fee": kalshi_taker_fee(qty, price), "p_model": p, "basis": basis, "status": "open", "risk": why, "local_time": local_now.isoformat(timespec="minutes")}
-            paper.append(paper.trades, t); paper.open.add(m["ticker"])
+            paper.append(paper.trades, t); paper.open.add(m["ticker"]); led.record_open(m["ticker"], "KXRAIN", t["cost"], close_ts=ts_close(m), event_date=today.isoformat())
             paper.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {m['ticker']} p={p:.2f} basis={basis} avail={avail:.0f}")
 
 def main():

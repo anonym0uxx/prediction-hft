@@ -25,7 +25,8 @@ def coinbase_minutes(t0: int, t1: int, product: str = "BTC-USD") -> dict[int, fl
             except Exception:
                 time.sleep(1 + attempt)
         else: d = []
-        for c in d: out[int(c[0])] = float(c[4])
+        # Coinbase candle: c[0] = bucket START, c[4] = close = price at bucket END. Key by end so spot[t] is the price AT t (no lookahead).
+        for c in d: out[int(c[0]) + 60] = float(c[4])
         cur = end; time.sleep(0.25)
     return out
 
@@ -69,7 +70,7 @@ def summarize(rows, closes, rep_dir: pathlib.Path, series: str = "KXBTCD") -> di
     for h in sorted(by, reverse=True):
         g = by[h]; mb = st.fmean((r["p_model"] - r["y"]) ** 2 for r in g); kb = st.fmean(((r["yes_bid"] + r["yes_ask"]) / 2 - r["y"]) ** 2 for r in g)
         lines.append(f"| T-{h}m | {len(g)} | {mb:.4f} | {kb:.4f} |")
-    lines += ["", "## Taker rule at the touch, hold to expiry, 10-lot fee (net cents/contract)", "| horizon | thr | n | avg | 1se | hit | hours>0/hours |", "|---|---|---|---|---|---|---|"]
+    lines += ["", "## Taker rule at the touch, hold to expiry, 10-lot fee (net cents/contract)", "| horizon | thr | n | avg | 1se (hour-clustered) | hit | hours>0/hours |", "|---|---|---|---|---|---|---|"]
     res = {}
     for h in sorted(by, reverse=True):
         for thr in (0.03, 0.05, 0.08, 0.12):
@@ -84,11 +85,14 @@ def summarize(rows, closes, rep_dir: pathlib.Path, series: str = "KXBTCD") -> di
                 pnl.append(v); hrs[r["close"]] += v
             n = len(pnl)
             if n:
-                a = st.fmean(pnl); se = st.pstdev(pnl) / math.sqrt(n) if n > 1 else 0; hit = st.fmean(p > 0 for p in pnl)
-                pos = sum(v > 0 for v in hrs.values())
+                a = st.fmean(pnl); hit = st.fmean(p > 0 for p in pnl)
+                # hour-clustered se: same-hour trades share one spot path -> treat each hour's total as one observation
+                H = len(hrs); tot = sum(pnl); hv = list(hrs.values())
+                se = (math.sqrt(sum((v - tot / H) ** 2 for v in hv) / max(H - 1, 1)) * math.sqrt(H) / n) if H > 1 else 0
+                pos = sum(v > 0 for v in hv)
                 lines.append(f"| T-{h}m | {thr:.2f} | {n} | {a*100:+.1f}c | {se*100:.1f}c | {hit:.0%} | {pos}/{len(hrs)} |")
                 res[(h, thr)] = {"n": n, "avg": a, "se": se, "hit": hit, "hours_pos": pos, "hours": len(hrs)}
-    lines += ["", "Caveats: taker fills assumed at the 1-min candle close touch; settlement index is BRTI 60-s average (Coinbase used as proxy); sigma trailing 120 min, no lookahead."]
+    lines += ["", "Caveats: taker fills assumed at the 1-min candle close touch; settlement index is BRTI 60-s average (Coinbase used as proxy); sigma trailing 120 min; Coinbase candles keyed by bucket END (lookahead fix 2026-10-26); se clustered by settlement hour."]
     rep_dir.mkdir(parents=True, exist_ok=True)
     (rep_dir / f"s7-lag-{series}-{dt.date.today().isoformat()}.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))

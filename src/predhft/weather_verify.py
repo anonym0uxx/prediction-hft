@@ -36,12 +36,17 @@ def parse_series_station(rules_primary: str):
     if not m: return None
     code = m.group(2); return {"cli": code, "metar": STATION.get(code, "K" + code), "tz": TZ.get(code, "America/New_York")}
 
+_CLI_TEXT: dict[str, dict] = {}   # product @id -> parsed product (texts are immutable; only the list changes)
 def cli_products(code: str, n: int = 4) -> list[dict]:
     r = jget(f"https://api.weather.gov/products/types/CLI/locations/{code}"); out = []
     for g in r.get("@graph", [])[:n]:
-        txt = jget(g["@id"])["productText"]
-        out.append({"issued": g["issuanceTime"], "text": txt, **parse_cli(txt)})
+        if g["@id"] not in _CLI_TEXT:
+            txt = jget(g["@id"])["productText"]; _CLI_TEXT[g["@id"]] = {"issued": g["issuanceTime"], "text": txt, **parse_cli(txt)}
+        out.append(_CLI_TEXT[g["@id"]])
     return out
+
+def ts_close(m: dict) -> float:
+    return dt.datetime.fromisoformat(m["close_time"].replace("Z", "+00:00")).timestamp()
 
 def parse_cli(txt: str) -> dict:
     d = {"prelim": "VALID TODAY AS OF" in txt, "max": None, "min": None, "for_date": None}
@@ -85,40 +90,43 @@ def verify(kind: str, strike_type: str, floor_k, cap_k, cli: dict | None, metar:
         elif metar.get("max") is not None:
             M, exact, basis = metar["max"], False, "metar"
         else: return None, "nodata"
-        # chance the day's final max exceeds M further: late-day heating after 16:00 is rare; before noon it's likely
+        lock_slack = 0 if exact else 1   # METAR tenths-C -> F rounding can differ from the ASOS F record by 1
+        # MONOTONE-LOCKED states (review V1/V2): the day's max can only rise, so these hold at ANY hour and are the only tradable states
+        if strike_type == "greater" and M - lock_slack > floor_k: return 1.0, "locked_" + basis
+        if strike_type == "less" and M - lock_slack >= cap_k: return 0.0, "locked_" + basis
+        if strike_type == "between" and M - lock_slack > cap_k: return 0.0, "locked_" + basis
+        # everything below is a PROBABILISTIC estimate (scored, never traded)
         p_more = 0.02 if hour >= 17 else 0.08 if hour >= 16 else 0.25 if hour >= 14 else None
         if p_more is None: return None, "too_early"
-        slack = 0 if exact else 2   # METAR under-read margin
+        slack = 0 if exact else 2
         if strike_type == "greater":
-            if M > floor_k: return 1.0 - 0.0, basis          # already above: locked in (max can only rise)
-            if M + slack < floor_k - 0: return p_more * 0.5 if floor_k - M <= 2 else 0.01, basis
+            if M + slack < floor_k: return p_more * 0.5 if floor_k - M <= 2 else 0.01, basis
             return None, "ambiguous"
         if strike_type == "less":
-            if M >= cap_k: return 0.0, basis                 # already failed
             if M + slack < cap_k: return 1.0 - p_more * (1 if cap_k - M <= 2 else 0.2), basis
             return None, "ambiguous"
         if strike_type == "between":
-            if M > cap_k: return 0.0, basis
             if exact and floor_k <= M <= cap_k: return 1.0 - p_more * (1 if M == cap_k else 0.5), basis
             if M + slack < floor_k: return 0.02 if floor_k - M > 2 else p_more * 0.5, basis
             return None, "ambiguous"
-    else:  # low: the min is usually set near sunrise; after ~10:00 it is locked in unless a cold front arrives late
+    else:  # low: the min can only fall
         if cli and cli.get("prelim") and cli.get("min") is not None: m_, exact, basis = cli["min"], True, "prelim_cli"
         elif metar.get("min") is not None: m_, exact, basis = metar["min"], False, "metar"
         else: return None, "nodata"
+        lock_slack = 0 if exact else 1
+        if strike_type == "greater" and m_ + lock_slack <= floor_k: return 0.0, "locked_" + basis
+        if strike_type == "less" and m_ + lock_slack < cap_k: return 1.0, "locked_" + basis
+        if strike_type == "between" and m_ + lock_slack < floor_k: return 0.0, "locked_" + basis
         if hour < 10: return None, "too_early"
-        p_lower = 0.05 if hour < 17 else 0.10   # evening cooling before midnight can undercut the morning low
+        p_lower = 0.05 if hour < 17 else 0.10
         slack = 0 if exact else 2
-        if strike_type == "greater":   # low > K: fails if min <= K already
-            if m_ <= floor_k: return 0.0, basis
+        if strike_type == "greater":
             if m_ - slack > floor_k: return 1.0 - p_lower * (1 if m_ - floor_k <= 2 else 0.2), basis
             return None, "ambiguous"
         if strike_type == "less":
-            if m_ < cap_k: return 1.0, basis
             if m_ - slack >= cap_k: return p_lower * 0.5 if m_ - cap_k <= 2 else 0.01, basis
             return None, "ambiguous"
         if strike_type == "between":
-            if m_ < floor_k: return 0.0, basis
             if exact and floor_k <= m_ <= cap_k: return 1.0 - p_lower * (1 if m_ == floor_k else 0.5), basis
             if m_ - slack > cap_k: return 0.02 if m_ - cap_k > 2 else p_lower * 0.5, basis
             return None, "ambiguous"
@@ -143,6 +151,7 @@ def settle(k: KalshiPublic, paper: Paper):
         if m.get("result") in ("yes", "no"):
             win = m["result"] == t["side"]; t["status"] = "settled"; t["result"] = m["result"]
             t["pnl"] = (1.0 if win else 0.0) * t["qty"] - t["cost"] - t["fee"]; changed = True; paper.open.discard(t["ticker"])
+            Ledger(paper.root, family=paper.root.name).record_settle(t["ticker"], t["pnl"])
             paper.logline(f"SETTLED {t['ticker']} side={t['side']} result={m['result']} qty={t['qty']} pnl={t['pnl']:+.2f} basis={t['basis']}")
     if changed: paper.trades.write_text("".join(json.dumps(t) + "\n" for t in trades))
 
@@ -162,7 +171,7 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
         try:
             if st["cli"] not in cli_cache: cli_cache[st["cli"]] = cli_products(st["cli"], 3)
             if st["metar"] not in metar_cache: metar_cache[st["metar"]] = metar_running(st["metar"], today, st["tz"])
-        except Exception as e: paper.logline(f"feed error {series}: {type(e).__name__} {str(e)[:80]}"); continue
+        except Exception as e: paper.logline(f"feed error {series}: {type(e).__name__} {str(e)[:80]}"); Ledger(paper.root, family=paper.root.name).record_error(f"feed {series}: {e}"); continue
         cli_today = next((p for p in cli_cache[st["cli"]] if p.get("for_date") == today.isoformat()), None)
         metar = metar_cache[st["metar"]]
         for m in todays:
@@ -171,21 +180,24 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
             try: yb, ya, ybs, yas = book_touch(k.orderbook(m["ticker"]))
             except Exception: continue
             mid = (yb + ya) / 2 if ya < 1 else yb
-            paper.append(paper.score, {"t": time.time(), "family": "weather_j1", "series": series, "ticker": m["ticker"], "p_model": p, "p_market": mid, "basis": basis,
+            paper.append(paper.score, {"t": time.time(), "family": "weather_j1", "series": series, "ticker": m["ticker"], "p_model": p, "p_market": mid, "basis": basis, "local_hour": local_now.hour, "yes_bid": yb, "yes_ask": ya,
                                        "cli_max": cli_today and cli_today.get("max"), "cli_min": cli_today and cli_today.get("min"), "metar": metar})
             if m["ticker"] in paper.open: continue
             side = None
             # J1 trades ONLY determined states; probabilistic cases (heating/cooling fudge factors) are scored, never bet.
+            if not basis.startswith("locked_"): continue      # probabilistic states are scored only (review V2)
             if p >= 0.97 and p - ya >= margin and 0 < ya < 1 and yas > 0: side, price, avail = "yes", ya, yas
             elif p <= 0.03 and yb - p >= margin and 0 < yb < 1 and ybs > 0: side, price, avail = "no", 1 - yb, ybs
             if side:
                 p_side = p if side == "yes" else 1 - p
-                qty, why = risk_size(series, p_side, price, avail, Ledger(paper.root), lot_cap=lot)
+                led = Ledger(paper.root, family="weather-j1")
+                qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=(mid if side == "yes" else 1 - mid),
+                                     fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=ts_close(m), event_date=today.isoformat())
                 if qty <= 0: paper.logline(f"SKIP {m['ticker']} {side} {why}"); continue
                 cost = qty * price; fee = kalshi_taker_fee(qty, price)
                 t = {"t": time.time(), "ticker": m["ticker"], "series": series, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "cost": cost, "fee": fee,
                      "p_model": p, "basis": basis, "status": "open", "risk": why, "local_time": local_now.isoformat(timespec="minutes")}
-                paper.append(paper.trades, t); paper.open.add(m["ticker"])
+                paper.append(paper.trades, t); paper.open.add(m["ticker"]); led.record_open(m["ticker"], series, cost, close_ts=ts_close(m), event_date=today.isoformat())
                 paper.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {m['ticker']} p={p:.2f} basis={basis} cli_max={cli_today and cli_today.get('max')} metar_max={metar.get('max')} avail={avail:.0f}")
 
 def main():
