@@ -141,6 +141,29 @@ class Paper:
         line = f"{dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')} {m}"; print(line, flush=True); self.log.open("a").write(line + "\n")
     def append(self, p, o): p.open("a").write(json.dumps(o) + "\n")
 
+def first_lock(paper: "Paper", ticker: str, basis: str):
+    """Timestamp of the first locked observation per ticker (persisted), for latency-of-repricing studies."""
+    if not basis.startswith("locked_"): return None
+    f = paper.root / "first_lock.json"
+    try: d = json.loads(f.read_text()) if f.exists() else {}
+    except Exception: d = {}
+    if ticker not in d: d[ticker] = time.time(); f.write_text(json.dumps(d))
+    return d[ticker]
+
+def report(root: pathlib.Path, days: int = 14) -> str:
+    """Locked states and executable gaps (>=5c with size>=20) by local hour and side (PREREG P4/P7)."""
+    cut = time.time() - days * 86400; by: dict = {}
+    for l in (root / "scoreboard.jsonl").read_text().splitlines() if (root / "scoreboard.jsonl").exists() else []:
+        r = json.loads(l)
+        if r["t"] < cut or not str(r.get("basis", "")).startswith("locked_") or r.get("yes_bid") is None: continue
+        kind = "low" if "LOW" in r["ticker"] else "high"; h = r.get("local_hour")
+        gap = (1 - r["yes_ask"]) if r["p_model"] >= 0.5 else r["yes_bid"]; size = r.get("ask_size") if r["p_model"] >= 0.5 else r.get("bid_size")
+        k_ = (kind, h); d = by.setdefault(k_, {"rows": 0, "tickers": set(), "opp": set()}); d["rows"] += 1; d["tickers"].add(r["ticker"])
+        if gap >= 0.05 and (size or 0) >= 20: d["opp"].add(r["ticker"])
+    lines = ["kind hour locked_tickers gap>=5c&size>=20"]
+    for (kind, h), d in sorted(by.items(), key=lambda x: (x[0][0], x[0][1] if x[0][1] is not None else -1)): lines.append(f"{kind} {h:>2} {len(d['tickers']):>4} {len(d['opp']):>4}")
+    return "\n".join(lines)
+
 def settle(k: KalshiPublic, paper: Paper):
     if not paper.trades.exists(): return
     trades = [json.loads(l) for l in paper.trades.read_text().splitlines() if l.strip()]; changed = False
@@ -180,7 +203,7 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
             try: yb, ya, ybs, yas = book_touch(k.orderbook(m["ticker"]))
             except Exception: continue
             mid = (yb + ya) / 2 if ya < 1 else yb
-            paper.append(paper.score, {"t": time.time(), "family": "weather_j1", "series": series, "ticker": m["ticker"], "p_model": p, "p_market": mid, "basis": basis, "local_hour": local_now.hour, "yes_bid": yb, "yes_ask": ya,
+            paper.append(paper.score, {"t": time.time(), "family": "weather_j1", "series": series, "ticker": m["ticker"], "p_model": p, "p_market": mid, "basis": basis, "local_hour": local_now.hour, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "first_lock_t": first_lock(paper, m["ticker"], basis),
                                        "cli_max": cli_today and cli_today.get("max"), "cli_min": cli_today and cli_today.get("min"), "metar": metar})
             if m["ticker"] in paper.open: continue
             side = None
@@ -202,7 +225,8 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--loop", action="store_true"); ap.add_argument("--lot", type=int, default=20)
-    ap.add_argument("--margin", type=float, default=0.05); ap.add_argument("--poll", type=int, default=300); a = ap.parse_args()
+    ap.add_argument("--margin", type=float, default=0.05); ap.add_argument("--poll", type=int, default=300); ap.add_argument("--report", action="store_true"); a = ap.parse_args()
+    if a.report: print(report(pathlib.Path("data/weather-j1"))); return
     from .s7_live import single_instance
     root = pathlib.Path("data/weather-j1"); _lock = single_instance(root); paper = Paper(root); k = KalshiPublic(min_interval_s=0.15)
     paper.logline(f"start weather J1 verifier lot={a.lot} margin={a.margin}")

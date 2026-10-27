@@ -16,7 +16,7 @@ def f(d: dict, key: str) -> float | None:
         return None
 
 import json as _json, os as _os, pathlib as _pl
-_RL = _pl.Path("data/risk"); _RL_INTERVAL = 0.4  # one shared slot per 0.4 s across ALL predhft processes (~2.5 req/s < Kalshi public ~3 req/s)
+_RL = _pl.Path("data/risk"); _RL_INTERVAL = 0.5  # one shared slot per 0.4 s across ALL predhft processes (~2.5 req/s < Kalshi public ~3 req/s)
 
 def _shared_slot():
     """Cross-process token bucket: lock file + last-call timestamp (Windows msvcrt)."""
@@ -31,7 +31,9 @@ def _shared_slot():
             try:
                 try: last = float(stamp.read_text() or 0)
                 except Exception: last = 0.0
-                wait = last + _RL_INTERVAL - time.time()
+                try: bo = float((_RL / "backoff.until").read_text()) if (_RL / "backoff.until").exists() else 0.0
+                except Exception: bo = 0.0
+                wait = max(last + _RL_INTERVAL, bo) - time.time()
                 if wait > 0: time.sleep(wait)
                 stamp.write_text(repr(time.time()))
             finally:
@@ -41,7 +43,7 @@ def _shared_slot():
 
 def _log429(path: str):
     try:
-        _RL.mkdir(parents=True, exist_ok=True)
+        _RL.mkdir(parents=True, exist_ok=True); (_RL / "backoff.until").write_text(repr(time.time() + 5.0))   # all processes pause 5 s after any 429
         (_RL / "429.jsonl").open("a").write(_json.dumps({"t": time.time(), "path": path, "pid": _os.getpid()}) + "\n")
     except Exception: pass
 

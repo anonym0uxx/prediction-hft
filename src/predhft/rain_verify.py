@@ -37,6 +37,23 @@ def cli_precip(code: str, today: str):
         if m: return 0.0 if m.group(1) == "T" else float(m.group(1)), p["prelim"]
     return None, None
 
+def tip_events(paper: Paper, k: KalshiPublic, m: dict, station: str, met: dict):
+    f = paper.root / "tips.json"
+    try: d = json.loads(f.read_text()) if f.exists() else {}
+    except Exception: d = {}
+    key = m["ticker"]; now = time.time(); e = d.get(key)
+    if e is None and met["total"] >= 0.01:
+        try: yb, ya, ybs, yas = book_touch(k.orderbook(key))
+        except Exception: return
+        d[key] = {"t_tip": now, "station": station, "metar_total": met["total"], "ask": ya, "ask_size": yas, "bid": yb, "follow": {}}
+        paper.logline(f"TIP {key} metar_total={met['total']} ask={ya:.2f} size={yas:.0f}")
+    elif e is not None:
+        for lag, k_ in ((300, "+5"), (1800, "+30")):
+            if k_ not in e["follow"] and now - e["t_tip"] >= lag:
+                try: yb, ya, ybs, yas = book_touch(k.orderbook(key)); e["follow"][k_] = {"ask": ya, "ask_size": yas, "bid": yb}
+                except Exception: pass
+    f.write_text(json.dumps(d))
+
 def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib.Path, trade: bool):
     c = sqlite3.connect(db)
     ms = list(k.markets(series_ticker="KXRAIN", status="open", limit=500, max_pages=2)); cache: dict = {}
@@ -50,6 +67,7 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
             if st["metar"] not in cache: cache[st["metar"]] = (metar_precip(st["metar"], today, st["tz"]), cli_precip(st["cli"], today.isoformat()))
         except Exception as e: paper.logline(f"feed error {m['ticker']}: {type(e).__name__} {str(e)[:80]}"); continue
         met, (cli_v, prelim) = cache[st["metar"]]
+        tip_events(paper, k, m, st["metar"], met)          # P8: first measurable METAR tip -> ask/size now, +5, +30 min
         p, basis = None, None
         if (cli_v or 0) >= 0.01: p, basis = 0.99, f"cli_prelim={cli_v}"
         elif met["total"] >= 0.01: p, basis = 0.98, f"metar_P={met['total']}"
@@ -75,7 +93,7 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--loop", action="store_true"); ap.add_argument("--lot", type=int, default=20)
-    ap.add_argument("--margin", type=float, default=0.05); ap.add_argument("--poll", type=int, default=600); a = ap.parse_args()
+    ap.add_argument("--margin", type=float, default=0.05); ap.add_argument("--poll", type=int, default=300); a = ap.parse_args()
     root = pathlib.Path("data/rain-j1"); _lock = single_instance(root); paper = Paper(root); k = KalshiPublic(min_interval_s=0.2); db = pathlib.Path("data/universe.db")
     card = sqlite3.connect(db).execute("SELECT card FROM rules_cards WHERE series='KXRAIN'").fetchone()
     trade = bool(card) and json.loads(card[0]).get("observability_before_settlement") == "high"

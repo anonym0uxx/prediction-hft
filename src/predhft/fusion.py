@@ -85,7 +85,7 @@ def record_once(k: KalshiPublic, out: pathlib.Path):
             (out / "kalshi.jsonl").open("a").write(json.dumps({"t": now, "mins_left": round(mins_left, 2), "series": series, "ticker": m["ticker"], "floor": m.get("floor_strike"), "cap": m.get("cap_strike"),
                                                               "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas}) + "\n"); n += 1
     # Polymarket hourly ladder for the same settlement (5PM ET only exists for some hours; search by slug pattern)
-    et = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).astimezone(dt.timezone(dt.timedelta(hours=-4)))
+    from zoneinfo import ZoneInfo; et = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).astimezone(ZoneInfo("America/New_York"))
     slug = f"bitcoin-above-on-{et.strftime('%B').lower()}-{et.day}-{et.year}-{et.strftime('%I').lstrip('0')}{et.strftime('%p').lower()}-et"
     try:
         evs = pg(f"https://gamma-api.polymarket.com/events?slug={slug}")

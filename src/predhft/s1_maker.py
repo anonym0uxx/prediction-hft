@@ -16,9 +16,9 @@ from .s7_live import book_touch, single_instance
 from .risk import series_multiplier, Ledger, halted
 from .fusion import flow
 
-SERIES_GLOBS = [r"^KXHIGH", r"^KXLOW(T|[A-Z]{2,4}$)", r"^KXRAIN", r"^KXAAAGASD$", r"^KXBTCD$", r"^KXETHD$"]
-SELL_LO, SELL_HI, BUY_LO, BUY_HI = 0.05, 0.30, 0.50, 0.95
-MIN_H, MAX_H = 6.0, 36.0           # hours to close at decision time
+SERIES_GLOBS = [r"^KXHIGH", r"^KXLOW(T|[A-Z]{2,4}$)", r"^KXRAIN"]   # weather T-strikes only (EDGE_PLAN A3)
+SELL_LO, SELL_HI, BUY_LO, BUY_HI = 0.05, 0.15, 2.0, 2.0   # EDGE_PLAN A3: only the evidenced bin (sell YES 5-15c); favorite side disabled
+MIN_H, MAX_H = 18.0, 36.0           # hours to close at decision time
 def ts(s): return dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
 
 class Book:
@@ -56,6 +56,7 @@ def scan(k: KalshiPublic, book: Book, lot: int, max_open_per_series: int, db_pat
         for m in ms:
             h = (ts(m["close_time"]) - now) / 3600
             if not (MIN_H <= h <= MAX_H) or m["ticker"] in have: continue
+            if m.get("strike_type") == "between": continue      # B-strikes: a range is not a longshot (EDGE_PLAN A3)
             yb, ya = f(m, "yes_bid_dollars") or 0.0, f(m, "yes_ask_dollars") or 1.0
             if ya - yb > 0.10 or (f(m, "volume_fp") or 0) < 50: continue
             mid = (yb + ya) / 2
@@ -85,8 +86,17 @@ def match(k: KalshiPublic, book: Book):
     """Fill resting orders from prints after post time; cancel resting orders inside the final hour (we are not a last-hour maker)."""
     now = time.time(); changed = False
     for o in book.items:
+        if o["status"] == "filled" and o.get("fill_t"):
+            for lag, key in ((900, "mtm_15"), (3600, "mtm_60"), (14400, "mtm_240")):
+                if key not in o and now - o["fill_t"] >= lag:
+                    try:
+                        mm = k.get(f"/markets/{o['ticker']}")["market"]; yb = f(mm, "yes_bid_dollars") or 0.0; ya = f(mm, "yes_ask_dollars") or 1.0; mid = (yb + ya) / 2
+                        o[key] = round((mid - o["price"]) if o["side"] == "buy_yes" else (o["price"] - mid), 4); changed = True   # + = in our favor, cents/contract
+                    except Exception: pass
         if o["status"] != "resting": continue
         if now > o["close_ts"] - 3600: o["status"] = "cancelled"; changed = True; book.logline(f"CANCEL unfilled {o['ticker']}"); continue
+        if now - o.get("last_check", 0) < 300: continue
+        o["last_check"] = now; changed = True
         tr = []; cur = None
         try:
             for _ in range(5):   # paginate past 200 prints (review M3)
