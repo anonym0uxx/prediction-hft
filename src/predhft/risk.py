@@ -15,7 +15,8 @@ CFG = {
     "bankroll": 250.0, "kelly_fraction": 0.25, "max_lot": 20, "min_lot": 5,
     "max_cost_per_market": 15.0, "max_cost_per_series_day": 60.0,
     "family_daily_loss": 15.0, "global_daily_loss": 25.0, "global_weekly_loss": 50.0,
-    "max_cost_per_settlement_ts": 40.0,   # 3 assets x (P12+P13) share each 15-min close; $20 blocked ETH P13 fills on 2026-10-27 07:30 PT "max_cost_per_event_date": 30.0,
+    "max_cost_per_settlement_ts": 40.0,  # 6 crypto families share each 15-min close; $20 blocked ETH P13 on 2026-10-27 07:30 PT
+    "max_cost_per_event_date": 30.0,
     "max_errors_per_hour": 30,
     "observability_mult": {"high": 1.0, "partial": 0.6, "none": 0.3, None: 0.5},
     "thin_book": 50, "thin_fraction": 0.5,
