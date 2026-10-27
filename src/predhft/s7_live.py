@@ -91,6 +91,12 @@ def jget(u):
 
 class State:
     def __init__(self, root: pathlib.Path):
+        from .risk import MODE
+        root = pathlib.Path(root); self.mode = MODE
+        # hard wall: a live process may only write under data/live/, a paper process never may
+        under_live = "live" in root.parts
+        if MODE == "live" and not under_live: raise RuntimeError(f"PREDHFT_MODE=live but root {root} is not under data/live/")
+        if MODE == "paper" and under_live: raise RuntimeError(f"paper process must not write under data/live/ ({root})")
         self.root = root; root.mkdir(parents=True, exist_ok=True); self.score = root / "scoreboard.jsonl"
         self.trades = root / "trades.jsonl"; self.books = root / "books.jsonl"; self.log = root / "runner.log"
         self.open_positions: dict[str, dict] = {}
@@ -360,7 +366,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
                              "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "spot_src": spot_src, "proj_gate": proj_gate, "floor_used": None, "p_cal": best.get("p_cal"), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
-                        state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
+                        t["mode"] = state.mode; state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(0.7 if mins_left < 1.5 else poll_s)
         except KeyboardInterrupt: raise

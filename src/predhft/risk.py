@@ -11,8 +11,14 @@ Review fixes (docs/QUANT_REVIEW_2026-10-26.md R1-R5, N4):
 from __future__ import annotations
 import json, pathlib, sqlite3, time, datetime as dt
 
+# SOURCE-OF-TRUTH SEPARATION (user 2026-10-27): paper and live never share files.
+#   paper: data/<family>/...            ledger data/risk/events.jsonl           (everything that exists today is paper)
+#   live : data/live/<family>/...       ledger data/live/risk/events.jsonl      (created only by a process started with PREDHFT_MODE=live)
+import os as _os
+MODE = _os.environ.get("PREDHFT_MODE", "paper")
+if MODE not in ("paper", "live"): raise RuntimeError(f"PREDHFT_MODE must be paper|live, got {MODE!r}")
 CFG = {
-    "paper_mode": True,   # halts shadow-logged only; set False for live
+    "paper_mode": MODE == "paper",   # halts shadow-logged in paper; ENFORCED in live (PREDHFT_MODE=live)
     "bankroll": 250.0, "kelly_fraction": 0.25, "max_lot": 20, "min_lot": 5,
     "max_cost_per_market": 15.0, "max_cost_per_series_day": 60.0,
     "family_daily_loss": 15.0, "global_daily_loss": 25.0, "global_weekly_loss": 50.0,
@@ -25,7 +31,8 @@ CFG = {
     "observability_mult": {"high": 1.0, "partial": 0.6, "none": 0.3, None: 0.5},
     "thin_book": 50, "thin_fraction": 0.5,
 }
-DB = pathlib.Path("data/universe.db"); GLOBAL = pathlib.Path("data/risk/events.jsonl")
+DB = pathlib.Path("data/universe.db")
+GLOBAL = pathlib.Path("data/live/risk/events.jsonl") if MODE == "live" else pathlib.Path("data/risk/events.jsonl")
 
 def card(series: str) -> dict | None:
     try:
@@ -61,7 +68,7 @@ class Ledger:
         self.root = root; self.trades = root / trades_file; self.errors = root / "errors.jsonl"; self.family = family or root.name
         GLOBAL.parent.mkdir(parents=True, exist_ok=True)
     def _ev(self, **e):
-        e.setdefault("t", time.time()); e["family"] = self.family; GLOBAL.open("a").write(json.dumps(e) + "\n")
+        e.setdefault("t", time.time()); e["family"] = self.family; e["mode"] = MODE; GLOBAL.parent.mkdir(parents=True, exist_ok=True); GLOBAL.open("a").write(json.dumps(e) + "\n")
     def record_open(self, ticker: str, series: str, cost: float, close_ts: float | None = None, event_date: str | None = None, side: str | None = None):
         self._ev(kind="open", ticker=ticker, series=series, cost=cost, close_ts=close_ts, event_date=event_date, side=side)
     def record_settle(self, ticker: str, pnl: float): self._ev(kind="settle", ticker=ticker, pnl=pnl)
