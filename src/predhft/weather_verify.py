@@ -197,14 +197,18 @@ def run_once(k: KalshiPublic, paper: Paper, lot: int, margin: float, db: pathlib
         except Exception as e: paper.logline(f"feed error {series}: {type(e).__name__} {str(e)[:80]}"); Ledger(paper.root, family=paper.root.name).record_error(f"feed {series}: {e}"); continue
         cli_today = next((p for p in cli_cache[st["cli"]] if p.get("for_date") == today.isoformat()), None)
         metar = metar_cache[st["metar"]]
+        # J1-v2 (2026-10-28): METAR day-attribution sanity guard. All 3/165 wrong locks were 'low' locks at local hour 0 whose METAR
+        # window carried a full prior day (n=24 obs at 00:xx local). A running max/min cannot have more hourly obs than hours elapsed;
+        # if it does, the window is mis-attributed and METAR must not lock. CLI (official climate report) locks are unaffected.
+        metar_ok = metar.get("n") is not None and metar["n"] <= local_now.hour + 2
         for m in todays:
-            p, basis = verify(kind, m.get("strike_type"), m.get("floor_strike"), m.get("cap_strike"), cli_today, metar, local_now)
+            p, basis = verify(kind, m.get("strike_type"), m.get("floor_strike"), m.get("cap_strike"), cli_today, metar if metar_ok else {"max": None, "min": None, "n": 0}, local_now)
             if p is None: continue
             try: yb, ya, ybs, yas = book_touch(k.orderbook(m["ticker"]))
             except Exception: continue
             mid = (yb + ya) / 2 if ya < 1 else yb
             paper.append(paper.score, {"t": time.time(), "family": "weather_j1", "series": series, "ticker": m["ticker"], "p_model": p, "p_market": mid, "basis": basis, "local_hour": local_now.hour, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "first_lock_t": first_lock(paper, m["ticker"], basis),
-                                       "cli_max": cli_today and cli_today.get("max"), "cli_min": cli_today and cli_today.get("min"), "metar": metar})
+                                       "cli_max": cli_today and cli_today.get("max"), "cli_min": cli_today and cli_today.get("min"), "metar": metar, "metar_ok": metar_ok})
             if m["ticker"] in paper.open: continue
             side = None
             # J1 trades ONLY determined states; probabilistic cases (heating/cooling fudge factors) are scored, never bet.
