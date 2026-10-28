@@ -1,0 +1,53 @@
+{
+ "series": "KXISRAELPM",
+ "settlement_source": "Multi-source: Israeli official gazette/government websites, office of head of state, Knesset, plus Reuters, AP, BBC, NYT, FT, Bloomberg, Guardian, WaPo, major Israeli news (Kalshi metadata lists a parliament.go.ke URL for the legislature - Kenya, metadata error)",
+ "settlement_variable": "Identity of first person formally appointed/invested as Israeli PM (full powers, non-caretaker) via government formation after the 2026 Israeli legislative election, before Oct 27 2027",
+ "timezone": "ET (expiration 10:00 AM ET); close_time 2027-10-27T14:00Z",
+ "tie_handling": "n/a; first person to meet ALL criteria; rotating PM -> first to assume office",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Last trading = expiration (latest 2027-10-27 10:00 ET) but resolves earlier when event occurs (Rule 7.2); accelerated resolution if >=2 of 6 designated international media (Reuters, AP, AFP, BBC, Bloomberg, NYT) unambiguously state a winner",
+ "early_close_or_void_clauses": "No government by Oct 27 2027 -> No one (if option) else No for all. New elections before formation -> No one immediately. Death of leader -> last fair price for that market, successor may be Yes. Non-listed person -> Other. Sole-discretion outcome review. can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Title Who will be PM after the election vs rules: must be formally invested; designate, largest-party leader, or caretaker do not count (incumbent caretaker status irrelevant)",
+  "Accelerated resolution triggers on media statements that a candidate has won - may fire before formal investiture; ambiguity",
+  "Death clause pays last fair price (discretionary) rather than binary",
+  "Election date itself not in title (ticker suggests 26OCT27 - unverified)"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Israel Central Elections Committee results",
+   "url": "https://www.gov.il/en/departments/central_elections_committee",
+   "latency": "near-real-time on election night, final within ~1 week",
+   "cost": "free"
+  },
+  {
+   "name": "Knesset website",
+   "url": "https://main.knesset.gov.il/en",
+   "latency": "real-time for investiture votes",
+   "cost": "free"
+  },
+  {
+   "name": "Reuters / AP / BBC politics",
+   "url": "https://www.reuters.com",
+   "latency": "minutes",
+   "cost": "free headlines"
+  },
+  {
+   "name": "Times of Israel (exit polls, coalition talks)",
+   "url": "https://www.timesofisrael.com",
+   "latency": "minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Election-night exit polls/counts public well before investiture; fast news reprices, slow quoting adversely selected",
+  "Coalition negotiations opaque; Hebrew-press leaks precede English wires",
+  "Very long dated (~12 months): capital lockup and resolution timing uncertainty",
+  "Accelerated-resolution media-statement ambiguity",
+  "Source metadata error (legislature URL points to Kenya)",
+  "Candidate prohibition and MNPI exclusion",
+  "Kalshi discretionary review; Other/No one option structure"
+ ],
+ "notes": "High volume (3.6M 24h). Source pages and election date not independently verified. Feed latencies from general knowledge."
+}

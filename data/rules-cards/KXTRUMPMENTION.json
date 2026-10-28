@@ -1,0 +1,46 @@
+{
+ "series": "KXTRUMPMENTION",
+ "settlement_source": "Video of the event via live broadcast/stream; fallback internal and external official transcripts; listed Source Agencies: ABC, Fox News, MSNBC, WSJ, Semafor, The Information, CBS, Axios, CNN, Reuters, NYT, WaPo, AP, Politico",
+ "settlement_variable": "Whether Donald Trump says the exact word/phrase (or plural/possessive) during the specified event, speaking in official capacity",
+ "timezone": "ET assumed unless stated; expiration 10:00 AM ET",
+ "tie_handling": "n/a (binary). Word must be standalone; fused unhyphenated words do not count; space/hyphen compounds count; slash phrases: either word counts",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Markets open days before the event and stay open until expiration (~14 days after event: samples close 2026-11-09/10T15:00Z for Oct 26/27 events), so trading continues after the speech; settlement_timer 1800s",
+ "early_close_or_void_clauses": "Event cancelled / fails to qualify / any circumstance preventing normal resolution -> Event does not qualify = Yes, all others No. Postponed and announced by end of following calendar day to be rescheduled within 14 days -> stays open. Kalshi employee consensus on video; transcripts fallback; sole-discretion outcome review. can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Title says originally scheduled for date - rally may occur on another date within 14 days",
+  "Hot-mic/private/archival/pre-recorded content excluded though audible",
+  "Tense/grammatical inflections do not count despite colloquial equivalence",
+  "Official capacity at a campaign rally and employee consensus are discretionary"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Live broadcast/stream (C-SPAN, Fox News, YouTube/Rumble)",
+   "url": "https://www.c-span.org",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Roll Call Factba.se transcripts",
+   "url": "https://rollcall.com/factbase/",
+   "latency": "minutes to hours after speech",
+   "cost": "unknown"
+  },
+  {
+   "name": "Official White House transcripts",
+   "url": "https://www.whitehouse.gov",
+   "latency": "hours-days",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Markets stay open after event ends (~14d): outcome fully public via stream, stale quotes face informed flow",
+  "Cancel/reschedule triggers Event does not qualify Yes and shifts all words to No",
+  "Discretionary Kalshi-employee video consensus on borderline utterances",
+  "Inflection/compound rules create ambiguity (plural ok, tense not)",
+  "Many near-zero strikes with wide relative spreads",
+  "Speaker-side insider risk (staff/MNPI on speech content)"
+ ],
+ "notes": "Observability is high once event is underway, none before it (speech content unknowable beyond topic priors). Middle of MENTION.pdf not read (head and tail only). Series one_off per-event."
+}

@@ -1,0 +1,40 @@
+{
+ "series": "KXRT",
+ "settlement_source": "Rotten Tomatoes (rottentomatoes.com) All Critics Tomatometer score for the named movie",
+ "settlement_variable": "Integer Tomatometer % (All Critics) at 10:00 AM ET on the Monday after wide release; strike 'above N' (strictly greater)",
+ "timezone": "ET (10:00 AM ET)",
+ "tie_handling": "Strictly above: score == strike resolves NO; 'between' is inclusive of both bounds",
+ "rounding": "Whole-number percent as displayed by RT; no further rounding specified",
+ "trading_close_vs_settlement": "Last trading time = 10:00 AM ET Monday after wide release; expiration_time ~7 days later; settlement no later than day after expiration unless under review. Sample: close 2026-11-02T15:00Z, expiration 2026-11-09T15:00Z",
+ "early_close_or_void_clauses": "If no data at 10:00 ET Monday, Tuesday 10:00 ET value used; if none a week after Monday, ALL markets resolve No. Kalshi may open Market Outcome Review at sole discretion. can_close_early=1. Post-expiration RT revisions ignored.",
+ "title_vs_rules_divergences": [
+  "Title says Rotten Tomatoes score - rules specify only the All Critics Tomatometer (not Audience/Popcornmeter, not Top Critics)",
+  "Score is frozen at one timestamp (Mon 10:00 ET), not the final/peak score",
+  "Fresh/Certified Fresh subtitles are illustrative only; threshold is numeric",
+  "Markets can open long before release (Godzilla opened Sep 22 for Nov 9 close) when no score exists; no-data fallback resolves No"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Rotten Tomatoes movie page (live Tomatometer)",
+   "url": "https://www.rottentomatoes.com/",
+   "latency": "real-time, updates as reviews are added",
+   "cost": "free"
+  },
+  {
+   "name": "Metacritic / review-embargo social posts (leading indicators)",
+   "url": "https://www.metacritic.com/",
+   "latency": "at review embargo lift",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement variable is publicly visible live for days before close; prices may lag score drift near strike",
+  "Score near strike can flip with few late reviews (small review count before wide release)",
+  "Thin books at extreme strikes (Above 5 bid 0/ask 0.01) - spread-driven fake edge",
+  "Pin risk at the 10:00 ET snapshot / late review timing",
+  "Insider restriction: RT reviewers/employees prohibited; MNPI prohibition",
+  "Kalshi discretionary outcome review"
+ ],
+ "notes": "Mostly information-arrival market: live RT score vs strike is directly observable; edge is modeling remaining review drift. RT page not fetched (JS-heavy); feed latencies are general knowledge, not verified."
+}

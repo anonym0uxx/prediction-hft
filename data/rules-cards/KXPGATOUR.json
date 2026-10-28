@@ -1,0 +1,46 @@
+{
+ "series": "KXPGATOUR",
+ "settlement_source": "Official result per governing league (PGA Tour); Source Agencies per ACHIEVEMENTS terms: league, AP, ESPN, WSJ, Fox Sports",
+ "settlement_variable": "Whether the named golfer is the first reported official final winner of the tournament (also other market types: finishing position, make cut, H2H, 3-ball, round leader)",
+ "timezone": "ET (expiration 10:00 AM ET); sample close_time 2026-11-15T00:00Z",
+ "tie_handling": "Multiple participants reported as winner -> each Yes pays $1/N rounded down to the cent, No gets $1-Yes. Playoff handling not explicit (unknown)",
+ "rounding": "Share split rounded down to nearest cent",
+ "trading_close_vs_settlement": "Last trading time = expiration time (10:00 AM ET, latest day after official final result); sample close_time == expiration_time 2026-11-15T00:00Z; settlement_timer_seconds 60",
+ "early_close_or_void_clauses": "Final round postponed: open until result or 2 weeks after scheduled date. Suspended: up to 2 years. Cancelled/no result: Yes holders get last traded price (or Outcome Review Committee allocation, else $1/N eligible). Withdraw/forfeit/DQ/eliminated -> No (Winner, Round Leader); Finishing Position/Cut/H2H/3-ball -> Fair Market Value. Shortened event with official result stands. Post-expiration revisions ignored. Sole-discretion outcome review. can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Title X wins omits that pre-tee withdrawal resolves No for winner markets but Fair Market Value for other market types (discretionary)",
+  "First official final result: DQ before expiry flips to No/next player; later DQ ignored",
+  "Weather-truncated events still count",
+  "Cancellation payout is last-traded price, not binary"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "PGA Tour live leaderboard",
+   "url": "https://www.pgatour.com/leaderboard",
+   "latency": "real-time (shot-by-shot)",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN golf leaderboard",
+   "url": "https://www.espn.com/golf/leaderboard",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "Fox Sports golf",
+   "url": "https://www.foxsports.com",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Outcome is publicly determined on-course well before Kalshi expiration; leaderboard lag vs book updates creates adverse selection for slow quoting",
+  "Final-round leader late in round near-deterministic; stale asks get picked off",
+  "Long-dated (3-week) markets with many thin longshot strikes",
+  "Fair-Market-Value / last-traded-price discretionary payouts on withdrawals and cancellations",
+  "Insider prohibition list (players, staff, league); MNPI exists on withdrawals/injuries",
+  "Playoff/weather suspensions up to 2 years lock capital"
+ ],
+ "notes": "Series covers weekly tournaments (e.g. VidantaWorld Mexico Open) as events; terms are generic ACHIEVEMENTS pdf. Playoff handling unknown. Feed latencies not measured."
+}
