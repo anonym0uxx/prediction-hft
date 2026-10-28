@@ -220,7 +220,7 @@ def single_instance(root: pathlib.Path):
 
 def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD", sigma_gate: bool = False,
         sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600, proj_gate: bool = False,
-        ts_levers: bool = False):
+        ts_levers: bool = False, bet_gate: bool = False):
     _lock = single_instance(root)
     import os; os.environ["PREDHFT_PRIORITY"] = "1"
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set(); cands_cache = (None, []); nofill = {}; _sent_cache: dict = {}
@@ -231,7 +231,13 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
     if ts_levers and proj_gate:
         from . import ts_levers as TSL
     ts_cap, ts_edge_min = 0.95, 0.05
-    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate} ts_levers={TSL is not None}")
+    # P20 robust bet acceptance (opt-in, proj_gate families only): pure checklist src/predhft/bet_gate.py applied right before the paper buy.
+    # Off by default: no behaviour change. On: rejections -> runner.log + data/<family>/gate.jsonl; accepted bets carry the checklist on the trade row.
+    BG = None
+    if bet_gate and proj_gate:
+        from . import bet_gate as BG
+        from .feed_tail import cfb_recent, move_bp
+    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate} ts_levers={TSL is not None} bet_gate={BG is not None}")
     while True:
         try:
             now = utcnow(); next_hour = (int(now) // period_s + 1) * period_s; mins_left = (next_hour - now) / 60
@@ -325,7 +331,8 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     except (ZeroDivisionError, ValueError): sig_mkt = None
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
                         "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f,
-                        "p_cal": (p_cal(1e4 * ((((1 - max(min(mins_left, 1.0), 0.02)) * partial + max(min(mins_left, 1.0), 0.02) * spot) / K) - 1), sig, mins_left, basis_noise_bp=(0.0 if spot_src == "cfb" else BASIS_NOISE_BP)) if (partial and partial_n >= 3 and mins_left < 1.0) else None), "spot_src": spot_src}
+                        "p_cal": (p_cal(1e4 * ((((1 - max(min(mins_left, 1.0), 0.02)) * partial + max(min(mins_left, 1.0), 0.02) * spot) / K) - 1), sig, mins_left, basis_noise_bp=(0.0 if spot_src == "cfb" else BASIS_NOISE_BP)) if (partial and partial_n >= 3 and mins_left < 1.0) else None), "spot_src": spot_src,
+                        "cfb_age_s": (round(now - cfb["t"], 2) if cfb and cfb.get("t") else None)}
                 if TSL is not None:
                     snap["ts_arm"] = ts_arm.id if ts_arm else None
                     if mins_left < 1.0: ts_snaps.setdefault(next_hour, {}).setdefault(tk, []).append({kk: vv for kk, vv in snap.items() if kk != "ctx"})
@@ -392,6 +399,25 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         if p_side - price - kalshi_taker_fee(10, price) / 10 < ts_edge_min:      # P16: calibrated edge >= 5c after fee (P18 arm may set 3/5/7c)
                             g3 = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}); g3["reasons"]["p16_edge_lt_5c"] = g3["reasons"].get("p16_edge_lt_5c", 0) + 1
                             state.logline(f"SKIP {tk} {side} p16 edge {p_side - price:.3f} < {ts_edge_min:.2f} (p_cal={pc:.3f} price={price:.3f} d={best['d_bp']:.2f}bp)"); continue
+                    gate_row = None
+                    if BG is not None:                                 # P20 checklist (pure); every rejection is logged with all guard details
+                        asset_ = product.split("-")[0]; ask_ = ya2 if side == "yes" else 1 - yb2
+                        try: mv30 = move_bp(cfb_recent(asset_, 40, now), "value", now, 30.0)
+                        except Exception: mv30 = None
+                        cand = {"series": series, "asset": asset_, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "ask": ask_, "ask_size": avail, "p_cal": p_side, "d_bp": best["d_bp"],
+                                "sigma1": sig, "mins_left": mins_left, "secs_left": mins_left * 60.0, "partial_n": best.get("partial_n"), "spot_src": spot_src, "cfb_age_s": (round(now - cfb["t"], 2) if cfb and cfb.get("t") else None),
+                                "mkt_side_mid": pm_side, "lot": lot}
+                        try: ro = BG.recent_outcomes(root)
+                        except Exception: ro = []
+                        g_ok, g_reasons, g_det = BG.accept(cand, {"move30_bp": mv30, "recent_outcomes": ro})
+                        gate_row = {"t": now, "ticker": tk, "close_ts": next_hour, "series": series, "side": side, "price": price, "fee_c": round(100 * kalshi_taker_fee(10, price) / 10, 3), "accepted": g_ok, "reasons": g_reasons, "details": g_det, "cand": cand, "move30_bp": mv30}
+                        if not g_ok:
+                            g4 = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk})
+                            for rs_ in g_reasons: g4["reasons"][f"gate:{rs_}"] = g4["reasons"].get(f"gate:{rs_}", 0) + 1
+                            if g_reasons == ["hitrate"]:              # scored-only by the hit-rate monitor: shadow bet, settled later by `bet_gate settle-shadow`
+                                gate_row["shadow"] = True; state.logline(f"GATE ALERT {series} hit-rate floor: Wilson LB {g_det.get('hr_wilson_lb')} < {g_det.get('hr_floor')} on n={g_det.get('hr_n')} -> scored-only (shadow {side} {price:.2f} {tk})")
+                            state.logline(f"GATE REJECT {tk} {side} {price:.2f} reasons={g_reasons} p_lcb={g_det.get('p_lcb')} edge_lcb={g_det.get('edge_lcb_c')}c mid={g_det.get('mkt_side_mid')} mode={g_det.get('mode')} feed={g_det.get('why', '')} move30={g_det.get('move30_bp')}bp")
+                            BG.log_decision(root, gate_row); continue
                     qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=(None if proj_gate else pm_side), fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
                     if qty > 0 and ts_arm is not None and ts_info.get("size_mult", 1.0) < 1.0:   # P18 size lever: risk.size stays the ceiling, min lot the floor
                         from .risk import CFG as _RCFG; qty = max(_RCFG["min_lot"], int(qty * ts_info["size_mult"])) if qty >= _RCFG["min_lot"] else qty
@@ -404,6 +430,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
                              "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "spot_src": spot_src, "proj_gate": proj_gate, "floor_used": None, "p_cal": best.get("p_cal"), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
                         if ts_arm is not None: t["ts_arm"] = ts_arm.id; t["ts_size_mult"] = ts_info.get("size_mult"); t["ts_p_best"] = ts_info.get("p_best")
+                        if gate_row is not None: t["gate"] = gate_row["details"]; gate_row["qty"] = qty; BG.log_decision(root, gate_row)
                         t["mode"] = state.mode; state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(0.7 if mins_left < 1.5 else poll_s)
@@ -417,5 +444,6 @@ if __name__ == "__main__":
     ap.add_argument("--sigma", default="trail120", choices=["trail120", "ewma94"]); ap.add_argument("--dist", default="normal", choices=["normal", "t"]); ap.add_argument("--nu", type=float, default=8.0); ap.add_argument("--scale", type=float, default=0.8)
     ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--period", type=int, default=3600); ap.add_argument("--proj-gate", action="store_true"); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
     ap.add_argument("--ts-levers", action="store_true", help="P18: Thompson lever selection (needs --proj-gate; see docs/TS_LEVERS_2026-10-27.md)")
+    ap.add_argument("--bet-gate", action="store_true", help="P20: robust bet acceptance checklist before every paper buy (needs --proj-gate; docs/ROBUST_BETTING_2026-10-27.md)")
     a = ap.parse_args(); root = pathlib.Path(a.root) if a.root else (pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}"))
-    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period, a.proj_gate, a.ts_levers)
+    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period, a.proj_gate, a.ts_levers, a.bet_gate)
