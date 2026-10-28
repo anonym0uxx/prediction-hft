@@ -219,11 +219,19 @@ def single_instance(root: pathlib.Path):
     return fh
 
 def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root: pathlib.Path, series: str = "KXBTCD", product: str = "BTC-USD", sigma_gate: bool = False,
-        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600, proj_gate: bool = False):
+        sigma_mode: str = "trail120", dist: str = "normal", nu: float = 8.0, scale: float = 0.8, thr_mode: str = "fixed", scored_only: bool = False, maker_score: bool = False, period_s: int = 3600, proj_gate: bool = False,
+        ts_levers: bool = False):
     _lock = single_instance(root)
     import os; os.environ["PREDHFT_PRIORITY"] = "1"
     k = KalshiPublic(min_interval_s=0.12); state = State(root); sig = None; sig_ts = 0; maker_posted: set = set(); cands_cache = (None, []); nofill = {}; _sent_cache: dict = {}
-    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate}")
+    # P18 Thompson lever selection (opt-in, proj_gate families only): one arm sampled per close sets edge threshold / timing window / fav cap /
+    # size multiplier for the live paper bet; every final-minute snapshot is kept and, after the result is known, ALL arms are replayed
+    # (full-information update, src/predhft/ts_levers.py). Off by default: behaviour below is byte-for-byte the P13/P16 rule.
+    TSL = None; ts_arm = None; ts_info: dict = {}; ts_close = None; ts_snaps: dict = {}; ts_pending: list = []
+    if ts_levers and proj_gate:
+        from . import ts_levers as TSL
+    ts_cap, ts_edge_min = 0.95, 0.05
+    state.logline(f"start {series}/{product} period={period_s}s thr={thr} window=T-{t_open}..T-{t_close}min lot={lot} sigma_gate={sigma_gate} sigma={sigma_mode} dist={dist} nu={nu} scale={scale} thr_mode={thr_mode} scored_only={scored_only} maker_score={maker_score} proj_gate={proj_gate} ts_levers={TSL is not None}")
     while True:
         try:
             now = utcnow(); next_hour = (int(now) // period_s + 1) * period_s; mins_left = (next_hour - now) / 60
@@ -233,7 +241,23 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     traded = any(t.get("close_ts") == ct for t in state.open_positions.values()) or any(t.get("close_ts") == ct for t in state.trades_tail())
                     if not traded: state.logline(f"NOFILL {g['tk']} reasons={g['reasons']} min_fav={g['min_fav']:.3f}")
                     sup = g.get("supply", {}); state.append(state.root / "supply.jsonl", {"close_ts": ct, "ticker": g["tk"], "min_fav": g["min_fav"], "traded": traded, "utc_hour": dt.datetime.fromtimestamp(ct, dt.timezone.utc).hour, "reasons": g["reasons"], **sup})
-                settle(k, state); maker_settle(k, state); time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
+                settle(k, state); maker_settle(k, state)
+                if TSL is not None:                                   # P18: closed windows -> pending; settled pending -> replay every arm, update posteriors
+                    for ct in [c for c in list(ts_snaps) if c <= now]: ts_pending.append((ct, ts_snaps.pop(ct)))
+                    for ct, by_tk in [pp for pp in ts_pending if now >= pp[0] + 120]:
+                        done = True
+                        for tk_, snaps_ in by_tk.items():
+                            try: res_ = k.get(f"/markets/{tk_}")["market"].get("result")
+                            except Exception: res_ = None
+                            if res_ not in ("yes", "no"): done = (now > ct + 1800); continue   # give up after 30 min (market void / API)
+                            try:
+                                out_ = TSL.replay_all(snaps_, res_, series, basis_applied=True)
+                                TSL.update_state_file(ct, series, tk_, out_, source=root.name)
+                                traded_ = {a: o["pnl_c"] for a, o in out_.items() if o}
+                                state.logline(f"TS REPLAY {tk_} result={res_} arms_traded={len(traded_)}/{len(out_)} live_arm={ts_arm.id if ts_arm else None}:{traded_.get(ts_arm.id) if ts_arm else None} ref={traded_.get(TSL.DEFAULT_ARM_ID)}")
+                            except Exception as e: state.logline(f"TS REPLAY error {tk_} {type(e).__name__}: {str(e)[:120]}")
+                        if done: ts_pending.remove((ct, by_tk))
+                time.sleep(min(20, max(2, (mins_left - t_open) * 60) if mins_left > t_open else 5)); continue
             if sig is None or now - sig_ts > 900:                   # P13 diag: never fetch Coinbase candles inside the final minute (38 s hang class)
                 s = (sigma_ewma(product) if sigma_mode == "ewma94" else sigma_1m(product)); sig = s or sig; sig_ts = now
             close_iso = dt.datetime.fromtimestamp(next_hour, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -267,6 +291,12 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             if cands_cache[0] != close_iso or (not cands_cache[1] and now % 10 < 2):
                 cands_cache = (close_iso, [m for m in k.markets(series_ticker=series, status="open", limit=1000, max_pages=2) if m["close_time"] == close_iso and m.get("floor_strike")])
             cands = cands_cache[1]
+            if TSL is not None and ts_close != next_hour:            # P18: sample the arm for this close (take arms only; join arms are replay-scored)
+                try:
+                    ts_arm, ts_info = TSL.sample_best(live_only=True); ts_close = next_hour; ts_cap, ts_edge_min = ts_arm.cap, ts_arm.edge_c / 100.0
+                    state.logline(f"TS ARM {ts_arm.id} close={close_iso} size_mult={ts_info.get('size_mult')} n={ts_info.get('n')} post_mean={ts_info.get('mean', 0):+.1f}c P(best)={ts_info.get('p_best', 0):.3f}")
+                except Exception as e:
+                    ts_arm, ts_info, ts_close = None, {}, next_hour; ts_cap, ts_edge_min = 0.95, 0.05; state.logline(f"TS ARM error {type(e).__name__}: {str(e)[:120]} -> P16 defaults")
             # near the money: within 4 sigma*sqrt(t) in log space
             band = 4 * (sig or 0.0006) * math.sqrt(max(mins_left, 0.5))
             near = sorted([m for m in cands if period_s < 3600 or abs(math.log(spot / float(m["floor_strike"]))) <= band], key=lambda m: abs(math.log(spot / float(m["floor_strike"]))))   # 15M: single market, no band
@@ -296,6 +326,9 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
                         "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f,
                         "p_cal": (p_cal(1e4 * ((((1 - max(min(mins_left, 1.0), 0.02)) * partial + max(min(mins_left, 1.0), 0.02) * spot) / K) - 1), sig, mins_left, basis_noise_bp=(0.0 if spot_src == "cfb" else BASIS_NOISE_BP)) if (partial and partial_n >= 3 and mins_left < 1.0) else None), "spot_src": spot_src}
+                if TSL is not None:
+                    snap["ts_arm"] = ts_arm.id if ts_arm else None
+                    if mins_left < 1.0: ts_snaps.setdefault(next_hour, {}).setdefault(tk, []).append({kk: vv for kk, vv in snap.items() if kk != "ctx"})
                 state.append(state.books, snap)
                 # scored rows (P6 regime split / P9 final-minute books skill): one row per strike per poll inside the trading window
                 if mid and (t_close <= mins_left <= t_open):
@@ -324,8 +357,10 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     if fav_px <= g["min_fav"]: sup["t_min_fav"] = now; sup["d_at_min_fav"] = round(d_bp, 2)
                     if sup["first_t_d_ge_1bp"] is None and abs(d_bp) >= D_MIN_BP.get(series, 1.0): sup["first_t_d_ge_1bp"] = now; sup["fav_at_first_d_ge_1bp"] = fav_px
                     if abs(d_bp) < D_MIN_BP.get(series, 1.0): g["reasons"]["d_small"] = g["reasons"].get("d_small", 0) + 1; continue
-                    if d_bp > 0 and 0 < ya <= 0.95 and yas >= lot: side, edge = "yes", p - ya
-                    elif d_bp < 0 and 0 < yb < 1 and (1 - yb) <= 0.95 and ybs >= lot: side, edge = "no", yb - p
+                    if ts_arm is not None and not (ts_arm.window_s[0] <= mins_left * 60 <= ts_arm.window_s[1]): g["reasons"]["ts_timing"] = g["reasons"].get("ts_timing", 0) + 1; continue
+                    if ts_arm is not None and ts_arm.floor and (ya if d_bp > 0 else (1 - yb if 0 < yb else 1.0)) < ts_arm.floor: g["reasons"]["ts_floor"] = g["reasons"].get("ts_floor", 0) + 1; continue
+                    if d_bp > 0 and 0 < ya <= ts_cap and yas >= lot: side, edge = "yes", p - ya
+                    elif d_bp < 0 and 0 < yb < 1 and (1 - yb) <= ts_cap and ybs >= lot: side, edge = "no", yb - p
                     else: g["reasons"]["fav_gt_95_or_size"] = g["reasons"].get("fav_gt_95_or_size", 0) + 1
                     if side: edge = max(edge, 0.01); proj_d_bp = d_bp
                 else:
@@ -343,7 +378,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 except Exception: yb2 = None
                 latency = time.time() - best["t_dec"]
                 if proj_gate:
-                    ok = yb2 is not None and latency <= LATENCY_GUARD_S and ((side == "yes" and 0 < ya2 <= 0.95 and yas2 >= lot) or (side == "no" and 0 < yb2 < 1 and (1 - yb2) <= 0.95 and ybs2 >= lot))
+                    ok = yb2 is not None and latency <= LATENCY_GUARD_S and ((side == "yes" and 0 < ya2 <= ts_cap and yas2 >= lot) or (side == "no" and 0 < yb2 < 1 and (1 - yb2) <= ts_cap and ybs2 >= lot))
                 else:
                     ok = yb2 is not None and ((side == "yes" and p - ya2 >= best["thr_used"] and 0 < ya2 < 1 and yas2 > 0) or (side == "no" and yb2 - p >= best["thr_used"] and 0 < yb2 < 1 and ybs2 > 0))
                 if not ok:
@@ -354,10 +389,12 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     led = Ledger(root, family=root.name)
                     if proj_gate:                                      # REBASE: belief = calibrated p_cal (no floor, no market shrink)
                         pc = p_cal(best["d_bp"], sig, mins_left, basis_noise_bp=(0.0 if spot_src == "cfb" else BASIS_NOISE_BP)); p_side = pc if side == "yes" else 1 - pc; best["p_cal"] = pc
-                        if p_side - price - kalshi_taker_fee(10, price) / 10 < 0.05:      # P16: calibrated edge >= 5c after fee
+                        if p_side - price - kalshi_taker_fee(10, price) / 10 < ts_edge_min:      # P16: calibrated edge >= 5c after fee (P18 arm may set 3/5/7c)
                             g3 = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}); g3["reasons"]["p16_edge_lt_5c"] = g3["reasons"].get("p16_edge_lt_5c", 0) + 1
-                            state.logline(f"SKIP {tk} {side} p16 edge {p_side - price:.3f} < .05 (p_cal={pc:.3f} price={price:.3f} d={best['d_bp']:.2f}bp)"); continue
+                            state.logline(f"SKIP {tk} {side} p16 edge {p_side - price:.3f} < {ts_edge_min:.2f} (p_cal={pc:.3f} price={price:.3f} d={best['d_bp']:.2f}bp)"); continue
                     qty, why = risk_size(series, p_side, price, avail, led, lot_cap=lot, p_market=(None if proj_gate else pm_side), fee_per_contract=kalshi_taker_fee(10, price) / 10, close_ts=next_hour)
+                    if qty > 0 and ts_arm is not None and ts_info.get("size_mult", 1.0) < 1.0:   # P18 size lever: risk.size stays the ceiling, min lot the floor
+                        from .risk import CFG as _RCFG; qty = max(_RCFG["min_lot"], int(qty * ts_info["size_mult"])) if qty >= _RCFG["min_lot"] else qty
                     if qty <= 0:
                         state.logline(f"SKIP {tk} {side} {why}")
                         if proj_gate: g2 = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}); g2["reasons"]["kelly_zero"] = g2["reasons"].get("kelly_zero", 0) + 1
@@ -366,6 +403,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
                              "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "spot_src": spot_src, "proj_gate": proj_gate, "floor_used": None, "p_cal": best.get("p_cal"), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
+                        if ts_arm is not None: t["ts_arm"] = ts_arm.id; t["ts_size_mult"] = ts_info.get("size_mult"); t["ts_p_best"] = ts_info.get("p_best")
                         t["mode"] = state.mode; state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)
                         state.logline(f"PAPER BUY {side.upper()} {qty}@{price:.2f} {tk} p_model={p:.2f} avail={avail:.0f} T-{mins_left:.1f}m lat={latency:.2f}s")
             time.sleep(0.7 if mins_left < 1.5 else poll_s)
@@ -378,5 +416,6 @@ if __name__ == "__main__":
     ap.add_argument("--t-close", type=float, default=2); ap.add_argument("--root", default=None); ap.add_argument("--sigma-gate", action="store_true")
     ap.add_argument("--sigma", default="trail120", choices=["trail120", "ewma94"]); ap.add_argument("--dist", default="normal", choices=["normal", "t"]); ap.add_argument("--nu", type=float, default=8.0); ap.add_argument("--scale", type=float, default=0.8)
     ap.add_argument("--thr-mode", default="fixed", choices=["fixed", "dyn"]); ap.add_argument("--scored-only", action="store_true"); ap.add_argument("--maker-score", action="store_true"); ap.add_argument("--period", type=int, default=3600); ap.add_argument("--proj-gate", action="store_true"); ap.add_argument("--lot", type=int, default=20); ap.add_argument("--poll", type=float, default=4.0); ap.add_argument("--series", default="KXBTCD"); ap.add_argument("--product", default="BTC-USD")
+    ap.add_argument("--ts-levers", action="store_true", help="P18: Thompson lever selection (needs --proj-gate; see docs/TS_LEVERS_2026-10-27.md)")
     a = ap.parse_args(); root = pathlib.Path(a.root) if a.root else (pathlib.Path("data/s7live") if a.series == "KXBTCD" else pathlib.Path(f"data/s7live-{a.series}"))
-    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period, a.proj_gate)
+    run(a.thr, a.t_open, a.t_close, a.lot, a.poll, root, a.series, a.product, a.sigma_gate, a.sigma, a.dist, a.nu, a.scale, a.thr_mode, a.scored_only, a.maker_score, a.period, a.proj_gate, a.ts_levers)
