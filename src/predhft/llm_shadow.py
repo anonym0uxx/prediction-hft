@@ -438,8 +438,11 @@ if __name__ == "__main__":
     ap.add_argument("--now", action="store_true", help="fire one forecast immediately on the latest snapshot regardless of decision time (verification only; logged with decision_secs_left = actual)")
     ap.add_argument("--root", default=str(ROOT)); ap.add_argument("--poll", type=float, default=5.0)
     ap.add_argument("--decision-secs", default=",".join(str(int(x)) for x in CFG["decision_secs_left"]), help="comma list of secs_left decision times (default 600,300)")
+    ap.add_argument("--model", default=None, help="model id override (e.g. anthropic/claude-opus-5.5)")
     ap.add_argument("--cap", type=int, default=CFG["daily_call_cap"]); ap.add_argument("--dry-run", action="store_true", help="assemble + log packets, no LLM call")
-    a = ap.parse_args(); root = pathlib.Path(a.root); ds = [float(x) for x in a.decision_secs.split(",") if x.strip()]
+    a = ap.parse_args()
+    if a.model: os.environ["PREDHFT_LLM_MODEL"] = a.model
+    root = pathlib.Path(a.root); ds = [float(x) for x in a.decision_secs.split(",") if x.strip()]
     if a.now:
         key, model, base = load_credentials(); client = LLMClient(key, model, base); del key
         snap = current_snapshot(time.time()); assert snap is not None, "no SOL-v1 snapshot (fresh or rebuildable)"
