@@ -110,3 +110,11 @@ Nothing below may be changed after seeing results. New families get a new number
 - Zero orders. No trading change anywhere. No parameters are fitted; the only constants are the fee schedule, the 1.5 envelope multiplier, top-3 depth and the .99 lag threshold.
 - Hypothesis H1: >= 1 executable hit per day with median net >= $0.50 per hit persisting >= 60 s (i.e. survivable at 60-s polling). H0: executable hits are < 1/day or persist < 60 s. Prior evidence (first 15 live minutes + offline (d) over 28 cfb-era windows/asset): 0 executable hits, 6-7 top-of-book ties per cycle with gross 0-1c, (d) 0/114 locked snapshots offered the winner below 1.00. Expect H0.
 - Decision: 7 days of cycles (~10k) before any conclusion; if H1 holds for 7 days a separate entry defines the execution design (websocket books, both legs IOC, hedge-on-failed-leg) — P21 itself never trades. Stop: after 7 days with H0 the task is removed and the scanner kept only as an offline tool.
+
+## P22 — Direct information test: p_cal vs market mid at T-30/20/10 s (scored-only)
+- Question: does the official-feed calibrated p_cal carry information the market mid lacks in the final minute? This decides whether the 15M line of business exists.
+- Data: runners' books.jsonl snapshots with spot_src=cfb, two-sided books only (spread <= 0.20); one obs per close per bucket (last snapshot in bucket); outcome from Kalshi settlement.
+- Statistic: dBrier = Brier(p_cal) - Brier(mid), close-clustered se. H1: dBrier < 0 by >= 0.005 at T-20 pooled. H0: no difference.
+- n_required: 300 closes/asset (~3 days). Interim read at 100. Script: scripts/p22_info_test.py (daily via predhft_daily).
+- Stop rule: at n >= 300, if pooled T-20 dBrier upper 95% bound > 0, the 15M information thesis is rejected: P13/P16/P18/P20 go scored-only and effort moves to new families.
+- First read (33 closes, 2026-10-27 23:48 PT): BTC indistinguishable (both ~perfect by T-30); ETH dBrier -0.004/-0.009/+0.006, SOL -0.017/-0.0005/-0.006 (se ~0.01-0.02). Not significant; direction mildly favours p_cal on ETH/SOL at T-30/T-20.
