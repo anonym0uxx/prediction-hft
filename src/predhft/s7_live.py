@@ -337,6 +337,14 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     snap["ts_arm"] = ts_arm.id if ts_arm else None
                     if mins_left < 1.0: ts_snaps.setdefault(next_hour, {}).setdefault(tk, []).append({kk: vv for kk, vv in snap.items() if kk != "ctx"})
                 state.append(state.books, snap)
+                # fill-realism audit (docs/LAYERX_LESSONS_2026-10-27.md §3): the first poll after a paper buy records whether the booked
+                # price (re-checked ask + 1c) was still offered in size >= qty, i.e. whether a real order sent after the re-check would have
+                # filled. Log-only row (no mins_left, so every books.jsonl reader skips it); no trading behaviour changes.
+                tr_ = state.open_positions.get(tk)
+                if tr_ and not tr_.get("post_fill_checked") and 0.2 < now - tr_["t"] < 30:
+                    tr_["post_fill_checked"] = True; ask_now = ya if tr_["side"] == "yes" else (1 - yb if 0 < yb else 1.0); size_now = yas if tr_["side"] == "yes" else ybs
+                    state.append(state.books, {"t": now, "ticker": tk, "post_fill_check": True, "side": tr_["side"], "booked_price": tr_["price"], "qty": tr_["qty"], "dt_s": round(now - tr_["t"], 2),
+                                               "ask_now": ask_now, "size_now": size_now, "still_fillable": bool(0 < ask_now <= tr_["price"] + 1e-9 and size_now >= tr_["qty"])})
                 # scored rows (P6 regime split / P9 final-minute books skill): one row per strike per poll inside the trading window
                 if mid and (t_close <= mins_left <= t_open):
                     state.append(state.score, {"t": now, "family": f"{root.name}-{'books' if mins_left < 1.0 else 'sigma-' + regime}", "ticker": tk, "p_model": p, "p_t": p_t, "p_normal": p_n, "p_market": mid, "yes_bid": yb, "yes_ask": ya,
