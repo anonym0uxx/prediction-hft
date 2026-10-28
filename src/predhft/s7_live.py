@@ -156,16 +156,24 @@ def sigma_1m(product: str = "BTC-USD") -> float | None:
     rets = [math.log(px[i] / px[i - 1]) for i in range(1, len(px))]
     return st.pstdev(rets[-120:]) if len(rets) >= 60 else None
 
-def book_touch(ob: dict):
-    """Return (yes_bid, yes_ask, yes_bid_size, yes_ask_size) in dollars/contracts from orderbook_fp."""
+def book_sides(ob: dict, depth: int = 3) -> dict:
+    """Explicit book representation (AUDIT_2026-10-28 §2.3). Kalshi returns BIDS only; the YES ask is 1 - best NO bid, so when the
+    NO side has no bids there is NO YES offer at any price. Returns yes_bid / yes_ask = None for an absent side (never a 0.00 / 1.00
+    sentinel), sizes 0.0, plus top-`depth` levels of both sides in YES price space: bids [(px, qty)] best first, asks [(px, qty)] best first.
+    Prices are sub-penny (0.001 ticks) and sizes fractional (count_fp) on 15M markets; nothing here rounds."""
     o = ob.get("orderbook_fp") or {}
-    yes = [(float(p), float(q)) for p, q in (o.get("yes_dollars") or [])]
-    no = [(float(p), float(q)) for p, q in (o.get("no_dollars") or [])]
-    yb, ybs = (max(yes)[0], max(yes)[1]) if yes else (0.0, 0.0)
-    if no:
-        nb = max(no); ya, yas = 1 - nb[0], nb[1]
-    else: ya, yas = 1.0, 0.0
-    return yb, ya, ybs, yas
+    yes = sorted(((float(p), float(q)) for p, q in (o.get("yes_dollars") or [])), key=lambda x: -x[0])
+    no = sorted(((round(1.0 - float(p), 4), float(q)) for p, q in (o.get("no_dollars") or [])), key=lambda x: x[0])
+    yb, ybs = (yes[0] if yes else (None, 0.0)); ya, yas = (no[0] if no else (None, 0.0))
+    return {"yes_bid": yb, "yes_ask": ya, "yes_bid_size": ybs, "yes_ask_size": yas, "bids": yes[:depth], "asks": no[:depth],
+            "yes_bid_present": yb is not None, "yes_ask_present": ya is not None}
+
+def book_touch(ob: dict):
+    """Legacy tuple (yes_bid, yes_ask, yes_bid_size, yes_ask_size) with the arithmetic sentinels the runner's rule checks rely on:
+    absent YES bids -> (0.0, size 0), absent NO bids -> yes_ask 1.0 with size 0. Every rule check in run() already treats those as
+    'nobody offers this side' (0 < ya <= cap fails, 0 < yb fails); only the LOGGED representation was ambiguous — see book_sides()."""
+    b = book_sides(ob)
+    return (b["yes_bid"] if b["yes_bid"] is not None else 0.0), (b["yes_ask"] if b["yes_ask"] is not None else 1.0), b["yes_bid_size"], b["yes_ask_size"]
 
 def settle(k: KalshiPublic, state: State):
     if not state.open_positions: return
@@ -245,7 +253,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 for ct in [c for c in list(nofill) if isinstance(c, int) and c <= now]:
                     g = nofill.pop(ct)
                     traded = any(t.get("close_ts") == ct for t in state.open_positions.values()) or any(t.get("close_ts") == ct for t in state.trades_tail())
-                    if not traded: state.logline(f"NOFILL {g['tk']} reasons={g['reasons']} min_fav={g['min_fav']:.3f}")
+                    if not traded: state.logline(f"NOFILL {g['tk']} reasons={g['reasons']} min_fav={g['min_fav']:.3f} first={g.get('first', {})}")
                     sup = g.get("supply", {}); state.append(state.root / "supply.jsonl", {"close_ts": ct, "ticker": g["tk"], "min_fav": g["min_fav"], "traded": traded, "utc_hour": dt.datetime.fromtimestamp(ct, dt.timezone.utc).hour, "reasons": g["reasons"], **sup})
                 settle(k, state); maker_settle(k, state)
                 if TSL is not None:                                   # P18: closed windows -> pending; settled pending -> replay every arm, update posteriors
@@ -300,6 +308,7 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             if TSL is not None and ts_close != next_hour:            # P18: sample the arm for this close (take arms only; join arms are replay-scored)
                 try:
                     ts_arm, ts_info = TSL.sample_best(live_only=True); ts_close = next_hour; ts_cap, ts_edge_min = ts_arm.cap, ts_arm.edge_c / 100.0
+                    TSL.log_selection(root.name, next_hour, ts_arm, ts_info)      # allocation history (AUDIT_2026-10-28 §5); never raises
                     state.logline(f"TS ARM {ts_arm.id} close={close_iso} size_mult={ts_info.get('size_mult')} n={ts_info.get('n')} post_mean={ts_info.get('mean', 0):+.1f}c P(best)={ts_info.get('p_best', 0):.3f}")
                 except Exception as e:
                     ts_arm, ts_info, ts_close = None, {}, next_hour; ts_cap, ts_edge_min = 0.95, 0.05; state.logline(f"TS ARM error {type(e).__name__}: {str(e)[:120]} -> P16 defaults")
@@ -317,7 +326,8 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                 K = float(m["floor_strike"]); tk = m["ticker"]
                 try: ob = k.orderbook(tk)
                 except Exception: continue
-                yb, ya, ybs, yas = book_touch(ob)
+                bs = book_sides(ob)                                     # explicit representation (None = side absent); legacy sentinels below for the rule arithmetic
+                yb, ya, ybs, yas = (bs["yes_bid"] if bs["yes_bid"] is not None else 0.0), (bs["yes_ask"] if bs["yes_ask"] is not None else 1.0), bs["yes_bid_size"], bs["yes_ask_size"]
                 p_n = p_yes(spot, K, sig or 0.0006, mins_left, partial, partial_n)
                 p_t, z = p_yes_t(spot, K, sig or 0.0006, mins_left, nu, scale, partial, partial_n)
                 p = p_t if dist == "t" else p_n
@@ -330,9 +340,19 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     try: sig_mkt = abs(math.log(spot / K)) / (abs(PhiInv(mid)) * math.sqrt(twap_horizon(mins_left)))
                     except (ZeroDivisionError, ValueError): sig_mkt = None
                 snap = {"t": now, "mins_left": round(mins_left, 2), "ticker": tk, "K": K, "spot": spot, "spot_src": "replica" if rep else "coinbase", "partial_twap": partial, "partial_n": partial_n, "sigma1": sig, "sigma_regime": regime,
-                        "sigma_mkt": sig_mkt, "spread": round(ya - yb, 2), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": yb, "yes_ask": ya, "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f,
+                        "sigma_mkt": sig_mkt, "spread": (round(ya - yb, 3) if (bs["yes_bid_present"] and bs["yes_ask_present"]) else None), "imb": imb, "p_model": p, "p_t": p_t, "p_normal": p_n, "z": z, "thr_used": round(thr_used, 4), "sigma_mode": sigma_mode, "yes_bid": bs["yes_bid"], "yes_ask": bs["yes_ask"], "bid_size": ybs, "ask_size": yas, "close_ts": next_hour, "spot_perp": perp_spot, "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f,
                         "p_cal": (p_cal(1e4 * ((((1 - max(min(mins_left, 1.0), 0.02)) * partial + max(min(mins_left, 1.0), 0.02) * spot) / K) - 1), sig, mins_left, basis_noise_bp=(0.0 if spot_src == "cfb" else BASIS_NOISE_BP)) if (partial and partial_n >= 3 and mins_left < 1.0) else None), "spot_src": spot_src,
-                        "cfb_age_s": (round(now - cfb["t"], 2) if cfb and cfb.get("t") else None)}
+                        "cfb_age_s": (round(now - cfb["t"], 2) if cfb and cfb.get("t") else None),
+                        # AUDIT_2026-10-28: unambiguous book representation + top-3 depth both sides (YES price space, best first)
+                        "yes_bid_present": bs["yes_bid_present"], "yes_ask_present": bs["yes_ask_present"], "bids": bs["bids"], "asks": bs["asks"]}
+                if proj_gate and mins_left < 1.2:                      # AUDIT_2026-10-28 §1.3: ONE first-failure reason per check (pure, no I/O)
+                    try:
+                        from .reject_taxonomy import classify as _rt_classify
+                        _c = _rt_classify(snap, series, lot=lot, cap=ts_cap, edge_min=ts_edge_min, arm_window_s=(ts_arm.window_s if ts_arm is not None else None), official_era=bool(cfb) or spot_src == "cfb")
+                        snap["reject"] = _c["reason"]; snap["reject_flags"] = _c["flags"]; snap["edge_c"] = _c["edge_c"]
+                        if t_close <= mins_left <= t_open and not have_hour and tk not in state.open_positions:
+                            gf = nofill.setdefault(next_hour, {"reasons": {}, "min_fav": 1.0, "tk": tk}).setdefault("first", {}); gf[_c["reason"]] = gf.get(_c["reason"], 0) + 1
+                    except Exception: pass
                 if TSL is not None:
                     snap["ts_arm"] = ts_arm.id if ts_arm else None
                     if mins_left < 1.0: ts_snaps.setdefault(next_hour, {}).setdefault(tk, []).append({kk: vv for kk, vv in snap.items() if kk != "ctx"})

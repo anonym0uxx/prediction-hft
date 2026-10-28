@@ -178,10 +178,16 @@ def load_window_rows(fam_dir: pathlib.Path, max_mins_left: float = 2.0) -> dict[
             if not l.strip(): continue
             try: r = json.loads(l)
             except Exception: continue
-            if not r.get("ticker") or r.get("mins_left") is None or r["mins_left"] > max_mins_left or "close_ts" not in r or r.get("yes_ask") is None: continue
+            if not r.get("ticker") or r.get("mins_left") is None or r["mins_left"] > max_mins_left or "close_ts" not in r or ("yes_ask" not in r and "yes_bid" not in r): continue
             out.setdefault((int(r["close_ts"]), r["ticker"]), []).append(r)
     for v in out.values(): v.sort(key=lambda s: s["t"])
     return out
+
+def _quotes(r: dict) -> dict:
+    """Book row -> {ya, yb, yas, ybs} for _side_quotes. yes_ask None (no NO bids => no YES offer) -> ya 1.0 size 0; yes_bid None -> yb 0 size 0."""
+    ya, yb = r.get("yes_ask"), r.get("yes_bid")
+    return {"ya": float(ya) if ya is not None else 1.0, "yb": float(yb) if yb is not None else 0.0,
+            "yas": float(r.get("ask_size") or 0) if ya is not None else 0.0, "ybs": float(r.get("bid_size") or 0) if yb is not None else 0.0}
 
 def candidates_from_rows(rows: list[dict], series: str, basis_applied: bool, lot: int = CFG["LOT"], cap: float = 0.95, window_s: tuple[float, float] = (10.0, 55.2), edge_min: float = 0.05) -> list[dict]:
     """Emulate the live P13/P16 candidate generation on recorded snapshots: at each final-minute row with partial_n >= 3 and |d| >= D_MIN,
@@ -202,12 +208,12 @@ def candidates_from_rows(rows: list[dict], series: str, basis_applied: bool, lot
         rr = max(min(ml, 1.0), 0.02); proj = (1 - rr) * r["partial_bc"] + rr * r["spot_bc"]; d_bp = 1e4 * (proj / r["K"] - 1)
         if abs(d_bp) < dmin: continue
         side = "yes" if d_bp > 0 else "no"
-        q = {"ya": float(r["yes_ask"] or 0), "yb": float(r["yes_bid"] or 0), "yas": float(r.get("ask_size") or 0), "ybs": float(r.get("bid_size") or 0)}
+        q = _quotes(r)
         ask, ask_sz, _, _ = _side_quotes(q, side)
         if not (0 < ask <= cap) or ask_sz < lot: continue
         nxt = S[i + 1] if i + 1 < len(S) and S[i + 1]["t"] - r["t"] <= 4.0 else None
         if nxt is not None:
-            q2 = {"ya": float(nxt["yes_ask"] or 0), "yb": float(nxt["yes_bid"] or 0), "yas": float(nxt.get("ask_size") or 0), "ybs": float(nxt.get("bid_size") or 0)}
+            q2 = _quotes(nxt)
             ask2, sz2, _, _ = _side_quotes(q2, side)
             if not (0 < ask2 <= cap) or sz2 < lot: continue
             ask, ask_sz = max(ask, ask2), min(ask_sz, sz2)

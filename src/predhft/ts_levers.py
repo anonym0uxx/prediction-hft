@@ -82,11 +82,18 @@ DEFAULT_ARM_ID = REF_ARM.id
 def asset_of(series: str) -> str:
     return series[2:5] if series.startswith("KX") else series[:3]
 
+def _legacy_quotes(r: dict) -> tuple[float, float, float, float]:
+    """(yb, ya, ybs, yas) with the arithmetic sentinels used by _side_quotes: an absent YES bid (None) -> 0.0 / size 0 (nobody offers NO);
+    an absent YES ask (None, i.e. no NO bids) -> 1.0 / size 0 (nobody offers YES). Legacy rows already carry those sentinels."""
+    yb, ya = r.get("yes_bid"), r.get("yes_ask")
+    ybs = float(r.get("bid_size") or 0) if yb is not None else 0.0; yas = float(r.get("ask_size") or 0) if ya is not None else 0.0
+    return (float(yb) if yb is not None else 0.0), (float(ya) if ya is not None else 1.0), ybs, yas
+
 def normalise(snaps: list[dict], series: str, basis_applied: bool) -> list[dict]:
     """Keep final-minute rows with a book, sorted by t; apply the replica basis correction once when the recording runner did not
     (s7p15 rows). Adds secs_left, d_bp, p_cal, fav side/price/size for both order styles."""
     asset = asset_of(series); dmin = D_MIN_BP.get(series, 1.0); out = []
-    for r in sorted((s for s in snaps if s.get("ticker") and s.get("mins_left") is not None and s.get("yes_ask") is not None), key=lambda s: s["t"]):
+    for r in sorted((s for s in snaps if s.get("ticker") and s.get("mins_left") is not None and ("yes_ask" in s or "yes_bid" in s)), key=lambda s: s["t"]):
         ml = r["mins_left"]
         if ml >= 1.0: continue
         spot, partial, n = r.get("spot"), r.get("partial_twap"), r.get("partial_n") or 0
@@ -98,7 +105,7 @@ def normalise(snaps: list[dict], series: str, basis_applied: bool) -> list[dict]
         if partial and n >= 3:
             rr = max(min(ml, 1.0), 0.02); proj = (1 - rr) * partial + rr * spot; d_bp = 1e4 * (proj / r["K"] - 1)
             pc = p_cal(d_bp, r.get("sigma1") or 0.0006, ml, basis_noise_bp=(0.0 if src == "cfb" else BASIS_NOISE_BP))
-        yb, ya, ybs, yas = float(r["yes_bid"] or 0), float(r["yes_ask"] or 0), float(r.get("bid_size") or 0), float(r.get("ask_size") or 0)
+        yb, ya, ybs, yas = _legacy_quotes(r)        # None (side absent, AUDIT_2026-10-28) -> sentinels yb 0 / ya 1 with size 0
         out.append({"t": r["t"], "secs_left": ml * 60.0, "mins_left": ml, "d_bp": d_bp, "p_cal": pc, "ok": d_bp is not None and abs(d_bp) >= dmin,
                     "yb": yb, "ya": ya, "ybs": ybs, "yas": yas})
     return out
@@ -276,6 +283,19 @@ def sample_best(state: dict | None = None, live_only: bool = True, rng: random.R
     return ARM_BY_ID[pick], {"probs": probs, "size_mult": mult, "n": row["n"], "mean": row["mean"], "sd": row["sd"], "p_best": row["p_best"]}
 
 # ----------------------------------------------------------------------------------------------------------------------- bootstrap
+SELECTION_LOG = pathlib.Path("data/ts/arm_selection.jsonl")
+
+def log_selection(family: str, close_ts: int, arm: Arm, info: dict, path: pathlib.Path = SELECTION_LOG) -> None:
+    """Append the allocation decision (which arm, with what posterior and selection probabilities) so the Thompson allocation
+    history is retained independently of runner.log (AUDIT_2026-10-28 §5). Append-only; never raises into the runner."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        row = {"t": time.time(), "family": family, "close_ts": close_ts, "arm": arm.id, "window_s": list(arm.window_s), "cap": arm.cap, "order": arm.order, "edge_c": arm.edge_c,
+               "n": info.get("n"), "post_mean_c": info.get("mean"), "post_sd_c": info.get("sd"), "p_best": info.get("p_best"), "size_mult": info.get("size_mult"),
+               "probs": {k: round(v, 4) for k, v in (info.get("probs") or {}).items()}, "reason": info.get("reason")}
+        with path.open("a", encoding="utf-8") as fh: fh.write(json.dumps(row) + "\n")
+    except Exception: pass
+
 def load_books(fam_dir: pathlib.Path) -> dict[tuple[int, str], list[dict]]:
     """books.jsonl -> {(close_ts, ticker): rows} for final-minute rows."""
     out: dict[tuple[int, str], list[dict]] = {}
