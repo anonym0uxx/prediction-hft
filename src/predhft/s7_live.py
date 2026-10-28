@@ -160,10 +160,12 @@ def book_sides(ob: dict, depth: int = 3) -> dict:
     """Explicit book representation (AUDIT_2026-10-28 §2.3). Kalshi returns BIDS only; the YES ask is 1 - best NO bid, so when the
     NO side has no bids there is NO YES offer at any price. Returns yes_bid / yes_ask = None for an absent side (never a 0.00 / 1.00
     sentinel), sizes 0.0, plus top-`depth` levels of both sides in YES price space: bids [(px, qty)] best first, asks [(px, qty)] best first.
-    Prices are sub-penny (0.001 ticks) and sizes fractional (count_fp) on 15M markets; nothing here rounds."""
+    Prices are sub-penny (0.001 ticks) and sizes fractional (count_fp) on 15M markets; nothing here rounds — the YES ask is the
+    plain float `1.0 - no_bid` exactly as the pre-a95281c `book_touch` computed it (AUDIT_ADDENDUM2 §2: a round(.., 4) here changed
+    the float representation and flipped the P12 `ya - yb > 0.06` spread filter on 5 recorded 6-cent-spread snapshots)."""
     o = ob.get("orderbook_fp") or {}
     yes = sorted(((float(p), float(q)) for p, q in (o.get("yes_dollars") or [])), key=lambda x: -x[0])
-    no = sorted(((round(1.0 - float(p), 4), float(q)) for p, q in (o.get("no_dollars") or [])), key=lambda x: x[0])
+    no = sorted(((1.0 - float(p), float(q)) for p, q in (o.get("no_dollars") or [])), key=lambda x: x[0])
     yb, ybs = (yes[0] if yes else (None, 0.0)); ya, yas = (no[0] if no else (None, 0.0))
     return {"yes_bid": yb, "yes_ask": ya, "yes_bid_size": ybs, "yes_ask_size": yas, "bids": yes[:depth], "asks": no[:depth],
             "yes_bid_present": yb is not None, "yes_ask_present": ya is not None}
@@ -324,8 +326,10 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
             best = None
             for m in near:
                 K = float(m["floor_strike"]); tk = m["ticker"]
+                _t_req = time.time()
                 try: ob = k.orderbook(tk)
                 except Exception: continue
+                _t_recv = time.time()                                   # AUDIT_ADDENDUM2 §2: receipt timestamp of this book (logging only)
                 bs = book_sides(ob)                                     # explicit representation (None = side absent); legacy sentinels below for the rule arithmetic
                 yb, ya, ybs, yas = (bs["yes_bid"] if bs["yes_bid"] is not None else 0.0), (bs["yes_ask"] if bs["yes_ask"] is not None else 1.0), bs["yes_bid_size"], bs["yes_ask_size"]
                 p_n = p_yes(spot, K, sig or 0.0006, mins_left, partial, partial_n)
@@ -344,7 +348,9 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         "p_cal": (p_cal(1e4 * ((((1 - max(min(mins_left, 1.0), 0.02)) * partial + max(min(mins_left, 1.0), 0.02) * spot) / K) - 1), sig, mins_left, basis_noise_bp=(0.0 if spot_src == "cfb" else BASIS_NOISE_BP)) if (partial and partial_n >= 3 and mins_left < 1.0) else None), "spot_src": spot_src,
                         "cfb_age_s": (round(now - cfb["t"], 2) if cfb and cfb.get("t") else None),
                         # AUDIT_2026-10-28: unambiguous book representation + top-3 depth both sides (YES price space, best first)
-                        "yes_bid_present": bs["yes_bid_present"], "yes_ask_present": bs["yes_ask_present"], "bids": bs["bids"], "asks": bs["asks"]}
+                        "yes_bid_present": bs["yes_bid_present"], "yes_ask_present": bs["yes_ask_present"], "bids": bs["bids"], "asks": bs["asks"],
+                        # AUDIT_ADDENDUM2 §2: book receipt timestamp and fetch latency (logging only; no decision reads them)
+                        "book_recv_t": round(_t_recv, 3), "book_fetch_s": round(_t_recv - _t_req, 3)}
                 if proj_gate and mins_left < 1.2:                      # AUDIT_2026-10-28 §1.3: ONE first-failure reason per check (pure, no I/O)
                     try:
                         from .reject_taxonomy import classify as _rt_classify
@@ -405,12 +411,14 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                     elif (yb - p) >= thr_used and 0 < yb < 1 and ybs >= lot: side, edge = "no", yb - p
                 if side:
                     score = edge / math.sqrt(max(p * (1 - p), 1e-4))
-                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z, "d_bp": (proj_d_bp if proj_gate else None), "partial_n": partial_n, "d_perp_bp": (d_perp_bp if proj_gate else None)}
+                    if best is None or score > best["score"]: best = {"score": score, "tk": tk, "K": K, "side": side, "p": p, "mid": (yb + ya) / 2, "t_dec": time.time(), "regime": regime, "spread": round(ya - yb, 2), "imb": imb, "sigma_mkt": sig_mkt, "thr_used": thr_used, "z": z, "d_bp": (proj_d_bp if proj_gate else None), "partial_n": partial_n, "d_perp_bp": (d_perp_bp if proj_gate else None), "book_recv_t": _t_recv}
                     if proj_gate: break                            # re-check immediately (BTCD 1.65 s latency came from fetching further strikes first)
             if best:
                 tk, side, p = best["tk"], best["side"], best["p"]
+                _t_rc_req = time.time()
                 try: yb2, ya2, ybs2, yas2 = book_touch(k.orderbook(tk))
                 except Exception: yb2 = None
+                _t_rc_recv = time.time()                                # AUDIT_ADDENDUM2 §2: re-check receipt timestamp (logging only)
                 latency = time.time() - best["t_dec"]
                 if proj_gate:
                     ok = yb2 is not None and latency <= LATENCY_GUARD_S and ((side == "yes" and 0 < ya2 <= ts_cap and yas2 >= lot) or (side == "no" and 0 < yb2 < 1 and (1 - yb2) <= ts_cap and ybs2 >= lot))
@@ -456,7 +464,11 @@ def run(thr: float, t_open: float, t_close: float, lot: int, poll_s: float, root
                         cost = qty * price; fee = kalshi_taker_fee(qty, price)
                         t = {"t": now, "ticker": tk, "close_ts": next_hour, "side": side, "price": price, "qty": qty, "avail_at_touch": avail, "slippage": 0.01, "decision_latency_s": round(latency, 2),
                              "cost": cost, "fee": fee, "p_model": p, "p_market": best["mid"], "spot": spot, "K": best["K"], "mins_left": round(mins_left, 2), "status": "open", "series": series, "risk": why,
-                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "spot_src": spot_src, "proj_gate": proj_gate, "floor_used": None, "p_cal": best.get("p_cal"), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f}
+                             "sigma1": sig, "sigma_regime": best["regime"], "spread": best["spread"], "imb": best["imb"], "sigma_mkt": best["sigma_mkt"], "thr_used": round(best["thr_used"], 4), "z": best["z"], "dist": dist, "sigma_mode": sigma_mode, "d_bp": best.get("d_bp"), "partial_n": best.get("partial_n"), "basis_used_bp": basis_used, "spot_src": spot_src, "proj_gate": proj_gate, "floor_used": None, "p_cal": best.get("p_cal"), "latency_guard_s": (LATENCY_GUARD_S if proj_gate else None), "fav_at_decision": (best["mid"] if side == "yes" else 1 - best["mid"]), "spot_perp": perp_spot, "d_perp_bp": best.get("d_perp_bp"), "perp_age_s": perp_age, "perp_basis_bp": perp_basis, "ctx": ctx_f,
+                             # AUDIT_ADDENDUM2 §2 (logging only): receipt timestamps of the decision book and the re-check book, age of the decision
+                             # quote at the re-check, requested lot (intended qty before Kelly / caps / thin-book halving) and displayed qty at the touch
+                             "book_recv_t": round(best["book_recv_t"], 3), "recheck_recv_t": round(_t_rc_recv, 3), "recheck_fetch_s": round(_t_rc_recv - _t_rc_req, 3),
+                             "quote_age_s": round(_t_rc_recv - best["book_recv_t"], 3), "intended_lot": lot, "avail_qty": avail}
                         if ts_arm is not None: t["ts_arm"] = ts_arm.id; t["ts_size_mult"] = ts_info.get("size_mult"); t["ts_p_best"] = ts_info.get("p_best")
                         if gate_row is not None: t["gate"] = gate_row["details"]; gate_row["qty"] = qty; BG.log_decision(root, gate_row)
                         t["mode"] = state.mode; state.append(state.trades, t); state.open_positions[tk] = t; led.record_open(tk, series, cost, close_ts=next_hour, side=side)

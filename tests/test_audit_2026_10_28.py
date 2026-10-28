@@ -31,7 +31,8 @@ def test_book_sides_absent_no_side_means_no_yes_offer():
 def test_book_sides_two_sided_subpenny_depth_and_complement():
     b = S7.book_sides(ob(yes=[(0.042, 119.54), (0.04, 10), (0.03, 5), (0.02, 1)], no=[(0.957, 2558.6), (0.95, 20)]))
     assert b["yes_bid"] == 0.042 and b["yes_ask"] == pytest.approx(0.043) and b["yes_ask_size"] == 2558.6
-    assert len(b["bids"]) == 3 and b["asks"] == [(0.043, 2558.6), (0.05, 20)]
+    assert len(b["bids"]) == 3 and [(pytest.approx(p), q) for p, q in b["asks"]] == [(0.043, 2558.6), (0.05, 20)]
+    assert b["asks"][0][0] == 1 - 0.957                                              # ADDENDUM2 §2: exact legacy float, not round(.., 4)
     assert S7.book_touch(ob(yes=[], no=[])) == (0.0, 1.0, 0.0, 0.0)
 
 def test_side_present_handles_new_and_legacy_rows():

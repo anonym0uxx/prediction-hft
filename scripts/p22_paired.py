@@ -10,8 +10,11 @@ For EVERY settled 15M market in the official-feed era (not only the ones P13 con
 T-60/-45/-30/-20/-10 s, using only information RECEIVED by that timestamp, it records: the replica-based forecast, the official-feed
 forecast, the market mid, and the contemporaneous executable book; then scores
   (a) forecast quality: Brier, calibration (reliability by decile), settlement-value error in bp (projection vs expiration_value);
-  (b) trading value: net edge vs the executable price for the intended qty (lot 10, +1 tick as the paper runner books it, fee once),
-      realised net per contract on candidates with edge >= 5c, survival of the offer after the measured latency (next snapshot).
+  (b) trading value (MEASUREMENT VERSION p22-v2, docs/AUDIT_ADDENDUM2_2026-10-28.md §1): the RAW walked offer for the intended qty (lot 10)
+      is stored as offer_<tag>; the simulated execution price is raw + 0.01 with NO cap (exec_price_<tag>); records whose raw offer is
+      > 0.98 carry exec_status 'outside_modeled_range' and are excluded from every edge / realised-net denominator (never clipped);
+      fee once (Kalshi taker, ceil-to-cent on the lot); realised net per contract; survival of the offer after the measured latency.
+      v1 (min(raw + 0.01, 0.99)) is kept only in data/p22/p22_paired_2026-10-28.jsonl, which is never rewritten.
 Uncertainty: SE clustered by settlement close (BTC/ETH/SOL share a close) AND by hour block (4 closes). Alternative timing windows
 are the horizons themselves (shadow); nothing is tuned.
 
@@ -24,6 +27,7 @@ from predhft.reject_taxonomy import p_cal, side_present
 from predhft.ts_levers import BASIS_BP, BASIS_NOISE_BP
 from predhft.fees import kalshi_taker_fee
 from predhft.feed_tail import sigma_1m_from_rows
+from predhft.p22_exec import book_record, rule_cells, MEASUREMENT_VERSION, RULE_TEXT, STATUS_OK
 
 PT = dt.timezone(dt.timedelta(hours=-7)); DATA = pathlib.Path("data"); HORIZONS = (60, 45, 30, 20, 10); ASSETS = ("BTC", "ETH", "SOL")
 
@@ -149,15 +153,20 @@ def main():
                 rec["two_sided"] = bid_ok and ask_ok
                 for tag, f in (("off", f_off), ("rep", f_rep)):
                     side = "yes" if f["d_bp"] > 0 else "no"; px, depth = offer_for(bk, side, lot)
-                    rec[f"side_{tag}"] = side; rec[f"offer_{tag}"] = px; rec[f"depth_{tag}"] = depth
+                    rec[f"side_{tag}"] = side; rec[f"offer_{tag}"] = px; rec[f"depth_{tag}"] = depth      # offer_<tag> = RAW walked offer for `lot`, never adjusted
+                    p_side = f["p"] if side == "yes" else 1 - f["p"]; win = y if side == "yes" else 1 - y
+                    b = book_record(px, p_side, win, lot)                                               # p22-v2: raw + 0.01, no cap, explicit status
+                    rec[f"exec_price_{tag}"] = b["exec_price"]; rec[f"exec_status_{tag}"] = b["exec_status"]; rec[f"fee_{tag}"] = b["fee_per_contract"]
+                    rec[f"edge_c_{tag}"] = b["edge_c"]; rec[f"real_c_{tag}"] = b["real_c"]
                     if px is not None and 0 < px < 1:
-                        price = min(px + 0.01, 0.99); fee = kalshi_taker_fee(lot, price) / lot; p_side = f["p"] if side == "yes" else 1 - f["p"]; win = y if side == "yes" else 1 - y
-                        rec[f"edge_c_{tag}"] = 100 * (p_side - price - fee); rec[f"real_c_{tag}"] = 100 * (win - price - fee)
                         nxt = next_snapshot(rows_by_tk, tk, t_h + a.latency_s)
                         if nxt is not None:
                             px2, _ = offer_for(nxt, side, lot); rec[f"survives_{tag}"] = (px2 is not None and px2 <= px + 1e-9)
+            else:
+                rec["exec_status_off"] = rec["exec_status_rep"] = "no_book"
+            rec["measurement_version"] = MEASUREMENT_VERSION
             recs.append(rec)
-    out_p = DATA / "p22" / f"p22_paired_{dt.datetime.now(PT).strftime('%Y-%m-%d')}.jsonl"
+    out_p = DATA / "p22" / f"p22_paired_v2_{dt.datetime.now(PT).strftime('%Y-%m-%d')}.jsonl"     # v1 files (p22_paired_<date>.jsonl) are never rewritten
     out_p.write_text("".join(json.dumps(r) + "\n" for r in recs), encoding="utf-8")
     # ---------------------------------------------------------------------------------------------------- scoring
     print(f"# P22 paired — {len(recs)} (market, horizon) records, {len({r['ticker'] for r in recs})} markets since {a.since} PT; rows -> {out_p}\n")
@@ -173,24 +182,37 @@ def main():
             M = [r for r in R if r.get("mid") is not None and r.get("two_sided")]; bm = mean([(r["mid"] - r["y"]) ** 2 for r in M]) if M else float("nan"); bo2 = mean([(r["p_off"] - r["y"]) ** 2 for r in M]) if M else float("nan")
             eo = [r["err_off_bp"] for r in R]; er = [r["err_rep_bp"] for r in R]
             src = collections.Counter(r["book_src"] for r in R)
-            print(f"| {A} | {h} | {len(R)} | {bo:.4f} | {br:.4f} | {bm:.4f} | {bo2:.4f} | {len(M)} | {mean([abs(x) for x in eo]):.2f} | {mean([abs(x) for x in er]):.2f} | {statistics.pstdev(eo) if len(eo) > 1 else 0:.2f} | {statistics.pstdev(er) if len(er) > 1 else 0:.2f} | {mean([r['n_off'] for r in R]):.0f} | {dict(src)} |")
+            print(f"| {A} | {h} | {len(R)} | {bo:.4f} | {br:.4f} | {('%.4f' % bm) if M else 'insufficient data (n=0)'} | {('%.4f' % bo2) if M else 'insufficient data (n=0)'} | {len(M)} | {mean([abs(x) for x in eo]):.2f} | {mean([abs(x) for x in er]):.2f} | {statistics.pstdev(eo) if len(eo) > 1 else 0:.2f} | {statistics.pstdev(er) if len(er) > 1 else 0:.2f} | {mean([r['n_off'] for r in R]):.0f} | {dict(src)} |")
     print("\n## Calibration (reliability) of p_off by decile, pooled over horizons\n")
     print("| decile | n | mean p_off | hit rate |"); print("|---|---|---|---|")
     for d in range(10):
         R = [r for r in recs if d / 10 <= r["p_off"] < (d + 1) / 10 + (1e-9 if d == 9 else 0)]
         if R: print(f"| {d/10:.1f}-{(d+1)/10:.1f} | {len(R)} | {mean([r['p_off'] for r in R]):.3f} | {mean([r['y'] for r in R]):.3f} |")
-    print("\n## Trading value by asset x horizon (lot 10, paper price = executable + 1 tick, fee once). cand = edge >= %.0fc on the executable book\n" % a.edge_min_c)
-    print("| asset | T-h s | n with book | two-sided | offered(off side) | depth>=lot | cand off | real net c/ct (cand off) | SE close | SE hour | survive after latency | cand rep | real net c/ct (cand rep) | mean edge off (all offered) |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    def fmt(v, spec="+.1f", n=None):
+        return (f"insufficient data (n={n})" if n is not None else "insufficient data") if (v is None or v != v) else format(v, spec)
+    print("\n## Trading value by asset x horizon — %s (lot 10; exec price = raw offer + 0.01, NO cap; records with raw offer > 0.98 = 'outside_modeled_range', excluded; fee once). cand = model edge >= %.0f c/contract\n" % (MEASUREMENT_VERSION, a.edge_min_c))
+    print("| asset | horizon T-h (s) | records with a book | two-sided books | intended side offered, depth >= lot (any price) | of which outside modeled range (raw > 0.98) | executable records (status ok) | candidates (official forecast, edge >= min) | realised net c/contract (candidates) | SE by close (c) | SE by hour block (c) | offer survives latency (candidates) | candidates (replica forecast) | realised net c/contract (replica candidates) | mean model edge c/contract (all executable) |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for A in ASSETS + ("ALL",):
         for h in HORIZONS:
             R = [r for r in recs if r["h"] == h and (A == "ALL" or r["asset"] == A) and r.get("book_src")]
             if not R: continue
-            two = sum(1 for r in R if r.get("two_sided")); off = [r for r in R if r.get("offer_off") is not None]
-            co = [r for r in off if r["edge_c_off"] >= a.edge_min_c]; cr = [r for r in R if r.get("offer_rep") is not None and r["edge_c_rep"] >= a.edge_min_c]
-            rv = [r["real_c_off"] for r in co]; se_c = cluster_se(rv, [r["close_ts"] for r in co]); se_h = cluster_se(rv, [r["hour_block"] for r in co])
+            two = sum(1 for r in R if r.get("two_sided")); offered_any = [r for r in R if r.get("offer_off") is not None]
+            outside = [r for r in offered_any if r.get("exec_status_off") != STATUS_OK]; ok = [r for r in offered_any if r.get("exec_status_off") == STATUS_OK]
+            co = [r for r in ok if r["edge_c_off"] >= a.edge_min_c]; cr = [r for r in R if r.get("exec_status_rep") == STATUS_OK and r["edge_c_rep"] >= a.edge_min_c]
+            rv = [r["real_c_off"] for r in co]; G = len({r["close_ts"] for r in co}); se_c = cluster_se(rv, [r["close_ts"] for r in co]) if G > 1 else None; se_h = cluster_se(rv, [r["hour_block"] for r in co]) if len({r["hour_block"] for r in co}) > 1 else None
             surv = [r.get("survives_off") for r in co if r.get("survives_off") is not None]
-            print(f"| {A} | {h} | {len(R)} | {two} | {len(off)} | {sum(1 for r in off if r['depth_off'] >= lot)} | {len(co)} | {mean(rv):+.1f} | {('%.1f' % se_c) if se_c else '-'} | {('%.1f' % se_h) if se_h else '-'} | {sum(surv)}/{len(surv)} | {len(cr)} | {mean([r['real_c_rep'] for r in cr]):+.1f} | {mean([r['edge_c_off'] for r in off]):+.1f} |")
+            print(f"| {A} | {h} | {len(R)} | {two} | {len(offered_any)} | {len(outside)} | {len(ok)} | {len(co)} | {fmt(mean(rv), n=len(co))} | {fmt(se_c, '.1f', n=G) if G < 2 else fmt(se_c, '.1f')} | {fmt(se_h, '.1f', n=len({r['hour_block'] for r in co}))} | {sum(surv)}/{len(surv)} | {len(cr)} | {fmt(mean([r['real_c_rep'] for r in cr]), n=len(cr))} | {fmt(mean([r['edge_c_off'] for r in ok]), n=len(ok))} |")
+    print("\n## Pre-declared rules R1/R2/R3 (official forecast) — %s denominators; SE suppressed when < 2 closes\n" % MEASUREMENT_VERSION)
+    for k, v in RULE_TEXT.items(): print(f"- {k}: {v}")
+    cells = rule_cells(recs, "off", lot, "v2")
+    print("\n| horizon T-h (s) | with book | two-sided | offered any price | outside modeled range | " + " | ".join(f"{k}: n / excluded / mean edge c / realised c ± SE(close)" for k in RULE_TEXT) + " |")
+    print("|---|---|---|---|---|" + "---|" * len(RULE_TEXT))
+    for h in HORIZONS:
+        c = cells[h]; parts = []
+        for k in RULE_TEXT:
+            x = c[k]; parts.append(f"{x['n']} / {x['n_excluded_outside_modeled_range']} / {fmt(x['mean_edge_c'], n=x['n'])} / {fmt(x['realized_net_c'], n=x['n'])}" + (f" ± {x['se_close']:.1f}" if x['se_close'] is not None else (" (SE suppressed: 1 close)" if x['n'] else "")))
+        print(f"| {h} | {c['with_book']} | {c['two_sided']} | {c['offered_any_price']} | {c['outside_modeled_range']} | " + " | ".join(parts) + " |")
     # paired difference official - replica (same market, same horizon)
     print("\n## Paired information test (same market & horizon): official minus replica\n")
     print("| T-h s | n | mean Brier diff (off-rep) | SE close | SE hour | mean |err| diff bp (off-rep) | share |d_off|>|d_rep| |"); print("|---|---|---|---|---|---|---|")
