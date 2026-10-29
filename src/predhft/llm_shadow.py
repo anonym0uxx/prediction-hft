@@ -446,9 +446,10 @@ def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[floa
     while True:
         try:
             now = now_fn()
-            if direct is not None: direct.tick(now)                           # settlements of this arm's positions + 60-s equity marks (incl. idle)
+            if direct is not None: direct.tick(now)                           # resting-order fill monitor (exec model v2) + settlements of this arm's positions + 60-s equity marks (incl. idle)
+            sleep_s = direct.sleep_s(poll_s) if direct is not None else poll_s  # ~1 s while one of the arm's orders rests, the sidecar's own poll otherwise
             snap = current_snapshot(now)
-            if snap is None: time.sleep(poll_s); continue
+            if snap is None: time.sleep(sleep_s); continue
             close_ts = int(snap["close_ts"]); secs_left = close_ts - now
             for d in due_decisions(secs_left, done, close_ts, decision_secs, CFG["decision_tolerance_s"]):
                 done.add((close_ts, d))
@@ -456,7 +457,7 @@ def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[floa
                 _log(root, red, f"FORECAST {row['ticker']} T-{d:.0f}s p_llm={row['p_llm']} mid={row['mid']} p_model={None if row['p_model'] is None else round(row['p_model'], 4)} lat={row['latency_s']} tokens={(row['tokens'] or {}).get('total_tokens') if row['tokens'] else None} "
                                f"llm_dec={(row['llm_decision'] or {}).get('decision')} policy_dec={row['policy_decision'].get('decision')} direct={(row['direct_decision'] or {}).get('action')}->{(row['direct_result'] or {}).get('status')} err={row['error']} budget={row['budget_state']['calls'] if row['budget_state'] else None}")
                 if once: return row
-            time.sleep(poll_s)
+            time.sleep(sleep_s)
         except KeyboardInterrupt: raise
         except Exception as e:
             _log(root, red, f"error {type(e).__name__}: {str(e)[:160]}"); time.sleep(poll_s)

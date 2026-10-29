@@ -140,16 +140,17 @@ def test_arm_entry_then_hold_then_settle_with_cohort_tags(arm):
     assert marks and marks[-1]["n_open"] == 0 and abs(marks[-1]["equity"] - (250 + arm.realized)) < 1e-9
 
 
-def test_arm_unfilled_and_risk_limited_are_logged_not_filled(arm):
-    r = _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.80})        # best ask .90 -> no size at/below .80
-    assert r["result"]["status"] == "unfilled" and r["result"]["qty"] == 0 and arm.position_for(SNAP["ticker"]) is None
-    rows = [json.loads(l) for l in (arm.root / "fills.jsonl").read_text().splitlines()]; assert rows[-1]["status"] == "unfilled" and rows[-1]["best_offer"] == 0.9
-    # the unfilled intent id is consumed; the same side at the same decision time is not retried, the other side still can be
-    r = _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.95}); assert r["result"]["status"] == "refused:intent_exists"
-    # risk_limited: SOL-v1 fills the shared crypto per-close cap -> refusal logged with reason, no fill row
+def test_arm_unfilled_now_rests_and_risk_limited_is_logged_not_filled(arm):
+    r = _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.80})        # best ask .90 -> no size at/below .80 -> exec model v2: the order RESTS, no position
+    assert r["result"]["status"] == "resting" and r["result"]["qty"] == 0 and r["result"]["resting_qty"] == 10 and arm.position_for(SNAP["ticker"]) is None and arm.resting_for(SNAP["ticker"])["qty_remaining"] == 10
+    rows = [json.loads(l) for l in (arm.root / "fills.jsonl").read_text().splitlines()]
+    assert rows[-2]["kind"] == "fill" and rows[-2]["status"] == "unfilled" and rows[-2]["best_offer"] == 0.9 and rows[-2]["exec_model"] == "rest_v2" and rows[-1]["kind"] == "rest_placed" and rows[-1]["book"]["asks"][0] == [0.9, 54.0]
+    # the intent id is consumed; the same side at the same decision time is not retried
+    r = _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.95}); assert r["result"]["status"] == "refused:intent_exists" and arm.resting_for(SNAP["ticker"]) is not None
+    # risk_limited: SOL-v1 fills the shared crypto per-close cap -> refusal logged with reason, no fill row, resting order untouched
     R.Ledger(arm.root.parent / "sol-v1", family="sol-v1").record_open("KXSOL15M-TEST-45", "KXSOL15M", 12.0, close_ts=T, side="yes")
     n = len(rows); r = _act(arm, {"action": "BUY_NO", "qty": 10, "limit_price": 0.12})
-    assert r["result"]["status"].startswith("risk_limited:") and len((arm.root / "fills.jsonl").read_text().splitlines()) == n
+    assert r["result"]["status"].startswith("risk_limited:") and len((arm.root / "fills.jsonl").read_text().splitlines()) == n and arm.resting_for(SNAP["ticker"])["side"] == "yes"
     decs = [json.loads(l) for l in (arm.root / "decisions.jsonl").read_text().splitlines()]; assert decs[-1]["risk"]["ok"] is False and decs[-1]["result"]["status"].startswith("risk_limited:")
 
 
@@ -230,3 +231,168 @@ def test_scorer_realised_trades_and_sharpe_per_15min_mark():
     marks = [{"t": T + 60 * i, "equity": 250.0 + (0.0 if i < 20 else 4.82) - (1.0 if 40 <= i < 50 else 0.0)} for i in range(0, 90)]   # 90 minutes of 60-s marks incl. idle
     sh = SC.sharpe_15m(marks); assert sh["n_intervals"] == 4 and sh["sd_usd"] > 0 and sh["sharpe"] is not None
     assert SC.sharpe_15m(marks[:5])["n_intervals"] == 0
+
+
+# ------------------------------------------------------------------ exec model v2: resting limit orders (crossing-only)
+def _bk(bids, asks, recv_t):
+    return {"yes_bid": (bids[0][0] if bids else None), "yes_ask": (asks[0][0] if asks else None), "bids": bids, "asks": asks, "recv_t": recv_t, "fetch_s": 0.0, "src": "ws"}
+
+def _order(side="BUY_YES", qty=10, limit=0.28, t_placed=T - 600.0, cfg=None):
+    return D.new_order("llm-direct:X:yes:T600", "X", T, 100.0, side, qty, limit, t_placed, {**D.CFG, **(cfg or {})}, prompt_hash="h", model_name="m", decision_secs_left=600.0)
+
+
+def test_crossing_only_fill_requires_the_offer_at_or_below_the_limit():
+    o = _order()                                                                  # BUY_YES 10 @ .28
+    # bid touches/exceeds the limit but the ask stays above it -> NO fill (we never assume queue priority / maker fills)
+    assert D.step_order(o, _bk([[0.28, 500.0], [0.27, 100.0]], [[0.30, 200.0]], T - 599.0), T - 599.0) == (None, None)
+    assert D.step_order(o, _bk([[0.29, 500.0]], [[0.29, 200.0]], T - 598.0), T - 598.0) == (None, None)          # ask 1 tick above the limit
+    ev, f = D.step_order(o, _bk([[0.26, 500.0]], [[0.28, 200.0]], T - 597.0), T - 597.0)                           # offer AT the limit crosses
+    assert ev == "filled" and f["qty"] == 10 and abs(f["px"] - (0.28 + S.TICK)) < 1e-9 and f["fee"] == kalshi_taker_fee(10, 0.281)
+    # BUY_NO: the NO offer is 1 - yes_bid; a yes_ask at/below (1 - limit) is irrelevant
+    on = _order("BUY_NO", 10, 0.061)
+    assert D.step_order(on, _bk([[0.936, 8.0]], [[0.938, 149.0]], T - 599.0), T - 599.0) == (None, None)           # NO ask = .064 > .061
+    assert D.step_order(on, _bk([[0.93, 8.0]], [[0.939, 149.0]], T - 598.0), T - 598.0) == (None, None)            # yes_ask irrelevant; NO ask .070
+    ev, f = D.step_order(on, _bk([[0.94, 8.0], [0.938, 50.0]], [[0.942, 149.0]], T - 597.0), T - 597.0)             # NO ask .060 <= .061 (8 displayed), next .062 above -> partial
+    assert ev == "partial" and f["qty"] == 8 and abs(f["px"] - (0.06 + S.TICK)) < 1e-9
+
+
+def test_partial_fills_accumulate_only_against_new_liquidity():
+    o = _order(qty=10, limit=0.28)
+    b1 = _bk([[0.26, 10.0]], [[0.28, 4.0], [0.29, 300.0]], T - 599.0); ev, f = D.step_order(o, b1, T - 599.0); assert ev == "partial" and f["qty"] == 4
+    D.apply_fill(o, f, T - 599.0, b1); assert o["qty_remaining"] == 6 and o["qty_filled"] == 4 and len(o["fills"]) == 1
+    assert D.step_order(o, b1, T - 598.0) == (None, None)                                                           # same book -> no second helping
+    b1b = _bk([[0.25, 10.0]], [[0.28, 4.0], [0.29, 300.0]], T - 597.5); assert D.step_order(o, b1b, T - 597.5) == (None, None)   # book ticked elsewhere, same displayed size at the limit
+    b2 = _bk([[0.26, 10.0]], [[0.27, 3.0], [0.28, 1.0], [0.29, 300.0]], T - 597.0); ev, f = D.step_order(o, b2, T - 597.0)    # fresh size: 3 @ .27 + 1 @ .28
+    assert ev == "partial" and f["qty"] == 4 and abs(f["px"] - (0.2725 + S.TICK)) < 1e-9; D.apply_fill(o, f, T - 597.0, b2)
+    b3 = _bk([[0.26, 10.0]], [[0.28, 50.0]], T - 596.0); ev, f = D.step_order(o, b3, T - 596.0); assert ev == "filled" and f["qty"] == 2; D.apply_fill(o, f, T - 596.0, b3)
+    assert o["qty_remaining"] == 0 and o["qty_filled"] == 10 and abs(o["cost"] - (4 * 0.281 + 4 * 0.2735 + 2 * 0.281)) < 1e-6 and o["fee"] == kalshi_taker_fee(4, 0.281) + kalshi_taker_fee(4, 0.2735) + kalshi_taker_fee(2, 0.281)
+
+
+def test_ttl_expiry_and_final_minute_cancel_come_before_any_fill():
+    o = _order(t_placed=T - 600.0)                                                # ttl 60 s -> expires T-540; cancel_at T-60
+    cross = lambda t: _bk([[0.26, 10.0]], [[0.27, 500.0]], t)
+    assert o["expires_t"] == T - 540.0 and o["cancel_at_t"] == T - 60.0
+    assert D.step_order(o, cross(T - 541.0), T - 541.0)[0] == "filled"
+    assert D.step_order(o, cross(T - 540.0), T - 540.0) == ("expired", None)      # crossing book at expiry instant: time wins
+    o2 = _order(t_placed=T - 100.0, cfg={"rest_ttl_s": 600.0})                   # long TTL but placed inside T-100 -> cancel at T-60
+    assert D.step_order(o2, cross(T - 61.0), T - 61.0)[0] == "filled" and D.step_order(o2, cross(T - 60.0), T - 60.0) == ("cancelled_final_minute", None)
+    assert D.step_order(o2, None, T - 59.0) == ("cancelled_final_minute", None)  # no book needed to cancel
+
+
+def test_arm_resting_order_fills_later_and_position_exits_at_t5(arm):
+    arm.now_fn = lambda: T - 597.0
+    r = _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85})         # ask .90 -> rests
+    assert r["result"]["status"] == "resting" and arm.has_resting() and arm.sleep_s(5.0) == 1.0 and json.loads((arm.root / "open_orders.json").read_text())["orders"][0]["qty_remaining"] == 10
+    # monitor: bid touches .85 but ask stays .90 -> nothing; then 4 offered at .85 -> partial; then the rest at .84
+    evs = arm.monitor(T - 596.0, book_for={SNAP["ticker"]: _bk([[0.85, 100.0]], [[0.9, 54.0]], T - 596.0)}); assert evs == [] and arm.position_for(SNAP["ticker"]) is None
+    evs = arm.monitor(T - 595.0, book_for={SNAP["ticker"]: _bk([[0.84, 100.0]], [[0.85, 4.0], [0.9, 54.0]], T - 595.0)})
+    assert len(evs) == 1 and evs[0]["kind"] == "rest_partial" and evs[0]["qty_filled"] == 4 and evs[0]["qty_remaining"] == 6 and evs[0]["book"]["asks"][0] == [0.85, 4.0]
+    held = arm.position_for(SNAP["ticker"]); assert held["qty"] == 4 and held["acquired_via"] == "rest" and held["status"] == "open" and abs(held["px"] - 0.851) < 1e-9
+    blk = arm.block(SNAP, 300.0, T - 300); assert blk["holding"] and blk["position"]["qty"] == 4 and blk["position"]["resting_remainder"]["qty_remaining"] == 6 and blk["allowed_actions"] == ["HOLD", "EXIT"]
+    evs = arm.monitor(T - 594.0, book_for={SNAP["ticker"]: _bk([[0.83, 100.0]], [[0.84, 50.0]], T - 594.0)})
+    assert evs[0]["kind"] == "rest_filled" and not arm.has_resting() and arm.sleep_s(5.0) == 5.0 and json.loads((arm.root / "open_orders.json").read_text())["orders"] == []
+    held = arm.position_for(SNAP["ticker"]); assert held["qty"] == 10 and held["n_rest_fills"] == 2 and abs(held["cost"] - (4 * 0.851 + 6 * 0.841)) < 1e-6 and abs(held["fee"] - (kalshi_taker_fee(4, 0.851) + kalshi_taker_fee(6, 0.841))) < 1e-9
+    assert S.Positions(arm.root).open[SNAP["ticker"]]["qty"] == 10                # fills.jsonl reload sees the accumulated position
+    assert sum(e["cost"] for e in R.Ledger.events(0) if e["kind"] == "open") == pytest.approx(held["cost"])      # shared ledger saw both increments
+    # EXIT at T-5 on the resting-acquired position: sells into the bids, fee again
+    arm._state["book"] = _bk([[0.89, 16.9]], [[0.9, 54.0]], T - 300.0); arm.now_fn = lambda: T - 300.0
+    r = _act(arm, {"action": "EXIT"}, dsl=300.0); assert r["result"]["status"] == "exited" and r["result"]["qty"] == 10 and abs(r["result"]["pnl"] - (10 * 0.89 - kalshi_taker_fee(10, 0.89) - held["cost"] - held["fee"])) < 1e-9
+    rows = [json.loads(l) for l in (arm.root / "fills.jsonl").read_text().splitlines()]
+    assert [r["kind"] for r in rows] == ["fill", "rest_placed", "fill", "rest_partial", "fill", "rest_filled", "exit"] and rows[-1]["acquired_via"] == "rest"
+    decs = [json.loads(l) for l in (arm.root / "decisions.jsonl").read_text().splitlines()]; assert decs[0]["result"]["resting_intent"] == rows[1]["intent_id"] and decs[-1]["resting_intent"] is None
+
+
+def test_arm_ttl_expiry_and_final_minute_cancel_events(arm):
+    arm.now_fn = lambda: T - 597.0
+    _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85})
+    evs = arm.monitor(T - 536.0, book_for={SNAP["ticker"]: _bk([[0.84, 100.0]], [[0.85, 50.0]], T - 536.0)})     # crossing book, but 61 s after placement -> TTL first
+    assert evs[0]["kind"] == "rest_expired" and evs[0]["qty_filled"] == 0 and not arm.has_resting() and arm.position_for(SNAP["ticker"]) is None
+    # placed at T-100 with a long TTL: cancelled at T-60 whatever the book
+    arm.cfg["rest_ttl_s"] = 900.0; arm.now_fn = lambda: T - 100.0
+    r = _act(arm, {"action": "BUY_NO", "qty": 10, "limit_price": 0.05}, dsl=300.0); assert r["result"]["status"] == "resting"
+    assert arm.monitor(T - 61.0, book_for={SNAP["ticker"]: BOOK}) == [] and arm.has_resting()
+    evs = arm.monitor(T - 60.0, book_for={SNAP["ticker"]: _bk([[0.96, 100.0]], [[0.97, 50.0]], T - 60.0)})       # NO offered at .04 <= .05 but it is T-60: cancel
+    assert evs[0]["kind"] == "rest_cancelled_final_minute" and not arm.has_resting()
+    # inside the final minute a new BUY that does not fill immediately is NOT rested
+    arm.now_fn = lambda: T - 30.0; r = _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85}, dsl=30.0); assert r["result"]["status"] == "unfilled" and r["result"]["resting_qty"] == 0 and not arm.has_resting()
+
+
+def test_arm_t5_decision_governs_resting_order(arm):
+    arm.now_fn = lambda: T - 597.0
+    # flat + resting, T-5 says NO_TRADE -> cancelled
+    _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85}); assert arm.has_resting()
+    r = _act(arm, {"action": "NO_TRADE"}, dsl=300.0); assert r["result"]["status"] == "no_trade" and r["result"]["cancelled_intent"].endswith(":yes:T600") and not arm.has_resting()
+    rows = [json.loads(l) for l in (arm.root / "fills.jsonl").read_text().splitlines()]; assert rows[-1]["kind"] == "rest_cancelled_decision"
+    # flat + resting, T-5 BUY of the OTHER side -> old cancelled (replaced), new order rests on the new side
+    snap2 = {**SNAP, "ticker": "KXSOL15M-TEST-46", "close_ts": T + 900}
+    _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85}, snap=snap2)
+    r = _act(arm, {"action": "BUY_NO", "qty": 5, "limit_price": 0.05}, dsl=300.0, snap=snap2)
+    assert r["result"]["status"] == "resting" and r["result"]["replaced_intent"].endswith(":yes:T600") and arm.resting_for(snap2["ticker"])["side"] == "no" and arm.resting_for(snap2["ticker"])["intent_id"].endswith(":no:T300")
+    # flat + resting, T-5 BUY of the SAME side -> the latest decision's qty/limit govern (old replaced, one order rests)
+    snap3 = {**SNAP, "ticker": "KXSOL15M-TEST-47", "close_ts": T + 1800}
+    _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85}, snap=snap3)
+    r = _act(arm, {"action": "BUY_YES", "qty": 7, "limit_price": 0.86}, dsl=300.0, snap=snap3)
+    assert r["result"]["status"] == "resting" and arm.resting_for(snap3["ticker"])["limit"] == 0.86 and arm.resting_for(snap3["ticker"])["qty_remaining"] == 7 and len(arm.orders) == 2
+    # a malformed T-5 answer leaves the resting order alone (no-op), HOLD while partially filled keeps it, EXIT cancels it
+    r = _act(arm, "???", dsl=300.0, snap=snap3); assert r["decision"]["action"] == "NO_TRADE" and arm.resting_for(snap3["ticker"]) is not None
+    arm.monitor(T - 590.0, book_for={snap3["ticker"]: _bk([[0.85, 10.0]], [[0.86, 3.0], [0.9, 50.0]], T - 590.0)}); assert arm.position_for(snap3["ticker"])["qty"] == 3 and arm.resting_for(snap3["ticker"])["qty_remaining"] == 4
+    r = _act(arm, {"action": "HOLD"}, dsl=300.0, snap=snap3); assert r["result"]["status"] == "hold" and r["result"]["resting_kept"] and arm.has_resting()
+    arm._state["book"] = _bk([[0.85, 10.0]], [[0.9, 50.0]], T - 299.0)
+    r = _act(arm, {"action": "EXIT"}, dsl=300.0, snap=snap3); assert r["result"]["status"] == "exited" and r["result"]["qty"] == 3 and r["result"]["cancelled_intent"].endswith(":yes:T300") and arm.resting_for(snap3["ticker"]) is None
+    assert [x["kind"] for x in map(json.loads, (arm.root / "fills.jsonl").read_text().splitlines())][-2:] == ["rest_cancelled_exit", "exit"]
+
+
+def test_restart_recovers_open_orders_and_positions(arm, tmp_path, monkeypatch):
+    arm.now_fn = lambda: T - 597.0
+    _act(arm, {"action": "BUY_YES", "qty": 10, "limit_price": 0.85})
+    arm.monitor(T - 595.0, book_for={SNAP["ticker"]: _bk([[0.84, 100.0]], [[0.85, 4.0], [0.9, 54.0]], T - 595.0)})
+    state = arm._state
+    arm2 = D.DirectArm(arm.root, arm.sol_root, book_fn=lambda tk, snap=None: state["book"], result_fn=lambda tk: None, series_fn=lambda now: [])
+    o = arm2.resting_for(SNAP["ticker"]); assert o is not None and o["qty_remaining"] == 6 and o["qty_filled"] == 4 and o["exec_model"] == "rest_v2" and o["intent_id"] in arm2.pos.intents
+    assert arm2.position_for(SNAP["ticker"])["qty"] == 4 and arm2.has_resting()
+    # the recovered order keeps filling / expiring on its original clock
+    evs = arm2.monitor(T - 594.0, book_for={SNAP["ticker"]: _bk([[0.84, 100.0]], [[0.84, 50.0]], T - 594.0)}); assert evs[0]["kind"] == "rest_filled" and arm2.position_for(SNAP["ticker"])["qty"] == 10
+    arm3 = D.DirectArm(arm.root, arm.sol_root, book_fn=lambda tk, snap=None: state["book"], result_fn=lambda tk: None, series_fn=lambda now: []); assert not arm3.has_resting() and arm3.position_for(SNAP["ticker"])["qty"] == 10
+    # an order whose TTL passed while the runner was down is expired on the first monitor pass (no fill from a stale book)
+    arm3.now_fn = lambda: T - 400.0; _act(arm3, {"action": "BUY_NO", "qty": 5, "limit_price": 0.05}, dsl=300.0, snap={**SNAP, "ticker": "KXSOL15M-TEST-46", "close_ts": T + 900})
+    arm4 = D.DirectArm(arm.root, arm.sol_root, book_fn=lambda tk, snap=None: state["book"], result_fn=lambda tk: None, series_fn=lambda now: []); assert arm4.has_resting()
+    evs = arm4.monitor(T - 300.0, book_for={"KXSOL15M-TEST-46": _bk([[0.97, 100.0]], [[0.98, 50.0]], T - 300.0)}); assert evs[0]["kind"] == "rest_expired" and not arm4.has_resting()
+
+
+def test_replay_resting_on_tape_is_causal_and_crossing_only():
+    o = _order(qty=10, limit=0.28, t_placed=T - 600.0)
+    tape = [{"recv_t": T - 600.5, "bids": [[0.27, 100.0]], "asks": [[0.30, 50.0]]},                                 # before placement: not crossing anyway
+            {"recv_t": T - 598.2, "bids": [[0.28, 100.0]], "asks": [[0.29, 50.0]]},                                 # bid at the limit, ask above -> nothing
+            {"recv_t": T - 596.7, "bids": [[0.26, 100.0]], "asks": [[0.28, 3.0], [0.29, 50.0]]},                    # 3 offered at .28
+            {"recv_t": T - 594.1, "bids": [[0.26, 100.0]], "asks": [[0.27, 20.0]]}]                                 # the rest at .27
+    r = D.replay_resting(o, tape, poll_s=1.0)
+    assert r["status"] == "filled" and r["qty_filled"] == 10 and len(r["fills"]) == 2 and r["fills"][0]["qty"] == 3 and abs(r["fills"][0]["px"] - 0.281) < 1e-9 and abs(r["fills"][1]["px"] - 0.271) < 1e-9
+    assert r["fills"][0]["t"] >= T - 596.7 and r["time_to_first_fill_s"] >= 3.3 and r["time_to_last_fill_s"] >= 5.9 and r["avg_px"] == pytest.approx((3 * 0.281 + 7 * 0.271) / 10)
+    r2 = D.replay_resting(_order(qty=10, limit=0.28, t_placed=T - 600.0), tape[:2], poll_s=1.0); assert r2["status"] == "expired" and r2["qty_filled"] == 0
+
+
+def test_scorer_splits_exec_models_and_replays_ioc_unfilled_on_tape(tmp_path):
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
+    import llm_direct_score as SC
+    tag = {"prompt_hash": "h", "model_name": "m"}
+    fills = [{"kind": "fill", "status": "unfilled", "fill_status": "unfilled", "intent_id": "i1", "ticker": "X1", "close_ts": T, "K": 1.0, "side": "yes", "qty": 0, "intended_qty": 10, "limit": 0.28, "best_offer": 0.32, "t": T - 600.0, "decision_secs_left": 600.0, **tag},   # v1 IOC row (no exec_model)
+             {"kind": "fill", "status": "open", "fill_status": "partial", "intent_id": "i2", "ticker": "X2", "close_ts": T + 900, "K": 1.0, "side": "no", "qty": 4, "intended_qty": 10, "resting_qty": 6, "limit": 0.3, "px": 0.301, "cost": 1.204, "fee": 0.06, "t": T + 300, "exec_model": "rest_v2", **tag},
+             {"kind": "rest_placed", "intent_id": "i2", "ticker": "X2", "close_ts": T + 900, "side": "no", "qty_filled": 4, "qty_remaining": 6, "resting_for_s": 0.0, "t": T + 300, "exec_model": "rest_v2", **tag},
+             {"kind": "rest_filled", "intent_id": "i2", "ticker": "X2", "close_ts": T + 900, "side": "no", "qty_filled": 10, "qty_remaining": 0, "resting_for_s": 7.5, "t": T + 307.5, "exec_model": "rest_v2", **tag},
+             {"kind": "fill", "status": "open", "intent_id": "i2", "ticker": "X2", "close_ts": T + 900, "K": 1.0, "side": "no", "qty": 10, "px": 0.3, "cost": 3.0, "fee": 0.15, "t": T + 307.5, "note": "resting fill accumulated", "exec_model": "rest_v2", **tag},
+             {"kind": "settle", "intent_id": "i2", "ticker": "X2", "close_ts": T + 900, "side": "no", "qty": 10, "pnl": 6.85, "win": True, "fee": 0.15, "t": T + 1000, "exec_model": "rest_v2", **tag}]
+    tr = SC.realised_trades(fills, [], {}); assert [t["exec_model"] for t in tr] == ["rest_v2"]
+    rs = SC.resting_stats(fills); assert rs["placed"] == 1 and rs["filled_fully"] == 1 and rs["still_resting"] == 0 and rs["time_to_full_fill_s"]["median"] == 7.5
+    # replay of the IOC-unfilled intent over a synthetic ws tape: the offer comes to the limit 4 s later -> would have filled; settlement from the feed; no pnl key
+    sol = tmp_path / "sol-v1"; (sol / "book").mkdir(parents=True)
+    day = SC.dt.datetime.fromtimestamp(T - 600.0, SC.dt.timezone.utc).strftime("%Y%m%d")
+    tape = [{"t": T - 599.0, "recv_t": T - 599.0, "ticker": "X1", "yes_bid": 0.28, "yes_ask": 0.30, "bids": [[0.28, 100.0]], "asks": [[0.30, 50.0]]},
+            {"t": T - 596.2, "recv_t": T - 596.2, "ticker": "X1", "yes_bid": 0.26, "yes_ask": 0.28, "bids": [[0.26, 100.0]], "asks": [[0.28, 6.0], [0.29, 50.0]]},
+            {"t": T - 590.0, "recv_t": T - 590.0, "ticker": "X1", "yes_bid": 0.26, "yes_ask": 0.27, "bids": [[0.26, 100.0]], "asks": [[0.27, 60.0]]},
+            {"t": T - 598.0, "recv_t": T - 598.0, "ticker": "OTHER", "yes_bid": 0.1, "yes_ask": 0.2, "bids": [[0.1, 1.0]], "asks": [[0.2, 1.0]]}]
+    (sol / "book" / f"{day}.jsonl").write_text("\n".join(json.dumps(r) for r in tape) + "\n", encoding="utf-8")
+    series = [(s, 1.5) for s in range(T - 60, T)]
+    rp = SC.replay_ioc_unfilled(fills, sol, series, {})
+    assert len(rp) == 1 and rp[0]["intent_id"] == "i1" and rp[0]["would_have_filled"] == "filled" and rp[0]["qty_filled"] == 10 and rp[0]["n_fills"] == 2 and rp[0]["time_to_first_fill_s"] == 4.0 and rp[0]["time_to_last_fill_s"] == 10.0
+    assert rp[0]["avg_px"] == pytest.approx((6 * 0.281 + 4 * 0.271) / 10) and rp[0]["settlement"] == "yes" and rp[0]["side_would_have_won"] is True and rp[0]["tape_rows"] == 3 and "pnl" not in rp[0]
+
