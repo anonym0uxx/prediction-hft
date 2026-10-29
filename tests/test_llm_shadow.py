@@ -118,7 +118,7 @@ def test_key_never_reaches_logs_or_rows(tmp_path, monkeypatch):
     blob = "\n".join(p.read_text(encoding="utf-8") for p in tmp_path.iterdir() if p.is_file())
     assert FAKE_KEY not in blob and FAKE_KEY[5:20] not in blob and "[REDACTED]" in blob
     assert tr.seen[0].headers["authorization"] == f"Bearer {FAKE_KEY}"           # the key goes to the API header only
-    assert json.loads(tr.seen[0].content)["max_tokens"] <= 400 and json.loads(tr.seen[0].content)["temperature"] == 0.0
+    assert json.loads(tr.seen[0].content)["max_tokens"] <= 800 and json.loads(tr.seen[0].content)["temperature"] == 0.0
 
 
 def test_client_backoff_and_402_stop(tmp_path):

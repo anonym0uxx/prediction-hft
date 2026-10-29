@@ -24,7 +24,7 @@ import argparse, bisect, datetime as dt, hashlib, json, math, os, pathlib, re, t
 from zoneinfo import ZoneInfo
 from . import sol_v1 as S
 
-VERSION = "P23-llm-shadow-v2"           # v2: the same call also returns the P24 direct trade decision block (llm_direct.py); new prompt_hash -> cohorts P23-v3 / P24-v1
+VERSION = "P23-llm-shadow-v3"           # v2: the same call also returns the P24 direct trade decision block (llm_direct.py); new prompt_hash -> cohorts P23-v3 / P24-v1
 ROOT = pathlib.Path("data/llm-shadow")
 SNAP = pathlib.Path("data/sol-v1/snapshots.jsonl")
 HERMES_HOME = pathlib.Path(os.environ.get("HERMES_HOME", str(pathlib.Path.home() / "AppData" / "Local" / "hermes")))
@@ -34,7 +34,7 @@ CFG = {
     "decision_secs_left": [600.0, 300.0],   # T-10 min, T-5 min
     "decision_tolerance_s": 45.0,           # fire when secs_left in (d - tol, d]; one call per (close, d)
     "max_snapshot_age_s": 12.0,             # the SOL-v1 snapshot we hand over must be this fresh
-    "daily_call_cap": 192, "max_tokens": 400, "temperature": 0.0, "timeout_s": 60.0,
+    "daily_call_cap": 192, "max_tokens": 700, "temperature": 0.0, "timeout_s": 60.0,
     "retries": 3, "backoff_base_s": 2.0, "rate_limit_storm": 5,   # 429s in one day before stopping
     "reasoning": {"effort": "low"},         # the Hermes default model is a reasoning model: without this it spends all 400 tokens thinking and returns empty content (verified 2026-10-28)
     "index_path_s": 600, "index_path_step_s": 10, "candle_minutes": 60,
@@ -50,15 +50,15 @@ You receive a deterministic packet: the live policy's own snapshot (its model pr
 
 SECOND TASK (independent of the probability; a PAPER trading account, no real money): you also manage a small paper position in this market. Account: paper bankroll $250. Each contract pays $1.00 if your side wins and $0 otherwise; prices are in dollars 0.01..0.99 (YES price p; a NO contract costs 1 - p). Lot size 5..20 contracts; one position per market. Buying hits the displayed offers: a YES buy walks the asks_top3, a NO buy walks the bids_top3 at NO price 1 - yes_bid, depth-weighted, never above your limit_price; if no displayed size is at or below your limit you get no fill (partial fills happen). Kalshi taker fee per order = ceil to the cent of 0.07 x qty x price x (1 - price) (about 1.2 c/contract near 0.30, 1.75 c at 0.50), charged on entry and again on any exit; settlement is free. Your decision is executed AS GIVEN: no edge threshold, no blending, no second opinion — only hard risk limits (lot 5..20, $15 cost per market, per-close exposure caps, loss halts) can shrink or refuse it. Say NO_TRADE freely; most 15-minute markets offer nothing. The packet field "direct_arm" tells you the allowed actions and, when you hold a position, its side, qty, entry price, current bid/ask and unrealised P&L: then choose HOLD (keep to settlement) or EXIT (sell the whole position now at the executable bid, depth-weighted, fee again).
 
-Respond ONLY with a JSON object, no prose outside it:
-{"p_yes": <number 0..1, probability the market settles YES>,
- "rationale": "<at most 2 sentences>",
- "beyond_market": "<one sentence: what information, if any, you used that the current market mid does not already reflect; say 'none' if none>",
- "decision": {"action": "<one of the allowed actions: BUY_YES | BUY_NO | NO_TRADE, or HOLD | EXIT when holding>",
+Respond ONLY with a JSON object, no prose outside it. The "decision" block comes FIRST and is mandatory on every response; keep every string to ONE short sentence so the whole reply stays under 250 tokens:
+{"decision": {"action": "<one of the allowed actions: BUY_YES | BUY_NO | NO_TRADE, or HOLD | EXIT when holding>",
               "qty": <integer 5..20; 0 for NO_TRADE/HOLD/EXIT>,
               "limit_price": <number 0.01..0.99 in dollars, the most you pay per contract on YOUR side (NO price = 1 - yes price); null unless buying>,
               "hold_plan": "<HOLD_TO_SETTLEMENT | REVIEW_AT_T5>",
-              "reason": "<at most 2 sentences>"}}
+              "reason": "<one short sentence>"},
+ "p_yes": <number 0..1, probability the market settles YES>,
+ "rationale": "<one short sentence>",
+ "beyond_market": "<one short sentence: information you used that the market mid does not already reflect; 'none' if none>"}
 Be calibrated: the market mid is a strong baseline; deviate only for a stated reason. Do not output anything else."""
 
 PROMPT_HASH = hashlib.sha256((VERSION + "\n" + SYSTEM_PROMPT).encode("utf-8")).hexdigest()[:16]
@@ -262,7 +262,7 @@ class LLMClient:
         self._c = httpx.Client(base_url=base_url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "predhft-p23/0.1"}, timeout=cfg["timeout_s"], transport=transport)
     def complete(self, messages: list[dict], budget: Budget | None = None) -> dict:
         """Returns {ok, text, usage, latency_s, status, error, attempts}. Backoff on 429/5xx/network; 402 and 4xx (other) do not retry."""
-        body = {"model": self.model, "messages": messages, "max_tokens": int(min(self.cfg["max_tokens"], 400)), "temperature": float(self.cfg["temperature"])}
+        body = {"model": self.model, "messages": messages, "max_tokens": int(min(self.cfg["max_tokens"], 800)), "temperature": float(self.cfg["temperature"])}
         if self.cfg.get("reasoning"): body["reasoning"] = self.cfg["reasoning"]
         last = {"ok": False, "text": None, "usage": None, "latency_s": None, "status": None, "error": None, "attempts": 0}
         for attempt in range(1, int(self.cfg["retries"]) + 1):
