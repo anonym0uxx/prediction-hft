@@ -10,6 +10,9 @@ adverse haircut, edge requirement, Kelly sizing, paper fill) and log the hypothe
 actual decision at that moment. Settlement and scoring: scripts/llm_shadow_score.py.
 What this is NOT: a trading change. Nothing here touches risk state, fills.jsonl or any order path, and the model is never inside
 the 2-s hot loop (fixed decision times only).
+P24 (v2, docs/PREREG.md §P24): the SAME call also returns a `decision` block that src/predhft/llm_direct.py paper-acts on
+directly (no edge gates, hard risk limits only, own family data/llm-direct/, shared global risk ledger). This module stays the
+single owner of the API call and the budget; the direct arm is a consumer of the parsed answer (`--no-direct` disables it).
 
 Budget: persisted per Pacific day (data/llm-shadow/budget.json): hard cap on calls (default 192 = 2 x 96 SOL markets), max_tokens
 <= 400, temperature 0, exponential backoff, stop on HTTP 402 or a 429 storm. BTC/ETH are off by default (--assets SOL).
@@ -21,7 +24,7 @@ import argparse, bisect, datetime as dt, hashlib, json, math, os, pathlib, re, t
 from zoneinfo import ZoneInfo
 from . import sol_v1 as S
 
-VERSION = "P23-llm-shadow-v1"
+VERSION = "P23-llm-shadow-v2"           # v2: the same call also returns the P24 direct trade decision block (llm_direct.py); new prompt_hash -> cohorts P23-v3 / P24-v1
 ROOT = pathlib.Path("data/llm-shadow")
 SNAP = pathlib.Path("data/sol-v1/snapshots.jsonl")
 HERMES_HOME = pathlib.Path(os.environ.get("HERMES_HOME", str(pathlib.Path.home() / "AppData" / "Local" / "hermes")))
@@ -45,10 +48,17 @@ EXACT SETTLEMENT RULE: the market asks whether the SOL price at close is at or a
 
 You receive a deterministic packet: the live policy's own snapshot (its model probability p_model from a Gaussian on the remaining-sample mean, the Kalshi YES mid and top-3 book both sides, the observed partial average of the settlement window if it has started, realised 1-second volatility, seconds left, K, the current official index and its distance to K in basis points), the recent official index path, 1-minute candles for SOL/BTC/ETH, perp funding/open-interest/basis and order-flow context when fresh. Every field carries its age in seconds. Stale or missing fields are marked; do not invent them.
 
+SECOND TASK (independent of the probability; a PAPER trading account, no real money): you also manage a small paper position in this market. Account: paper bankroll $250. Each contract pays $1.00 if your side wins and $0 otherwise; prices are in dollars 0.01..0.99 (YES price p; a NO contract costs 1 - p). Lot size 5..20 contracts; one position per market. Buying hits the displayed offers: a YES buy walks the asks_top3, a NO buy walks the bids_top3 at NO price 1 - yes_bid, depth-weighted, never above your limit_price; if no displayed size is at or below your limit you get no fill (partial fills happen). Kalshi taker fee per order = ceil to the cent of 0.07 x qty x price x (1 - price) (about 1.2 c/contract near 0.30, 1.75 c at 0.50), charged on entry and again on any exit; settlement is free. Your decision is executed AS GIVEN: no edge threshold, no blending, no second opinion — only hard risk limits (lot 5..20, $15 cost per market, per-close exposure caps, loss halts) can shrink or refuse it. Say NO_TRADE freely; most 15-minute markets offer nothing. The packet field "direct_arm" tells you the allowed actions and, when you hold a position, its side, qty, entry price, current bid/ask and unrealised P&L: then choose HOLD (keep to settlement) or EXIT (sell the whole position now at the executable bid, depth-weighted, fee again).
+
 Respond ONLY with a JSON object, no prose outside it:
 {"p_yes": <number 0..1, probability the market settles YES>,
  "rationale": "<at most 2 sentences>",
- "beyond_market": "<one sentence: what information, if any, you used that the current market mid does not already reflect; say 'none' if none>"}
+ "beyond_market": "<one sentence: what information, if any, you used that the current market mid does not already reflect; say 'none' if none>",
+ "decision": {"action": "<one of the allowed actions: BUY_YES | BUY_NO | NO_TRADE, or HOLD | EXIT when holding>",
+              "qty": <integer 5..20; 0 for NO_TRADE/HOLD/EXIT>,
+              "limit_price": <number 0.01..0.99 in dollars, the most you pay per contract on YOUR side (NO price = 1 - yes price); null unless buying>,
+              "hold_plan": "<HOLD_TO_SETTLEMENT | REVIEW_AT_T5>",
+              "reason": "<at most 2 sentences>"}}
 Be calibrated: the market mid is a strong baseline; deviate only for a stated reason. Do not output anything else."""
 
 PROMPT_HASH = hashlib.sha256((VERSION + "\n" + SYSTEM_PROMPT).encode("utf-8")).hexdigest()[:16]
@@ -166,8 +176,9 @@ def comove(a: dict | None, b: dict | None) -> dict | None:
     return {"n": n, "corr": _r(sum((p - mx) * (q - my) for p, q in zip(x, y)) / (sx * sy), 3) if sx > 0 and sy > 0 else None}
 
 def assemble_packet(snap: dict, now: float, series: list[tuple[int, float]] | None = None, candles: dict | None = None,
-                    perp: dict | None = None, context: dict | None = None, decision_secs_left: float | None = None, cfg: dict = CFG) -> dict:
-    """Deterministic context packet from a SOL-v1 entry_eval snapshot plus optional context, every field with its age (s). Pure."""
+                    perp: dict | None = None, context: dict | None = None, decision_secs_left: float | None = None, cfg: dict = CFG, direct: dict | None = None) -> dict:
+    """Deterministic context packet from a SOL-v1 entry_eval snapshot plus optional context, every field with its age (s). Pure.
+    `direct` (P24) = {allowed_actions, position|None} from llm_direct.direct_block; absent -> the probability-only packet of P23-v1."""
     K = float(snap["K"]); x = snap.get("x_now"); close_ts = int(snap["close_ts"])
     pk = {"version": VERSION, "ticker": snap.get("ticker"), "close_ts_utc": dt.datetime.fromtimestamp(close_ts, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
           "decision_secs_left": decision_secs_left, "secs_left_at_snapshot": _r(close_ts - snap["t"], 1), "snapshot_age_s": _r(now - snap["t"], 2),
@@ -190,6 +201,7 @@ def assemble_packet(snap: dict, now: float, series: list[tuple[int, float]] | No
         keep = ("funding", "premium", "oi_usd", "oi_chg_15m_bp", "ls_ratio", "cb_imb_60s", "cb_imb_300s", "cb_notional_300s", "okx_taker_imb_5m", "liq_long_15m", "liq_short_15m", "fng")
         pk["context"] = {**{k: context.get(k) for k in keep if k in context}, "age_s": _r(now - context["t"], 1)}
     else: pk["context"] = {"stale_or_missing": True, "age_s": (_r(now - context["t"], 1) if context and context.get("t") else None)}
+    if direct is not None: pk["direct_arm"] = direct
     return pk
 
 def packet_hash(pk: dict) -> str: return hashlib.sha256(json.dumps(pk, sort_keys=True, default=str).encode("utf-8")).hexdigest()[:16]
@@ -213,23 +225,26 @@ def _to_p(s: str) -> float | None:
 
 def parse_response(text: str) -> dict:
     """Robust parse: JSON object (possibly fenced / with prose around) -> 'p_yes'; else regex fallbacks (p_yes / probability ... 0.73 / 73%).
-    Returns {p_llm, rationale, beyond_market, parse}; p_llm None when nothing usable."""
-    out = {"p_llm": None, "rationale": None, "beyond_market": None, "parse": "none"}
+    Returns {p_llm, rationale, beyond_market, parse, decision_raw}; p_llm None when nothing usable. decision_raw = the model's
+    'decision' value exactly as given (any type) for llm_direct.parse_decision; None when absent (an absent block is NO_TRADE)."""
+    out = {"p_llm": None, "rationale": None, "beyond_market": None, "parse": "none", "decision_raw": None}
     if not text: return out
     t = text.strip()
     m = re.search(r"\{.*\}", t, re.S)
     if m:
         blob = m.group(0)
-        for cand in (blob, re.sub(r",\s*}", "}", blob)):
+        for cand in (blob, re.sub(r",\s*}", "}", blob), re.sub(r",\s*([}\]])", r"\1", blob)):
             try: d = json.loads(cand)
             except Exception: continue
             if isinstance(d, dict):
+                if "decision" in d: out["decision_raw"] = d["decision"]
                 for k in ("p_yes", "probability", "p", "prob_yes", "p_llm"):
                     if k in d:
                         v = d[k]; p = _to_p(str(v))
                         if p is not None:
                             out.update({"p_llm": p, "rationale": (str(d.get("rationale"))[:400] if d.get("rationale") is not None else None),
                                         "beyond_market": (str(d.get("beyond_market"))[:300] if d.get("beyond_market") is not None else None), "parse": "json"}); return out
+                break
     for pat, tag in ((r'"?p_yes"?\s*[:=]\s*' + _NUM, "regex_key"), (r"probability[^0-9]{0,40}" + _NUM, "regex_prob"), (r"\b" + _NUM + r"\s*(?:probability|chance|likely)", "regex_trail")):
         mm = re.search(pat, t, re.I)
         if mm:
@@ -373,17 +388,20 @@ def gather_context(now: float, red: Redactor, root: pathlib.Path, assets=("SOL",
     except Exception as e: errs.append(red.redact(f"context:{type(e).__name__}"))
     return series, candles, perp, ctx, errs
 
-def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_left: float, now: float, root: pathlib.Path, dry_run: bool = False) -> dict:
-    """One decision: packet -> (LLM) -> parse -> simulate -> log. Returns the logged row."""
+def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_left: float, now: float, root: pathlib.Path, dry_run: bool = False, direct=None) -> dict:
+    """One decision: packet -> (LLM) -> parse -> simulate -> log. Returns the logged row.
+    `direct` (P24, llm_direct.DirectArm or None): the SAME call's decision block is parsed and paper-acted on by the direct arm;
+    its summary is logged in the row (direct_decision / direct_result). None -> P23 probability arm only."""
     red = client.red
     series, candles, perp, ctx, errs = gather_context(now, red, root)
-    pk = assemble_packet(snap, now, series, candles, perp, ctx, decision_secs_left)
+    dblock = direct.block(snap, decision_secs_left, now) if direct is not None else None
+    pk = assemble_packet(snap, now, series, candles, perp, ctx, decision_secs_left, direct=dblock)
     msgs = messages_for(pk); ph = packet_hash(pk)
     row = {"kind": "forecast", "version": VERSION, "t_sent": None, "t_recv": None, "latency_s": None, "ticker": snap.get("ticker"), "close_ts": int(snap["close_ts"]), "decision_secs_left": decision_secs_left,
            "secs_left": pk["secs_left_at_snapshot"], "snapshot_t": snap["t"], "snapshot_age_s": pk["snapshot_age_s"], "snapshot_src": snap.get("snapshot_src", "sol_v1"), "K": snap["K"], "x_now": snap.get("x_now"), "p_llm": None, "p_model": snap.get("p_model"), "p_used": snap.get("p_yes"),
            "mid": snap.get("mid"), "yes_bid": snap.get("yes_bid"), "yes_ask": snap.get("yes_ask"), "rationale": None, "beyond_market": None, "parse": None, "prompt_hash": PROMPT_HASH, "packet_hash": ph,
            "model_name": client.model, "tokens": None, "budget_state": None, "context_errors": errs or None, "packet_fields_stale": {k: True for k in ("perp_okx", "context") if pk.get(k, {}).get("stale_or_missing")} or None,
-           "policy_decision": policy_decision_at(snap), "llm_decision": None, "error": None}
+           "policy_decision": policy_decision_at(snap), "llm_decision": None, "direct_arm": dblock, "direct_decision": None, "direct_result": None, "error": None}
     ok, why = budget.allow(now)
     if not ok: row.update({"error": f"budget:{why}", "budget_state": budget.snapshot()}); _append(root / "forecasts.jsonl", row); return row
     if dry_run:
@@ -395,6 +413,13 @@ def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_l
                     "tokens": res.get("usage"), "model_reported": res.get("model_reported"), "attempts": res["attempts"], "finish_reason": res.get("finish_reason")})
         if pr["p_llm"] is None: row["error"] = ("truncated_" + str(res.get("finish_reason")) if not res["text"] else "unparsable"); row["raw_head"] = red.redact((res["text"] or "")[:200])
         else: row["llm_decision"] = simulate_entry(pr["p_llm"], snap)
+        if direct is not None:
+            # P24: act on the decision block of the same answer (malformed / absent -> NO_TRADE or HOLD, error logged by the arm)
+            try:
+                dres = direct.act(snap, decision_secs_left, pr.get("decision_raw"), dblock, row["t_recv"], prompt_hash=PROMPT_HASH, model_name=client.model, raw_present=bool(res["text"]))
+                row["direct_decision"] = dres.get("decision"); row["direct_result"] = dres.get("result")
+            except Exception as e:
+                row["direct_result"] = {"status": "arm_error", "error": red.redact(f"{type(e).__name__}: {str(e)[:160]}")}
     else: row.update({"error": res["error"], "attempts": res["attempts"], "status": res["status"]})
     row["budget_state"] = budget.snapshot()
     _append(root / "forecasts.jsonl", row)
@@ -409,22 +434,27 @@ def current_snapshot(now: float, max_age: float = CFG["max_snapshot_age_s"]) -> 
     try: return rebuild_snapshot(snap, now)
     except Exception: return None
 
-def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[float] | None = None, cap: int | None = None, dry_run: bool = False, once: bool = False, now_fn=time.time):
+def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[float] | None = None, cap: int | None = None, dry_run: bool = False, once: bool = False, now_fn=time.time, direct_enabled: bool = True):
     decision_secs = decision_secs or CFG["decision_secs_left"]; CFG["decision_secs_left"] = decision_secs
     from .s7_live import single_instance; _lock = single_instance(root)      # one sidecar per root: two loops would double every call and the budget count
     key, model, base = load_credentials(); client = LLMClient(key, model, base); red = client.red; del key
     budget = Budget(root / "budget.json", cap or CFG["daily_call_cap"]); done = done_from_log(root / "forecasts.jsonl")
-    _log(root, red, f"start {VERSION} model={model} base={base} decision_secs={decision_secs} cap={budget.cap} prompt_hash={PROMPT_HASH} dry_run={dry_run} budget={budget.snapshot()}")
+    direct = None
+    if direct_enabled and not dry_run:
+        from .llm_direct import DirectArm; direct = DirectArm(red=red)       # P24: paper-acts on the decision block of the same call (own family dir, shared risk ledger)
+    _log(root, red, f"start {VERSION} model={model} base={base} decision_secs={decision_secs} cap={budget.cap} prompt_hash={PROMPT_HASH} dry_run={dry_run} direct={'on:' + direct.VERSION if direct else 'off'} budget={budget.snapshot()}")
     while True:
         try:
-            now = now_fn(); snap = current_snapshot(now)
+            now = now_fn()
+            if direct is not None: direct.tick(now)                           # settlements of this arm's positions + 60-s equity marks (incl. idle)
+            snap = current_snapshot(now)
             if snap is None: time.sleep(poll_s); continue
             close_ts = int(snap["close_ts"]); secs_left = close_ts - now
             for d in due_decisions(secs_left, done, close_ts, decision_secs, CFG["decision_tolerance_s"]):
                 done.add((close_ts, d))
-                row = forecast_once(client, budget, snap, d, now, root, dry_run)
+                row = forecast_once(client, budget, snap, d, now, root, dry_run, direct=direct)
                 _log(root, red, f"FORECAST {row['ticker']} T-{d:.0f}s p_llm={row['p_llm']} mid={row['mid']} p_model={None if row['p_model'] is None else round(row['p_model'], 4)} lat={row['latency_s']} tokens={(row['tokens'] or {}).get('total_tokens') if row['tokens'] else None} "
-                               f"llm_dec={(row['llm_decision'] or {}).get('decision')} policy_dec={row['policy_decision'].get('decision')} err={row['error']} budget={row['budget_state']['calls'] if row['budget_state'] else None}")
+                               f"llm_dec={(row['llm_decision'] or {}).get('decision')} policy_dec={row['policy_decision'].get('decision')} direct={(row['direct_decision'] or {}).get('action')}->{(row['direct_result'] or {}).get('status')} err={row['error']} budget={row['budget_state']['calls'] if row['budget_state'] else None}")
                 if once: return row
             time.sleep(poll_s)
         except KeyboardInterrupt: raise
@@ -440,6 +470,7 @@ if __name__ == "__main__":
     ap.add_argument("--decision-secs", default=",".join(str(int(x)) for x in CFG["decision_secs_left"]), help="comma list of secs_left decision times (default 600,300)")
     ap.add_argument("--model", default=None, help="model id override (e.g. anthropic/claude-opus-5.5)")
     ap.add_argument("--cap", type=int, default=CFG["daily_call_cap"]); ap.add_argument("--dry-run", action="store_true", help="assemble + log packets, no LLM call")
+    ap.add_argument("--no-direct", action="store_true", help="disable the P24 direct-decision arm (probability arm only; the prompt still asks for the block)")
     a = ap.parse_args()
     if a.model: os.environ["PREDHFT_LLM_MODEL"] = a.model
     root = pathlib.Path(a.root); ds = [float(x) for x in a.decision_secs.split(",") if x.strip()]
@@ -448,5 +479,5 @@ if __name__ == "__main__":
         snap = current_snapshot(time.time()); assert snap is not None, "no SOL-v1 snapshot (fresh or rebuildable)"
         row = forecast_once(client, Budget(root / "budget.json", a.cap), snap, round(int(snap["close_ts"]) - time.time(), 1), time.time(), root, a.dry_run)
         print(json.dumps({k: row[k] for k in ("ticker", "secs_left", "p_llm", "mid", "p_model", "latency_s", "tokens", "rationale", "beyond_market", "llm_decision", "policy_decision", "error", "budget_state")}, indent=1, default=str))
-    elif a.loop or a.once: run(root, a.poll, ds, a.cap, a.dry_run, a.once)
+    elif a.loop or a.once: run(root, a.poll, ds, a.cap, a.dry_run, a.once, direct_enabled=not a.no_direct)
     else: ap.print_help()
