@@ -410,7 +410,7 @@ def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_l
     row["t_sent"] = time.time(); res = client.complete(msgs, budget); row["t_recv"] = time.time(); row["latency_s"] = round(row["t_recv"] - row["t_sent"], 3)
     if res["ok"]:
         budget.record(res.get("usage")); pr = parse_response(res["text"] or "")
-        row.update({"p_llm": pr["p_llm"], "rationale": (red.redact(pr["rationale"]) if pr["rationale"] else None), "beyond_market": (red.redact(pr["beyond_market"]) if pr["beyond_market"] else None), "parse": pr["parse"],
+        row.update({"p_llm": pr["p_llm"], "p_own": pr.get("p_own"), "rationale": (red.redact(pr["rationale"]) if pr["rationale"] else None), "beyond_market": (red.redact(pr["beyond_market"]) if pr["beyond_market"] else None), "parse": pr["parse"],
                     "tokens": res.get("usage"), "model_reported": res.get("model_reported"), "attempts": res["attempts"], "finish_reason": res.get("finish_reason")})
         if pr["p_llm"] is None: row["error"] = ("truncated_" + str(res.get("finish_reason")) if not res["text"] else "unparsable"); row["raw_head"] = red.redact((res["text"] or "")[:200])
         else: row["llm_decision"] = simulate_entry(pr["p_llm"], snap)
