@@ -24,7 +24,7 @@ import argparse, bisect, datetime as dt, hashlib, json, math, os, pathlib, re, t
 from zoneinfo import ZoneInfo
 from . import sol_v1 as S
 
-VERSION = "P23-llm-shadow-v3"           # v2: the same call also returns the P24 direct trade decision block (llm_direct.py); new prompt_hash -> cohorts P23-v3 / P24-v1
+VERSION = "P23-llm-shadow-v4"           # v2: the same call also returns the P24 direct trade decision block (llm_direct.py); new prompt_hash -> cohorts P23-v3 / P24-v1
 ROOT = pathlib.Path("data/llm-shadow")
 SNAP = pathlib.Path("data/sol-v1/snapshots.jsonl")
 HERMES_HOME = pathlib.Path(os.environ.get("HERMES_HOME", str(pathlib.Path.home() / "AppData" / "Local" / "hermes")))
@@ -42,13 +42,13 @@ CFG = {
     "assets": ["SOL"],                      # BTC/ETH off by default (budget); context candles always include BTC/ETH as co-movers
 }
 
-SYSTEM_PROMPT = """You are a probability forecaster for a Kalshi 15-minute SOL market (series KXSOL15M). Answer with a calibrated probability, not advice.
+SYSTEM_PROMPT = """You are an independent trader and forecaster for a Kalshi 15-minute SOL market (series KXSOL15M). Form YOUR OWN probability from the settlement arithmetic and the data first; the policy model (p_model) and the market mid are OTHER forecasters' opinions to compare against afterwards, not anchors. Do not average between them.
 
 EXACT SETTLEMENT RULE: the market asks whether the SOL price at close is at or above the strike K. "Price" means the CF Benchmarks SOLUSD Real-Time Index (SOLUSD_RTI, 1 value per second). The expiration value is the simple average of the 60 one-second index values in the minute BEFORE the close (seconds T-60 .. T-1), rounded to 4 decimals. K is the same 60-second average taken before the market OPEN (15 minutes earlier), also 4 decimals. YES settles if expiration value >= K; an exact tie is YES. Nothing else matters: not the spot on any exchange, not the last print, not the candle close.
 
 You receive a deterministic packet: the live policy's own snapshot (its model probability p_model from a Gaussian on the remaining-sample mean, the Kalshi YES mid and top-3 book both sides, the observed partial average of the settlement window if it has started, realised 1-second volatility, seconds left, K, the current official index and its distance to K in basis points), the recent official index path, 1-minute candles for SOL/BTC/ETH, perp funding/open-interest/basis and order-flow context when fresh. Every field carries its age in seconds. Stale or missing fields are marked; do not invent them.
 
-SECOND TASK (independent of the probability; a PAPER trading account, no real money): you also manage a small paper position in this market. Account: paper bankroll $250. Each contract pays $1.00 if your side wins and $0 otherwise; prices are in dollars 0.01..0.99 (YES price p; a NO contract costs 1 - p). Lot size 5..20 contracts; one position per market. Buying hits the displayed offers: a YES buy walks the asks_top3, a NO buy walks the bids_top3 at NO price 1 - yes_bid, depth-weighted, never above your limit_price; if no displayed size is at or below your limit you get no fill (partial fills happen). Kalshi taker fee per order = ceil to the cent of 0.07 x qty x price x (1 - price) (about 1.2 c/contract near 0.30, 1.75 c at 0.50), charged on entry and again on any exit; settlement is free. Your decision is executed AS GIVEN: no edge threshold, no blending, no second opinion — only hard risk limits (lot 5..20, $15 cost per market, per-close exposure caps, loss halts) can shrink or refuse it. Say NO_TRADE freely; most 15-minute markets offer nothing. The packet field "direct_arm" tells you the allowed actions and, when you hold a position, its side, qty, entry price, current bid/ask and unrealised P&L: then choose HOLD (keep to settlement) or EXIT (sell the whole position now at the executable bid, depth-weighted, fee again).
+SECOND TASK (independent of the probability; a PAPER trading account, no real money): you also manage a small paper position in this market. Account: paper bankroll $250. Each contract pays $1.00 if your side wins and $0 otherwise; prices are in dollars 0.01..0.99 (YES price p; a NO contract costs 1 - p). Lot size 5..20 contracts; one position per market. Buying hits the displayed offers: a YES buy walks the asks_top3, a NO buy walks the bids_top3 at NO price 1 - yes_bid, depth-weighted, never above your limit_price; if no displayed size is at or below your limit you get no fill (partial fills happen). Kalshi taker fee per order = ceil to the cent of 0.07 x qty x price x (1 - price) (about 1.2 c/contract near 0.30, 1.75 c at 0.50), charged on entry and again on any exit; settlement is free. Your decision is executed AS GIVEN: no edge threshold, no blending, no second opinion — only hard risk limits (lot 5..20, $15 cost per market, per-close exposure caps, loss halts) can shrink or refuse it. Trade when your own probability for a side exceeds its executable price by more than the fee plus a margin you state; otherwise NO_TRADE. Being wrong costs money; so does declining a real edge. The packet field "direct_arm" tells you the allowed actions and, when you hold a position, its side, qty, entry price, current bid/ask and unrealised P&L: then choose HOLD (keep to settlement) or EXIT (sell the whole position now at the executable bid, depth-weighted, fee again).
 
 Respond ONLY with a JSON object, no prose outside it. The "decision" block comes FIRST and is mandatory on every response; keep every string to ONE short sentence so the whole reply stays under 250 tokens:
 {"decision": {"action": "<one of the allowed actions: BUY_YES | BUY_NO | NO_TRADE, or HOLD | EXIT when holding>",
@@ -56,10 +56,11 @@ Respond ONLY with a JSON object, no prose outside it. The "decision" block comes
               "limit_price": <number 0.01..0.99 in dollars, the most you pay per contract on YOUR side (NO price = 1 - yes price); null unless buying>,
               "hold_plan": "<HOLD_TO_SETTLEMENT | REVIEW_AT_T5>",
               "reason": "<one short sentence>"},
- "p_yes": <number 0..1, probability the market settles YES>,
+ "p_own": <number 0..1: YOUR probability of YES computed from the settlement rule, index path, partial average, volatility and context, BEFORE looking at p_model or the mid>,
+ "p_yes": <number 0..1: your final probability after comparing p_own with p_model and the mid; explain any move in rationale>,
  "rationale": "<one short sentence>",
  "beyond_market": "<one short sentence: information you used that the market mid does not already reflect; 'none' if none>"}
-Be calibrated: the market mid is a strong baseline; deviate only for a stated reason. Do not output anything else."""
+Be calibrated and independent: state p_own BEFORE reconciling with p_model and the mid, and let p_yes differ from both when the data says so. Do not output anything else."""
 
 PROMPT_HASH = hashlib.sha256((VERSION + "\n" + SYSTEM_PROMPT).encode("utf-8")).hexdigest()[:16]
 
@@ -243,7 +244,7 @@ def parse_response(text: str) -> dict:
                         v = d[k]; p = _to_p(str(v))
                         if p is not None:
                             out.update({"p_llm": p, "rationale": (str(d.get("rationale"))[:400] if d.get("rationale") is not None else None),
-                                        "beyond_market": (str(d.get("beyond_market"))[:300] if d.get("beyond_market") is not None else None), "parse": "json"}); return out
+                                        "beyond_market": (str(d.get("beyond_market"))[:300] if d.get("beyond_market") is not None else None), "parse": "json", "p_own": (float(d["p_own"]) if isinstance(d.get("p_own"), (int, float, str)) and str(d.get("p_own")).replace(".","",1).isdigit() else None)}); return out
                 break
     for pat, tag in ((r'"?p_yes"?\s*[:=]\s*' + _NUM, "regex_key"), (r"probability[^0-9]{0,40}" + _NUM, "regex_prob"), (r"\b" + _NUM + r"\s*(?:probability|chance|likely)", "regex_trail")):
         mm = re.search(pat, t, re.I)

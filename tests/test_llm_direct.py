@@ -210,8 +210,8 @@ def test_one_call_feeds_both_arms_and_counts_budget_once(tmp_path, monkeypatch):
 
 def test_prompt_hash_changed_for_v2_and_prompt_states_hard_facts():
     sp = L.SYSTEM_PROMPT
-    for must in ("$250", "5..20", "0.07 x qty x price x (1 - price)", "pays $1.00", "0.01..0.99", "NO_TRADE freely", "HOLD", "EXIT", "no edge threshold"): assert must in sp
-    assert L.PROMPT_HASH != "b9b52b5e795277e7" and L.VERSION == "P23-llm-shadow-v3"      # P23-v1/v2 cohort hash (Sonnet / Opus rows) is retired by the prompt change
+    for must in ("$250", "5..20", "0.07 x qty x price x (1 - price)", "pays $1.00", "0.01..0.99", "HOLD", "EXIT", "no edge threshold"): assert must in sp
+    assert L.PROMPT_HASH != "b9b52b5e795277e7" and L.VERSION == "P23-llm-shadow-v4"      # P23-v1/v2 cohort hash (Sonnet / Opus rows) is retired by the prompt change
 
 
 # ------------------------------------------------------------------ scorer pieces (scripts/llm_direct_score.py)
