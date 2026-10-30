@@ -166,7 +166,7 @@ def test_packet_v2a_puts_other_forecasters_last_and_v2b_has_no_p_model():
 
 def test_prompt_variants_have_distinct_hashes_and_v1_is_unchanged():
     assert L.prompt_hash_for("v1") == L.PROMPT_HASH == "6c8d03af884f0000"
-    hs = {L.prompt_hash_for(v) for v in L.PROMPTS}; assert len(hs) == 3
+    hs = {L.prompt_hash_for(v) for v in L.PROMPTS}; assert len(hs) == len(L.PROMPTS) == 4
     for v in ("v2a", "v2b"):
         p = L.PROMPTS[v]
         assert '"decision"' in p and '"p_own"' in p and "breakeven" in p and "FAILURE MODES" in p and "DECISION PROCEDURE" in p

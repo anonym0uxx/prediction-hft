@@ -324,11 +324,12 @@ def conditions_lookup(brief: dict | None, state: dict) -> dict | None:
 
 # ------------------------------------------------------------------------------------------------------------- packet
 def build_packet_v2(snap: dict, now: float, decision_secs_left: float | None, variant: str, base: dict, tape: list[dict] | None = None, table: dict | None = None, brief: dict | None = None,
-                    direct: dict | None = None) -> dict:
+                    direct: dict | None = None, external: dict | None = None) -> dict:
     """The v2 packet, ordered for a trader: settlement arithmetic -> executable breakevens -> required move + empirical tails ->
     vol realised/implied -> book dynamics -> co-move -> conditions -> context -> direct_arm; `other_forecasters` (p_model) LAST
     and only for variant 'v2a'. `base` is the v1 packet from llm_shadow.assemble_packet (index path, candles, perp, context are
-    reused from it; its policy_model block is NOT copied). Pure."""
+    reused from it; its policy_model block is NOT copied). `external` (P26, variant 'v2c' only) is the ext_feeds.packet_block
+    output, appended as `external_signals` after `context`; v2a/v2b packets are byte-identical to before. Pure."""
     K = float(snap["K"]); x = float(snap["x_now"]); sig = float(snap.get("sigma_1s") or S.CFG["sigma_fallback_1s"])
     book = {"yes_bid": snap.get("yes_bid"), "yes_ask": snap.get("yes_ask"), "bids": snap.get("bids") or [], "asks": snap.get("asks") or []}
     n_obs = int(snap.get("n_obs") or 0); m_rem = int(snap.get("m_rem") if snap.get("m_rem") is not None else S.WINDOW_S); V = snap.get("V")
@@ -355,6 +356,7 @@ def build_packet_v2(snap: dict, now: float, decision_secs_left: float | None, va
           "official_index_path": _thin_path(base.get("official_index_path")),
           "candles_1m": {a: {k: v for k, v in (c or {}).items() if k not in ("returns_1m_bp",) or a == "SOL"} for a, c in cs.items()} if cs else None,
           "perp_okx": base.get("perp_okx"), "context": base.get("context")}
+    if variant == "v2c": pk["external_signals"] = external
     if direct is not None: pk["direct_arm"] = direct
     if variant == "v2a":
         pk["other_forecasters"] = {"note": "shown AFTER the decision fields on purpose; these are other opinions, not inputs: compare, do not average",

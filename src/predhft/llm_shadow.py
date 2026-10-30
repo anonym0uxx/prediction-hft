@@ -112,8 +112,13 @@ Do not output anything else."""
 SYSTEM_PROMPT_V2A = _V2_COMMON + "\nThe last packet section `other_forecasters` shows the deterministic policy's Gaussian p_model and the market mid. They are OTHER opinions to compare against AFTER you have p_own; never average with them, never move p_own toward them without a reason you can write down.\n\n" + _V2_OUTPUT
 SYSTEM_PROMPT_V2B = _V2_COMMON + "\nNo model probability is given on purpose: the market mid (inside executable_now) is the only other opinion, and it is what you trade against.\n\n" + _V2_OUTPUT
 
-PROMPTS = {"v1": SYSTEM_PROMPT, "v2a": SYSTEM_PROMPT_V2A, "v2b": SYSTEM_PROMPT_V2B}
-PACKET_VERSIONS = {"v1": VERSION, "v2a": "P25-llm-v2a", "v2b": "P25-llm-v2b"}
+# P26 (docs/EXTERNAL_SIGNALS_2026-10-29.md): v2b + one line describing the packet's new `external_signals` section. Nothing else differs.
+_V2C_EXT_LINE = " 8. external_signals (P26, context from other venues; every block carries age_s and stale - a stale or window-mismatched block is absent evidence): polymarket_sol15m = Polymarket's 'SOL Up or Down 15m' market on this SAME quarter-hour window (Chainlink 60-s TWAP at close vs at open; Up ~ YES), an independent crowd's price with its spread and depth; hyperliquid_sol_perp = funding, premium and 15-min open-interest change on the largest on-chain perp; binance_spot_flow = Binance spot aggressor imbalance / CVD over 60 and 300 s and the Binance-minus-official-index basis deviation; events = next high-impact US macro release and constituent-exchange status. None of these settles the contract; they do not replace steps 1-7.\n"
+SYSTEM_PROMPT_V2C = _V2_COMMON.replace("\nDECISION PROCEDURE (follow literally):", _V2C_EXT_LINE + "\nDECISION PROCEDURE (follow literally):", 1) + "\nNo model probability is given on purpose: the market mid (inside executable_now) is the only other opinion, and it is what you trade against.\n\n" + _V2_OUTPUT
+assert SYSTEM_PROMPT_V2C != SYSTEM_PROMPT_V2B and _V2C_EXT_LINE in SYSTEM_PROMPT_V2C
+
+PROMPTS = {"v1": SYSTEM_PROMPT, "v2a": SYSTEM_PROMPT_V2A, "v2b": SYSTEM_PROMPT_V2B, "v2c": SYSTEM_PROMPT_V2C}
+PACKET_VERSIONS = {"v1": VERSION, "v2a": "P25-llm-v2a", "v2b": "P25-llm-v2b", "v2c": "P26-llm-v2c"}
 
 def prompt_hash_for(variant: str) -> str:
     """Cohort id: sha256(packet version + prompt) truncated. 'v1' reproduces PROMPT_HASH exactly."""
@@ -267,12 +272,13 @@ def messages_for(pk: dict, variant: str = "v1") -> list[dict]:
     if variant == "v1": return [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": "PACKET:\n" + json.dumps(pk, sort_keys=True, separators=(",", ":"), default=str)}]
     return [{"role": "system", "content": PROMPTS[variant]}, {"role": "user", "content": "PACKET:\n" + json.dumps(pk, separators=(",", ":"), default=str)}]
 
-def build_packet(snap: dict, now: float, variant: str, series=None, candles=None, perp=None, context=None, decision_secs_left=None, direct=None, tape=None, table=None, brief=None) -> dict:
-    """Variant dispatcher: v1 -> assemble_packet; v2a/v2b -> llm_packet_v2.build_packet_v2 on top of it (pure)."""
+def build_packet(snap: dict, now: float, variant: str, series=None, candles=None, perp=None, context=None, decision_secs_left=None, direct=None, tape=None, table=None, brief=None, external=None) -> dict:
+    """Variant dispatcher: v1 -> assemble_packet; v2a/v2b/v2c -> llm_packet_v2.build_packet_v2 on top of it (pure); `external`
+    (ext_feeds.packet_block) is only attached for v2c."""
     base = assemble_packet(snap, now, series, candles, perp, context, decision_secs_left, direct=direct)
     if variant == "v1": return base
     from . import llm_packet_v2 as P2
-    return P2.build_packet_v2(snap, now, decision_secs_left, variant, base, tape=tape, table=table, brief=brief, direct=direct)
+    return P2.build_packet_v2(snap, now, decision_secs_left, variant, base, tape=tape, table=table, brief=brief, direct=direct, external=(external if variant == "v2c" else None))
 
 
 # ------------------------------------------------------------------------------------------------------------------ parse
@@ -475,10 +481,14 @@ def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_l
     `variant` (P25): 'v1' (unchanged packet + prompt) or 'v2a' / 'v2b' (pre-digested packet, own prompt_hash cohort)."""
     red = client.red; ph_prompt = prompt_hash_for(variant)
     series, candles, perp, ctx, errs = gather_context(now, red, root)
-    tape = table = brief = None
+    tape = table = brief = ext = None
     if variant != "v1": tape, table, brief = gather_v2_context(now, snap.get("ticker"), red, errs)
+    if variant == "v2c":
+        try:
+            from .ext_feeds import packet_block; ext = packet_block(now, close_ts=int(snap["close_ts"]))
+        except Exception as e: errs.append(red.redact(f"ext:{type(e).__name__}")); ext = {"stale": True, "error": type(e).__name__}
     dblock = direct.block(snap, decision_secs_left, now) if direct is not None else None
-    pk = build_packet(snap, now, variant, series, candles, perp, ctx, decision_secs_left, direct=dblock, tape=tape, table=table, brief=brief)
+    pk = build_packet(snap, now, variant, series, candles, perp, ctx, decision_secs_left, direct=dblock, tape=tape, table=table, brief=brief, external=ext)
     msgs = messages_for(pk, variant); ph = packet_hash(pk)
     row = {"kind": "forecast", "version": VERSION, "prompt_variant": variant, "t_sent": None, "t_recv": None, "latency_s": None, "ticker": snap.get("ticker"), "close_ts": int(snap["close_ts"]), "decision_secs_left": decision_secs_left,
            "secs_left": pk["secs_left_at_snapshot"], "snapshot_t": snap["t"], "snapshot_age_s": pk["snapshot_age_s"], "snapshot_src": snap.get("snapshot_src", "sol_v1"), "K": snap["K"], "x_now": snap.get("x_now"), "p_llm": None, "p_model": snap.get("p_model"), "p_used": snap.get("p_yes"),
@@ -491,6 +501,11 @@ def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_l
                             "p_yes_empirical_feed": ((pk.get("empirical_tails") or {}).get("feed_sigma") or {}).get("p_yes_empirical"), "p_yes_empirical_candle": ((pk.get("empirical_tails") or {}).get("candle_rv60") or {}).get("p_yes_empirical"),
                             "ratio_realised_over_implied": (pk.get("volatility") or {}).get("ratio_realised_over_implied"), "conditions_bucket": (pk.get("conditions_brief") or {}).get("name") if pk.get("conditions_brief") else None,
                             "prompt_chars": sum(len(m["content"]) for m in msgs)}
+    if variant == "v2c" and ext:
+        pm = ext.get("polymarket_sol15m") or {}; bn = ext.get("binance_spot_flow") or {}; hl = ext.get("hyperliquid_sol_perp") or {}; ev = ext.get("events") or {}
+        row["ext_fields"] = {"poly_up_mid": pm.get("up_mid"), "poly_up_bid": pm.get("up_bid"), "poly_up_ask": pm.get("up_ask"), "poly_age_s": pm.get("age_s"), "poly_stale": pm.get("stale"), "poly_matched": pm.get("matched_window"), "poly_leg5m_up_mid": pm.get("leg5m_up_mid"),
+                             "bn_imb_60s": bn.get("imb_60s"), "bn_imb_300s": bn.get("imb_300s"), "bn_basis_dev_bp": bn.get("basis_dev_bp"), "bn_stale": bn.get("stale"), "hl_funding_hourly": hl.get("funding_hourly"), "hl_premium_bp": hl.get("premium_bp"), "hl_oi_chg_15m_bp": hl.get("oi_chg_15m_bp"), "hl_stale": hl.get("stale"),
+                             "ev_high_usd_in_window": ev.get("high_usd_in_window"), "ev_kraken": ev.get("kraken_status"), "ev_coinbase": ev.get("coinbase_status")}
     ok, why = budget.allow(now)
     if not ok: row.update({"error": f"budget:{why}", "budget_state": budget.snapshot()}); _append(root / "forecasts.jsonl", row); return row
     if dry_run:
@@ -562,7 +577,7 @@ if __name__ == "__main__":
     ap.add_argument("--model", default=None, help="model id override (e.g. anthropic/claude-opus-5.5)")
     ap.add_argument("--cap", type=int, default=CFG["daily_call_cap"]); ap.add_argument("--dry-run", action="store_true", help="assemble + log packets, no LLM call")
     ap.add_argument("--no-direct", action="store_true", help="disable the P24 direct-decision arm (probability arm only; the prompt still asks for the block)")
-    ap.add_argument("--prompt-variant", default="v1", choices=sorted(PROMPTS), help="P25: v1 = unchanged P23/P24 prompt+packet; v2a = pre-digested packet with p_model shown last; v2b = pre-digested packet without p_model (each its own prompt_hash cohort)")
+    ap.add_argument("--prompt-variant", default="v1", choices=sorted(PROMPTS), help="P25: v1 = unchanged P23/P24 prompt+packet; v2a = pre-digested packet with p_model shown last; v2b = pre-digested packet without p_model; P26: v2c = v2b + external_signals section (each its own prompt_hash cohort)")
     a = ap.parse_args()
     if a.model: os.environ["PREDHFT_LLM_MODEL"] = a.model
     root = pathlib.Path(a.root); ds = [float(x) for x in a.decision_secs.split(",") if x.strip()]

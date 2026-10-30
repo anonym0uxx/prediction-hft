@@ -1,0 +1,163 @@
+{
+ "generated_pt": "2026-10-29 21:18 PT",
+ "scope": "IN_SAMPLE (any fitted coefficient); paired Brier differences are descriptive",
+ "n_closes_with_quotes": 182,
+ "n_unsettled": 0,
+ "n_decision_rows": 361,
+ "by_decision": {
+  "600": {
+   "n": 180,
+   "polymarket": {
+    "n": 180,
+    "median_poly_age_s": 40.6,
+    "brier_mid": 0.17733340972222222,
+    "brier_poly": 0.180985,
+    "brier_avg": 0.1757698315972222,
+    "paired_mid_minus_poly": {
+     "n": 180,
+     "mean": -0.003651590277777774,
+     "se": 0.008016731955315255,
+     "t": -0.45549611713744476
+    },
+    "paired_mid_minus_avg": {
+     "n": 180,
+     "mean": 0.0015635781250000005,
+     "se": 0.00395582468206214,
+     "t": 0.39525971211265093
+    },
+    "mean_abs_diff_c": 8.689722222222223,
+    "corr_logit": 0.9113851089794862,
+    "logit_in_sample": {
+     "b_mid": 0.717751267796904,
+     "se_mid": 0.30826618508479214,
+     "b_poly": 0.44789729216819657,
+     "se_poly": 0.35047339113683634,
+     "t_poly": 1.277978024851886
+    },
+    "disagree_ge5c": {
+     "n": 107,
+     "poly_side_hit": 0.4205607476635514,
+     "mid_implied": 0.3541635514018692,
+     "poly_said": 0.4848130841121494,
+     "se_hit": 0.04794743635189595
+    },
+    "sign_test_ge1c": {
+     "n": 169,
+     "excess_hit_of_poly_side": 0.023192307692307703,
+     "se": 0.032271827293406434
+    }
+   },
+   "binance_imbalance": {
+    "n": 180,
+    "bn_imb_300s": {
+     "n": 180,
+     "b_imb": 0.18842068267321418,
+     "se_imb": 0.5861275057014759,
+     "t_imb": 0.3214670542507859,
+     "b_mid": 1.030761843926356,
+     "paired_brier_mid_minus_fitted_IN_SAMPLE": {
+      "n": 180,
+      "mean": 0.002604345457828803,
+      "se": 0.003541903031860963,
+      "t": 0.735295527404782
+     },
+     "corr_imb_vs_residual": 0.02205610830239631
+    },
+    "bn_imb_60s": {
+     "n": 180,
+     "b_imb": -0.4803170989478484,
+     "se_imb": 0.3834415395280007,
+     "t_imb": -1.252647534065029,
+     "b_mid": 1.1009773693836973,
+     "paired_brier_mid_minus_fitted_IN_SAMPLE": {
+      "n": 180,
+      "mean": 0.003501207356807394,
+      "se": 0.0047247031577351195,
+      "t": 0.741042821087149
+     },
+     "corr_imb_vs_residual": -0.09470596308190614
+    }
+   }
+  },
+  "300": {
+   "n": 181,
+   "polymarket": {
+    "n": 181,
+    "median_poly_age_s": 40.9,
+    "brier_mid": 0.11864446546961324,
+    "brier_poly": 0.12485318370165747,
+    "brier_avg": 0.11829186809392266,
+    "paired_mid_minus_poly": {
+     "n": 181,
+     "mean": -0.006208718232044203,
+     "se": 0.007281621350442617,
+     "t": -0.8526560134394797
+    },
+    "paired_mid_minus_avg": {
+     "n": 181,
+     "mean": 0.00035259737569060836,
+     "se": 0.003648402276778209,
+     "t": 0.09664432508850865
+    },
+    "mean_abs_diff_c": 7.35635359116022,
+    "corr_logit": 0.9526866378795927,
+    "logit_in_sample": {
+     "b_mid": 0.732053334631598,
+     "se_mid": 0.28308388051361427,
+     "b_poly": 0.24242683211176147,
+     "se_poly": 0.31951255408639934,
+     "t_poly": 0.7587396144885339
+    },
+    "disagree_ge5c": {
+     "n": 76,
+     "poly_side_hit": 0.3684210526315789,
+     "mid_implied": 0.3326118421052632,
+     "poly_said": 0.48191447368421053,
+     "se_hit": 0.055700027601359794
+    },
+    "sign_test_ge1c": {
+     "n": 151,
+     "excess_hit_of_poly_side": 0.02935430463576159,
+     "se": 0.029919922408664177
+    }
+   },
+   "binance_imbalance": {
+    "n": 181,
+    "bn_imb_300s": {
+     "n": 181,
+     "b_imb": -0.2518188296920619,
+     "se_imb": 0.6821710853898871,
+     "t_imb": -0.36914321800686944,
+     "b_mid": 0.9352486992292741,
+     "paired_brier_mid_minus_fitted_IN_SAMPLE": {
+      "n": 181,
+      "mean": 0.0025917500912477154,
+      "se": 0.004005815411415842,
+      "t": 0.6469968845448298
+     },
+     "corr_imb_vs_residual": -0.025879043672284715
+    },
+    "bn_imb_60s": {
+     "n": 181,
+     "b_imb": -0.4177020003034174,
+     "se_imb": 0.48401302748487907,
+     "t_imb": -0.8629974330938164,
+     "b_mid": 0.9427975625954949,
+     "paired_brier_mid_minus_fitted_IN_SAMPLE": {
+      "n": 181,
+      "mean": 0.0030370678442565263,
+      "se": 0.004325934038407694,
+      "t": 0.7020605994663807
+     },
+     "corr_imb_vs_residual": -0.07089882677567529
+    }
+   }
+  }
+ },
+ "index_basis": {
+  "n_closes_both_resolved": 181,
+  "n_disagree": 2,
+  "flip_rate": 0.011,
+  "note": "closes where Polymarket (Chainlink 60-s TWAP) and Kalshi/our feed (CF Benchmarks 60-s average) settled on different sides: the ceiling on what either market can know about the other's outcome"
+ }
+}
