@@ -1,0 +1,57 @@
+{
+ "series": "KXMLB",
+ "settlement_source": "Governing league (MLB) official final result as reported by Source Agencies: league, AP, ESPN, WSJ, Fox Sports (TITLE template)",
+ "settlement_variable": "Team holding the title (first official final result) of the stated World Series ('Pro Baseball Championship') for the given year",
+ "timezone": "America/New_York (10:00 AM ET expiration)",
+ "tie_handling": "Multiple co-holders: Yes pays $1/N rounded down to cent, No pays remainder (n/a to MLB in practice)",
+ "rounding": "Yes payout rounded down to nearest cent in split cases; tick $0.01",
+ "trading_close_vs_settlement": "Last trading = expiration; latest expiration = day after official final result at 10:00 AM ET (can_close_early=1, settlement_timer 300s). Universe close_time (KXMLB-26 -> 2028-10-31) is a far-future placeholder, not the real close.",
+ "early_close_or_void_clauses": [
+  "Postponed/suspended: open until winner reported or 2 years after original date",
+  "Cancelled/no contest: eligible teams split $1 equally, rounded down",
+  "Forfeit: forfeiting team No",
+  "Disqualified before expiry: No; eliminated from contention per Source Agency report -> No",
+  "Kalshi Market Outcome Review at sole discretion; Rule 6.3(b) payouts if value cannot be determined",
+  "Post-expiration revisions ignored"
+ ],
+ "title_vs_rules_divergences": [
+  "Title says 'Pro Baseball Championship'; TITLE template lists only NFL/NHL/NBA/NCAA as examples, MLB not named - MLB scope inferred",
+  "Elimination clause: market resolves NO once team is reported eliminated, before the Series ends",
+  "Universe close_time years out vs actual end of event",
+  "Future-year titles (KXMLB-27) listed under same series"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "MLB Stats API",
+   "url": "https://statsapi.mlb.com/",
+   "latency": "seconds",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN MLB scoreboard",
+   "url": "https://www.espn.com/mlb/scoreboard",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "MLB.com postseason",
+   "url": "https://www.mlb.com/postseason",
+   "latency": "seconds",
+   "cost": "free"
+  },
+  {
+   "name": "AP MLB",
+   "url": "https://apnews.com/hub/mlb",
+   "latency": "minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Live game scores public at lower latency than quote updates: stale-quote/latency-arb risk",
+  "Elimination => immediate No; sharp jumps at final out",
+  "Insider flow on injuries/lineups despite prohibitions",
+  "Placeholder far-future close_time hides true short horizon"
+ ],
+ "notes": "2026-10-30: the 2026 World Series is at or near conclusion; MIL yes ~0.91 implies nearly decided. Verify game state from MLB feeds. Terms from shared TITLE.pdf template."
+}

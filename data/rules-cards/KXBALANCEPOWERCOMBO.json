@@ -1,0 +1,63 @@
+{
+ "series": "KXBALANCEPOWERCOMBO",
+ "settlement_source": "Per-leg: each component resolved by its own Kalshi ruleset (CONTROL for House and Senate control -> congress.gov / media-call acceleration). Series-level settlement_sources list BLS and FOMC pages, irrelevant to these markets (template artifact of POLITICALECONOMICEVENTS)",
+ "settlement_variable": "Conjunction (ALL) of House control party and Senate control party for Feb 2027 per CONTROL rules (Speaker / President Pro Tempore party on Feb 1 2027, or accelerated media calls)",
+ "timezone": "America/New_York (10:00 AM ET)",
+ "tie_handling": "No explicit clause; Senate 50-50 handled through President Pro Tempore party per CONTROL; otherwise unknown",
+ "rounding": "n/a binary $1; tick $0.01",
+ "trading_close_vs_settlement": "close_time 2027-02-01T15:00Z, expiration_time 2027-02-08T15:00Z (7-day gap); can_close_early=1, settlement_timer 1800s. Terms: last trading time one minute before expected release of final data. Any component No/impossible -> immediate No.",
+ "early_close_or_void_clauses": [
+  "Any component resolving No or impossible makes whole contract No immediately",
+  "Each CONTROL leg may resolve on accelerated media-call basis",
+  "Kalshi sole-discretion Market Outcome Review (Rule 7.1)",
+  "If Expiration Value cannot be determined Kalshi sets payouts per Rulebook",
+  "CONTROL Rule 7.2 source/underlying change authority"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'Control ... for Feb 2027' reads as snapshot majority; control is defined as leader (Speaker/PPT) party",
+  "Series settlement_sources (BLS, FOMC) do not match actual settlement (congress.gov / media calls)",
+  "Generic POLITICALECONOMICEVENTS terms defer to CONTROL by reference (double hop)",
+  "Immediate-No when any leg fails means contract can resolve before Feb 2027 after only one chamber is called"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/",
+   "latency": "real-time",
+   "cost": "free/paywall"
+  },
+  {
+   "name": "State SoS results (TX)",
+   "url": "https://results.texas-election.com/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov",
+   "url": "https://www.congress.gov/",
+   "latency": "post-organization (Jan 2027)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Election-night media-call settlement; informed flow prohibited but unenforceable",
+  "Correlated legs: one chamber call moves combo instantly",
+  "Early-No asymmetric gap payoffs",
+  "Mismatched source metadata can mislead automated classification",
+  "2.8M/24h volume; stale-quote adverse selection"
+ ],
+ "notes": "Built from CONTROL legs; treat as correlated with CONTROLH and Senate control markets. Only DR and DD samples seen."
+}

@@ -1,0 +1,62 @@
+{
+ "series": "CONTROLH",
+ "settlement_source": "congress.gov (Source Agency) for party of the Speaker of the House on Feb 1 2027; accelerated path via >=4 of 8 Designated Media Sources calling House control",
+ "settlement_variable": "Party of the Speaker of the House on Feb 1 2027 10:00 AM ET (leader of chamber); Exchange also considers caucus decisions of Independents",
+ "timezone": "America/New_York (10:00 AM ET)",
+ "tie_handling": "No explicit tie/no-Speaker clause: unknown (Exchange discretion via review)",
+ "rounding": "n/a binary $1; tick $0.001",
+ "trading_close_vs_settlement": "Last trading = expiration = Feb 1 2027 10:00 AM ET, or earlier on accelerated media-call (can_close_early=1, settlement_timer 3600s). Settlement no later than day after unless under review.",
+ "early_close_or_void_clauses": [
+  "Accelerated determination: >=4/8 media sources declare, none contradict",
+  "Kalshi Market Outcome Review at sole discretion",
+  "Rule 7.2: Kalshi may designate new Source Agency/Underlying and change specs after first trading day if reliability affected",
+  "Terms state order size in multiples of 5,000 contracts (not evident in API; verify)",
+  "Revisions after Expiration ignored"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'win the House in 2026' implies seat majority; rules settle on Speaker's party on Feb 1 2027 unless accelerated media call - can differ (narrow majority, defections, no Speaker by Feb 1)",
+  "Terms mention each Member's party but Payout Criterion keys only on chamber leader",
+  "Early path uses media 'control' projections, not Speaker identity"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/",
+   "latency": "real-time",
+   "cost": "free/paywall"
+  },
+  {
+   "name": "State SoS results (TX)",
+   "url": "https://results.texas-election.com/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "clerk.house.gov / congress.gov Speaker",
+   "url": "https://clerk.house.gov/",
+   "latency": "post Jan 3 2027 organizing vote",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Election-night media-call settlement; decision-desk-informed flow",
+  "Gap risk on calls; 2.7M/24h volume",
+  "Rule 7.2 discretionary change of source/underlying",
+  "No clause for failure to elect a Speaker by Feb 1",
+  "Long dated; heavy poll/news repricing"
+ ],
+ "notes": "Election Nov 3 2026; close_time in universe is Feb 1 2027 but market likely closes early on accelerated resolution."
+}

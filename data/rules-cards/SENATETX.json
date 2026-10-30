@@ -1,0 +1,60 @@
+{
+ "series": "SENATETX",
+ "settlement_source": "United States Congress (congress.gov/Senate records) for party of first-sworn Senator, TX seat, term starting 2027; accelerated path via >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) with none contradicting",
+ "settlement_variable": "Party of the first person who presents certificate of election and is sworn in for the TX Senate term beginning 2027 (replacement's party if vacancy before seating)",
+ "timezone": "America/New_York (10:00 AM ET expiration)",
+ "tie_handling": "No tie clause; independents specified by individual; party switch between election and swearing-in resolves by party on election day",
+ "rounding": "n/a (binary $1.00); tick $0.01",
+ "trading_close_vs_settlement": "Last trading = expiration = first 10:00 AM ET after swearing-in or 1 year after popular vote, whichever sooner; or earlier on accelerated media-call resolution (can_close_early=1, settlement_timer 1800s). Listed close_time 2027-11-03 is a placeholder upper bound. Settlement no later than day after expiration unless under review.",
+ "early_close_or_void_clauses": [
+  "Accelerated resolution once >=4 of 8 media sources call and none contradict",
+  "Exchange may replace a media source at sole discretion",
+  "Kalshi may open Market Outcome Review (Rule 6.3(c)/7.1) at sole discretion",
+  "Revisions after Expiration ignored"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'win the Senate race' vs rules: resolves on who is SWORN IN, not who wins the election; recount/contest/vacancy can change answer",
+  "Market title says 'Democratics' (typo); yes_sub_title names a candidate (Paxton/Talarico) but rules are party-based",
+  "Early determination can pay on media calls before certification"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/",
+   "latency": "real-time",
+   "cost": "free/paywall"
+  },
+  {
+   "name": "State SoS results (TX)",
+   "url": "https://results.texas-election.com/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov members",
+   "url": "https://www.congress.gov/members",
+   "latency": "post-swearing-in (Jan 2027)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Settles on media-call consensus on election night; informed flow (decision-desk staff, count observers) prohibited but unenforceable intraday",
+  "Election-night jump risk: gaps to 0/1 as calls land; adverse selection for resting quotes",
+  "High volume (3.4M/24h) news/poll-driven repricing",
+  "Discretionary exchange review / media-source replacement"
+ ],
+ "notes": "TX Class II race, election Nov 3 2026. Avoid resting quotes around poll close/count windows. Terms read from SENATEPARTY.pdf."
+}
