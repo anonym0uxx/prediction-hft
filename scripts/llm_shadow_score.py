@@ -113,10 +113,13 @@ def econ_summary(entries: list[dict], closes: list) -> dict:
             "hit": float(np.mean([e["win"] for e in entries])), "max_drawdown_usd": dd, "fees_usd": float(sum(e["fee"] for e in entries)), "closes": per_ct["clusters"]}
 
 
-def score(root: pathlib.Path) -> dict:
+def score(root: pathlib.Path, cohort: str | None = None) -> dict:
+    """`cohort` (P25, variant-aware): restrict every table to rows whose prompt_hash starts with it (or whose prompt_variant equals it);
+    None = all rows pooled (legacy) plus a per-cohort breakdown under `by_cohort` (cohorts are never pooled for a PREREG read)."""
     fp = root / "forecasts.jsonl"
     if not fp.exists(): return {"n_rows": 0, "note": "no forecasts yet"}
     rows = [json.loads(l) for l in fp.open(encoding="utf-8") if l.strip()]
+    if cohort: rows = [r for r in rows if str(r.get("prompt_hash", "")).startswith(cohort) or r.get("prompt_variant") == cohort]
     series = load_cfb("SOL"); kres = kalshi_results()
     out = {"n_rows": len(rows), "n_with_p_llm": sum(r.get("p_llm") is not None for r in rows), "errors": collections.Counter(str(r.get("error")) for r in rows if r.get("error")),
            "by_decision_time": {}, "pooled": {}, "econ": {}, "budget": {}, "settled_rows": 0, "disagreements_feed_vs_kalshi": 0}
@@ -168,6 +171,36 @@ def score(root: pathlib.Path) -> dict:
         status[g] = {"closes": dm["clusters"], "n_required": 100, "promotion_candidate": bool(enough and beats_mid_1se and beats_model and econ_pos), "stop_triggered": bool(enough and worse_2se),
                      "components": {"beats_mid_by_1se": beats_mid_1se, "beats_p_model": beats_model, "sim_econ_positive_1se": econ_pos, "worse_than_mid_2se": worse_2se}}
     out["prereg_p23_status"] = status
+    if cohort is None:
+        # P25: per-cohort (prompt_hash x model) read of the primary endpoint; the pooled tables above mix cohorts and are informational only
+        out["by_cohort"] = {}
+        for ph in sorted({r.get("prompt_hash") for r in rows if r.get("prompt_hash")}):
+            cr = [r for r in rows if r.get("prompt_hash") == ph]
+            sub = score_rows(cr, series, kres)
+            out["by_cohort"][ph] = {"variant": next((r.get("prompt_variant") for r in cr if r.get("prompt_variant")), "v1"), "models": sorted({r.get("model_name") for r in cr if r.get("model_name")}), "n_rows": len(cr),
+                                    "first_pt": (dt.datetime.fromtimestamp(min(r["t_sent"] for r in cr if r.get("t_sent")), PT).strftime("%m-%d %H:%M") if any(r.get("t_sent") for r in cr) else None), **sub}
+    return out
+
+
+def score_rows(rows: list[dict], series, kres) -> dict:
+    """Primary-endpoint numbers (paired Brier vs mid, per decision time) for an arbitrary row subset: one obs per (close, time)."""
+    best: dict[tuple[int, float], dict] = {}
+    for r in rows:
+        if r.get("p_llm") is None or r.get("mid") is None: continue
+        best[(int(r["close_ts"]), float(r["decision_secs_left"]))] = r
+    groups = collections.defaultdict(list)
+    for (c, d), r in sorted(best.items()):
+        st = settle(series, r["ticker"], c, float(r["K"]), kres)
+        if st is None: continue
+        groups[f"T-{int(round(d / 60))}min"].append((c, r, st["y"]))
+    out = {}
+    for g, items in groups.items():
+        closes = [c for c, _, _ in items]; pl = [r["p_llm"] for _, r, _ in items]; pm = [r["mid"] for _, r, _ in items]; ys = [y for _, _, y in items]
+        d_mid = [brier(m, y) - brier(p, y) for p, m, y in zip(pl, pm, ys)]
+        po = [(r["p_own"], r["mid"], y) for _, r, y in items if r.get("p_own") is not None]
+        out[g] = {"n": len(items), "closes": len(set(closes)), "brier_llm": float(np.mean([brier(p, y) for p, y in zip(pl, ys)])), "brier_mid": float(np.mean([brier(m, y) for m, y in zip(pm, ys)])), "diff_vs_mid": clustered(d_mid, closes),
+                  "brier_p_own": (float(np.mean([brier(p, y) for p, _, y in po])) if po else None), "n_p_own": len(po), "mean_abs_llm_minus_mid": float(np.mean([abs(p - m) for p, m in zip(pl, pm)])),
+                  "direct_actions": dict(collections.Counter((r.get("direct_decision") or {}).get("action") for _, r, _ in items))}
     return out
 
 
@@ -185,12 +218,20 @@ def md(res: dict) -> str:
         L.append(f"| {g} | {r['n']} | {r['closes']} | {f(r['brier_llm'])} / {f(r['brier_mid'])} / {f(r['brier_model'])} | {f(dm['mean'])} ± {f(dm['se'])} ({f(dm['t'], 2)}) | {f(dd.get('mean'))} ± {f(dd.get('se'))} | {f(r['cal_slope_llm'], 2)} | {f(r['mean_abs_llm_minus_mid'], 3)} | "
                  f"{e.get('trades', 0)}, {f(e.get('c_per_ct_close_mean'), 1)} ± {f(e.get('se_c_per_ct_close'), 1)}, {f(e.get('hit'), 2)}, {f(e.get('net_usd'), 2)} | {ep.get('trades', 0)}, {f(ep.get('c_per_ct_close_mean'), 1)}, {f(ep.get('net_usd'), 2)} | "
                  f"{'PROMOTION-CANDIDATE (review)' if st.get('promotion_candidate') else ('STOP' if st.get('stop_triggered') else f'collecting ({st.get("closes", r["closes"])}/100)')} |")
+    if res.get("by_cohort"):
+        L += ["", "## per cohort (prompt_hash x model; P25 variants are separate cohorts, never pooled)", "| cohort | variant | rows | first | decision | n | Brier LLM / mid / p_own (n) | Δ vs mid ± SE | direct actions |", "|---|---|---|---|---|---|---|---|---|"]
+        for ph, c in res["by_cohort"].items():
+            for g in ("T-10min", "T-5min"):
+                r = c.get(g)
+                if not r: continue
+                L.append(f"| {ph[:8]} | {c['variant']} | {c['n_rows']} | {c['first_pt']} | {g} | {r['n']} | {f(r['brier_llm'])} / {f(r['brier_mid'])} / {f(r['brier_p_own'])} ({r['n_p_own']}) | {f(r['diff_vs_mid']['mean'])} ± {f(r['diff_vs_mid']['se'])} | {r['direct_actions']} |")
     return "\n".join(L)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0]); ap.add_argument("--root", default="data/llm-shadow"); ap.add_argument("--json", action="store_true")
-    a = ap.parse_args(); res = score(pathlib.Path(a.root))
+    ap.add_argument("--cohort", default=None, help="P25: prompt_hash prefix or prompt variant (v1/v2a/v2b); restricts every table to that cohort")
+    a = ap.parse_args(); res = score(pathlib.Path(a.root), a.cohort)
     if a.json: print(json.dumps(res, indent=1, default=lambda o: (dict(o) if isinstance(o, collections.Counter) else str(o))))
     else: print(md(res))
     pathlib.Path(a.root).mkdir(parents=True, exist_ok=True)

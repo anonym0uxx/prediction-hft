@@ -1,0 +1,23 @@
+snapshots 45638 closes 113 settled-from-feed 112
+cf rows 5037
+# Conditional net expectancy, KXSOL15M paper (SOL-v1 tape), 2026-10-29
+
+Snapshots 45638; closes with official-feed settlement 112 (of 113 seen); counterfactual rows 5037 (1 contract per close x side x 30-s bucket, filled via sol_v1.paper_fill at best ask + 1 tick, held to settlement; no absent-side fills).
+Walk-forward split at close_ts 1793278800 (2026-10-29 06:00 PT): first half = screening (IN-SAMPLE), second half = test.
+Conditions examined: 42 counterfactual + 10 taken-trade cuts = 52. Bonferroni one-sided z at 5%/42 = 3.04. SE clustered by close.
+
+All counterfactual rows: n=5037 G=112 mean=-2.30c se=0.06c t=-36.93
+
+screened []
+survivors []
+full_bonf []
+all 71 -10.79 n=71 G=60 mean=-1.69c se=2.98c t=-0.57
+end=exit 35 64.51 n=35 G=30 mean=+22.08c se=2.38c t=+9.26
+end=settle 36 -75.3 n=36 G=36 mean=-24.79c se=1.67c t=-14.88
+px<0.10 4 -2.63 n=4 G=4 mean=-8.06c se=1.38c t=-5.84
+px[0.10,0.30) 36 -5.61 n=36 G=33 mean=-1.70c se=4.35c t=-0.39
+px>=0.30 31 -2.55 n=31 G=27 mean=-0.84c se=4.88c t=-0.17
+side=yes 34 -3.05 n=34 G=34 mean=-0.87c se=4.31c t=-0.20
+side=no 37 -7.74 n=37 G=37 mean=-2.44c se=4.55c t=-0.54
+secs_left>=300 41 -6.35 n=41 G=38 mean=-1.90c se=3.64c t=-0.52
+secs_left<300 30 -4.44 n=30 G=30 mean=-1.39c se=5.07c t=-0.27

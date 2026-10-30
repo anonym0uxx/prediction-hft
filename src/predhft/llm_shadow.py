@@ -64,6 +64,61 @@ Be calibrated and independent: state p_own BEFORE reconciling with p_model and t
 
 PROMPT_HASH = hashlib.sha256((VERSION + "\n" + SYSTEM_PROMPT).encode("utf-8")).hexdigest()[:16]
 
+# ------------------------------------------------------------------------------------------------------- P25 prompt variants
+# docs/PREREG.md §P25. The v1 prompt above stays byte-identical (cohorts P23-v5 / P24-v3 keep their hash). v2 prompts consume the
+# pre-digested packet of llm_packet_v2 and prescribe a decision procedure against the audited failure modes
+# (docs/P25_PROMPT_AUDIT_2026-10-29.md). Same output shape: decision block first, then p_own / p_yes / rationale / beyond_market.
+_V2_COMMON = """You are an independent paper trader in a Kalshi 15-minute SOL market (KXSOL15M). You hold a $250 paper bankroll; each contract pays $1.00 if your side wins. Your decision is executed AS GIVEN (no edge filter, no second opinion; only hard risk limits: lot 5..20, $15 cost per market, exposure caps, loss halts).
+
+SETTLEMENT (exact): YES iff the simple average of the 60 one-second CF Benchmarks SOLUSD_RTI values in the minute before close (4 dp) is >= K, where K is the same 60-s average before the open; tie = YES. Nothing else settles it.
+
+THE PACKET IS PRE-DIGESTED. Use these fields, in this order:
+ 1. required_move: the move from the current official index (bp, and in sigma units at the variance-equivalent horizon horizon_eff_s) that the REMAINING samples' mean needs for YES (move_bp_for_yes; NO needs the opposite). If the window has started, partial_avg is already folded in. Do not recompute it.
+ 2. empirical_tails: the FREQUENCY of such a signed move in the last ~36 days of 1-minute history at this horizon, normalised by realised vol (candle_rv60 = trailing 60-min candle vol; feed_sigma = the official feed's 1-s sigma). p_yes_empirical is your base rate; p_yes_gaussian is shown only so you can see where the Gaussian is wrong. abs_rows_this_horizon shows the actual tail shape: moves of 0.5-1.5 sd happen LESS often than Gaussian, moves >= 2.5 sd about twice as often. Do not write "fat tails" as a word; use these numbers.
+ 3. volatility: ratio_realised_over_implied > 1 means the feed is currently more volatile than the price assumes (favours the side that needs the move); < 1 the opposite. rv_1m_bp_last15m_candles vs rv_1m_bp_last60m_candles tells you whether vol is rising or fading right now. official_index_path shows drift/momentum over the last 10 minutes.
+ 4. comove: BTC/ETH returns over the last 1 and 5 min with the historical beta; sol_5m_residual_bp is the part of SOL's move NOT explained by the market. Consider whether the move you need is a market move or SOL-specific.
+ 5. conditions_brief (when present): cells from the forensics of this series (105 closes) that contain the current state: per side, the (time x price x side) cell with realised hit rate, the price it implied (mkt_implied), realised net c per contract after fee and its SE; scope OOS = second half only. A 'verdict' is evidence about the base rate of this situation, not an order; read the drift_warning (YES settled 37% of closes while SOL fell) before trusting any side-literal cell.
+ 6. executable_now: for YES and NO and for lots 5/10/20, the depth-weighted price you actually pay NOW (px_dw) and breakeven_p = px_dw + fee. Your side's probability must EXCEED breakeven_p. The spread and the NO conversion (1 - yes_bid) are already inside px_dw: never add the spread again, never recompute the NO price.
+ 7. book.last_60s: how far the mid moved in the last minute; your order arrives ~6 s after this packet and rests up to 60 s at your limit (fills only when the offer comes to it; never in the final minute).
+
+DECISION PROCEDURE (follow literally):
+ A. Estimate p_own = P(YES) from 1-5 (base rate first, then adjust for vol regime, drift, co-move, conditions). State it before anything else influences you.
+ B. Compute edge_yes = p_own - breakeven_p(YES, lot) and edge_no = (1 - p_own) - breakeven_p(NO, lot) for the lot you would trade.
+ C. Choose a numeric execution margin m (at least 0.02; larger when book.last_60s.mid_range_c is large or depth is thin or the index is moving fast). Trade a side only if its edge >= m.
+ D. Size by edge within limits: lot 5 if edge in [m, m+0.03), 10 if in [m+0.03, m+0.06), 20 if >= m+0.06; never more than the displayed fillable size at your limit and never more than $15 of cost. Prices below 0.05 or above 0.95 need edge >= m + 0.03 (fill and tick risk).
+ E. limit_price = the most you will pay on your side; set it at or just above px_dw for the lot (not the mid). NO_TRADE otherwise.
+ F. The reason must be falsifiable and numeric: "p_own X vs breakeven Y at lot Q, margin m; wrong if <observable>".
+
+AGAINST THE AUDITED FAILURE MODES (each cost money in the previous cohorts):
+ - Consistency: if you state an edge >= your margin and still NO_TRADE, you are wrong somewhere; fix p_own or trade. Do not call a 4-9 c edge "thin" while trading 3 c edges.
+ - Do not fade a favourite or lift a tail because a Gaussian says so: in the previous cohorts the 30 favourites priced >= 0.80 that you shaded down won 27 (the price said 27.1, you said 26.0); the 28 tails priced <= 0.20 that you lifted won 2 (the price said 2.5, you said 3.2). The market was right about the shape; use the empirical base rate at 0.5-2 sd and trust neither the Gaussian nor your intuition blindly beyond 2.5 sd.
+ - Do not treat the spread as an extra cost; px_dw already pays it.
+ - Do not cite 1-minute candle vol as if it were the 1-second feed vol; both are given with their horizons.
+ - At T-10/T-5 the settlement window has not started: the quantity that must move is the mean of 60 future seconds, and horizon_eff_s already accounts for that averaging. Do not shorten or lengthen it.
+ - Use the BTC/ETH co-move and the conditions brief when present; say 'none' in beyond_market only if you used neither.
+"""
+_V2_OUTPUT = """Respond ONLY with a JSON object, no prose outside it. The "decision" block comes FIRST and is mandatory; keep every string to ONE short sentence so the reply stays under 250 tokens:
+{"decision": {"action": "<one of the allowed actions: BUY_YES | BUY_NO | NO_TRADE, or HOLD | EXIT when holding>",
+              "qty": <integer 5..20; 0 for NO_TRADE/HOLD/EXIT>,
+              "limit_price": <number 0.01..0.99 in dollars, the most you pay per contract on YOUR side (NO price = 1 - yes price); null unless buying>,
+              "hold_plan": "<HOLD_TO_SETTLEMENT | REVIEW_AT_T5>",
+              "reason": "<one short numeric sentence: p_own vs breakeven at lot, margin, what would make you wrong>"},
+ "p_own": <number 0..1: YOUR probability of YES from steps 1-5 (A), before any other opinion>,
+ "p_yes": <number 0..1: your final probability; equal to p_own unless you state in rationale why it moved>,
+ "edge": {"side": "<yes|no|none>", "lot": <0|5|10|20>, "edge_c": <number: 100 x (p_side - breakeven_p) for that side and lot>, "margin_c": <number: your execution margin in cents>},
+ "rationale": "<one short sentence>",
+ "beyond_market": "<one short sentence: what you used that the price does not already reflect; 'none' if nothing>"}
+Do not output anything else."""
+SYSTEM_PROMPT_V2A = _V2_COMMON + "\nThe last packet section `other_forecasters` shows the deterministic policy's Gaussian p_model and the market mid. They are OTHER opinions to compare against AFTER you have p_own; never average with them, never move p_own toward them without a reason you can write down.\n\n" + _V2_OUTPUT
+SYSTEM_PROMPT_V2B = _V2_COMMON + "\nNo model probability is given on purpose: the market mid (inside executable_now) is the only other opinion, and it is what you trade against.\n\n" + _V2_OUTPUT
+
+PROMPTS = {"v1": SYSTEM_PROMPT, "v2a": SYSTEM_PROMPT_V2A, "v2b": SYSTEM_PROMPT_V2B}
+PACKET_VERSIONS = {"v1": VERSION, "v2a": "P25-llm-v2a", "v2b": "P25-llm-v2b"}
+
+def prompt_hash_for(variant: str) -> str:
+    """Cohort id: sha256(packet version + prompt) truncated. 'v1' reproduces PROMPT_HASH exactly."""
+    return hashlib.sha256((PACKET_VERSIONS[variant] + "\n" + PROMPTS[variant]).encode("utf-8")).hexdigest()[:16]
+
 
 # ------------------------------------------------------------------------------------------------------------------ credentials
 class Redactor:
@@ -207,8 +262,17 @@ def assemble_packet(snap: dict, now: float, series: list[tuple[int, float]] | No
 
 def packet_hash(pk: dict) -> str: return hashlib.sha256(json.dumps(pk, sort_keys=True, default=str).encode("utf-8")).hexdigest()[:16]
 
-def messages_for(pk: dict) -> list[dict]:
-    return [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": "PACKET:\n" + json.dumps(pk, sort_keys=True, separators=(",", ":"), default=str)}]
+def messages_for(pk: dict, variant: str = "v1") -> list[dict]:
+    """v1: sorted-key JSON (unchanged). v2: insertion order is the trader's reading order (decision fields first, other_forecasters last), so no key sorting."""
+    if variant == "v1": return [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": "PACKET:\n" + json.dumps(pk, sort_keys=True, separators=(",", ":"), default=str)}]
+    return [{"role": "system", "content": PROMPTS[variant]}, {"role": "user", "content": "PACKET:\n" + json.dumps(pk, separators=(",", ":"), default=str)}]
+
+def build_packet(snap: dict, now: float, variant: str, series=None, candles=None, perp=None, context=None, decision_secs_left=None, direct=None, tape=None, table=None, brief=None) -> dict:
+    """Variant dispatcher: v1 -> assemble_packet; v2a/v2b -> llm_packet_v2.build_packet_v2 on top of it (pure)."""
+    base = assemble_packet(snap, now, series, candles, perp, context, decision_secs_left, direct=direct)
+    if variant == "v1": return base
+    from . import llm_packet_v2 as P2
+    return P2.build_packet_v2(snap, now, decision_secs_left, variant, base, tape=tape, table=table, brief=brief, direct=direct)
 
 
 # ------------------------------------------------------------------------------------------------------------------ parse
@@ -244,7 +308,8 @@ def parse_response(text: str) -> dict:
                         v = d[k]; p = _to_p(str(v))
                         if p is not None:
                             out.update({"p_llm": p, "rationale": (str(d.get("rationale"))[:400] if d.get("rationale") is not None else None),
-                                        "beyond_market": (str(d.get("beyond_market"))[:300] if d.get("beyond_market") is not None else None), "parse": "json", "p_own": (float(d["p_own"]) if isinstance(d.get("p_own"), (int, float, str)) and str(d.get("p_own")).replace(".","",1).isdigit() else None)}); return out
+                                        "beyond_market": (str(d.get("beyond_market"))[:300] if d.get("beyond_market") is not None else None), "parse": "json", "p_own": (float(d["p_own"]) if isinstance(d.get("p_own"), (int, float, str)) and str(d.get("p_own")).replace(".","",1).isdigit() else None),
+                                        "edge": (d.get("edge") if isinstance(d.get("edge"), dict) else None)}); return out
                 break
     for pat, tag in ((r'"?p_yes"?\s*[:=]\s*' + _NUM, "regex_key"), (r"probability[^0-9]{0,40}" + _NUM, "regex_prob"), (r"\b" + _NUM + r"\s*(?:probability|chance|likely)", "regex_trail")):
         mm = re.search(pat, t, re.I)
@@ -389,20 +454,43 @@ def gather_context(now: float, red: Redactor, root: pathlib.Path, assets=("SOL",
     except Exception as e: errs.append(red.redact(f"context:{type(e).__name__}"))
     return series, candles, perp, ctx, errs
 
-def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_left: float, now: float, root: pathlib.Path, dry_run: bool = False, direct=None) -> dict:
+def gather_v2_context(now: float, ticker: str | None, red: Redactor, errs: list[str]) -> tuple[list, dict | None, dict | None]:
+    """P25 extras: ws book tape tail (last 90 s), the cached empirical tail table (rebuilt daily from data/candles), Quant A's
+    conditions brief when present (reports/forensics/conditions_brief.json). Errors are listed, never fatal."""
+    from . import llm_packet_v2 as P2
+    tape = []; table = None; brief = None
+    try: tape = P2.book_tape_tail(ticker or "", now)
+    except Exception as e: errs.append(red.redact(f"tape:{type(e).__name__}"))
+    try: table = P2.load_or_build_tail_table(now=now)
+    except Exception as e: errs.append(red.redact(f"tail_table:{type(e).__name__}"))
+    if table is None: errs.append("tail_table:missing")
+    try: brief = P2.load_brief()
+    except Exception as e: errs.append(red.redact(f"brief:{type(e).__name__}"))
+    return tape, table, brief
+
+def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_left: float, now: float, root: pathlib.Path, dry_run: bool = False, direct=None, variant: str = "v1") -> dict:
     """One decision: packet -> (LLM) -> parse -> simulate -> log. Returns the logged row.
     `direct` (P24, llm_direct.DirectArm or None): the SAME call's decision block is parsed and paper-acted on by the direct arm;
-    its summary is logged in the row (direct_decision / direct_result). None -> P23 probability arm only."""
-    red = client.red
+    its summary is logged in the row (direct_decision / direct_result). None -> P23 probability arm only.
+    `variant` (P25): 'v1' (unchanged packet + prompt) or 'v2a' / 'v2b' (pre-digested packet, own prompt_hash cohort)."""
+    red = client.red; ph_prompt = prompt_hash_for(variant)
     series, candles, perp, ctx, errs = gather_context(now, red, root)
+    tape = table = brief = None
+    if variant != "v1": tape, table, brief = gather_v2_context(now, snap.get("ticker"), red, errs)
     dblock = direct.block(snap, decision_secs_left, now) if direct is not None else None
-    pk = assemble_packet(snap, now, series, candles, perp, ctx, decision_secs_left, direct=dblock)
-    msgs = messages_for(pk); ph = packet_hash(pk)
-    row = {"kind": "forecast", "version": VERSION, "t_sent": None, "t_recv": None, "latency_s": None, "ticker": snap.get("ticker"), "close_ts": int(snap["close_ts"]), "decision_secs_left": decision_secs_left,
+    pk = build_packet(snap, now, variant, series, candles, perp, ctx, decision_secs_left, direct=dblock, tape=tape, table=table, brief=brief)
+    msgs = messages_for(pk, variant); ph = packet_hash(pk)
+    row = {"kind": "forecast", "version": VERSION, "prompt_variant": variant, "t_sent": None, "t_recv": None, "latency_s": None, "ticker": snap.get("ticker"), "close_ts": int(snap["close_ts"]), "decision_secs_left": decision_secs_left,
            "secs_left": pk["secs_left_at_snapshot"], "snapshot_t": snap["t"], "snapshot_age_s": pk["snapshot_age_s"], "snapshot_src": snap.get("snapshot_src", "sol_v1"), "K": snap["K"], "x_now": snap.get("x_now"), "p_llm": None, "p_model": snap.get("p_model"), "p_used": snap.get("p_yes"),
-           "mid": snap.get("mid"), "yes_bid": snap.get("yes_bid"), "yes_ask": snap.get("yes_ask"), "rationale": None, "beyond_market": None, "parse": None, "prompt_hash": PROMPT_HASH, "packet_hash": ph,
-           "model_name": client.model, "tokens": None, "budget_state": None, "context_errors": errs or None, "packet_fields_stale": {k: True for k in ("perp_okx", "context") if pk.get(k, {}).get("stale_or_missing")} or None,
+           "mid": snap.get("mid"), "yes_bid": snap.get("yes_bid"), "yes_ask": snap.get("yes_ask"), "rationale": None, "beyond_market": None, "parse": None, "prompt_hash": ph_prompt, "packet_hash": ph,
+           "model_name": client.model, "tokens": None, "budget_state": None, "context_errors": errs or None, "packet_fields_stale": {k: True for k in ("perp_okx", "context") if (pk.get(k) or {}).get("stale_or_missing")} or None,
            "policy_decision": policy_decision_at(snap), "llm_decision": None, "direct_arm": dblock, "direct_decision": None, "direct_result": None, "error": None}
+    if variant != "v1":
+        row["v2_fields"] = {"breakeven_yes_10": ((pk.get("executable_now") or {}).get("yes") or {}).get("10", {}).get("breakeven_p"), "breakeven_no_10": ((pk.get("executable_now") or {}).get("no") or {}).get("10", {}).get("breakeven_p"),
+                            "move_bp_for_yes": (pk.get("required_move") or {}).get("move_bp_for_yes"), "sigma_units_for_yes": (pk.get("required_move") or {}).get("sigma_units_for_yes"),
+                            "p_yes_empirical_feed": ((pk.get("empirical_tails") or {}).get("feed_sigma") or {}).get("p_yes_empirical"), "p_yes_empirical_candle": ((pk.get("empirical_tails") or {}).get("candle_rv60") or {}).get("p_yes_empirical"),
+                            "ratio_realised_over_implied": (pk.get("volatility") or {}).get("ratio_realised_over_implied"), "conditions_bucket": (pk.get("conditions_brief") or {}).get("name") if pk.get("conditions_brief") else None,
+                            "prompt_chars": sum(len(m["content"]) for m in msgs)}
     ok, why = budget.allow(now)
     if not ok: row.update({"error": f"budget:{why}", "budget_state": budget.snapshot()}); _append(root / "forecasts.jsonl", row); return row
     if dry_run:
@@ -410,14 +498,14 @@ def forecast_once(client: LLMClient, budget: Budget, snap: dict, decision_secs_l
     row["t_sent"] = time.time(); res = client.complete(msgs, budget); row["t_recv"] = time.time(); row["latency_s"] = round(row["t_recv"] - row["t_sent"], 3)
     if res["ok"]:
         budget.record(res.get("usage")); pr = parse_response(res["text"] or "")
-        row.update({"p_llm": pr["p_llm"], "p_own": pr.get("p_own"), "rationale": (red.redact(pr["rationale"]) if pr["rationale"] else None), "beyond_market": (red.redact(pr["beyond_market"]) if pr["beyond_market"] else None), "parse": pr["parse"],
+        row.update({"p_llm": pr["p_llm"], "p_own": pr.get("p_own"), "edge_stated": pr.get("edge"), "rationale": (red.redact(pr["rationale"]) if pr["rationale"] else None), "beyond_market": (red.redact(pr["beyond_market"]) if pr["beyond_market"] else None), "parse": pr["parse"],
                     "tokens": res.get("usage"), "model_reported": res.get("model_reported"), "attempts": res["attempts"], "finish_reason": res.get("finish_reason")})
         if pr["p_llm"] is None: row["error"] = ("truncated_" + str(res.get("finish_reason")) if not res["text"] else "unparsable"); row["raw_head"] = red.redact((res["text"] or "")[:200])
         else: row["llm_decision"] = simulate_entry(pr["p_llm"], snap)
         if direct is not None:
             # P24: act on the decision block of the same answer (malformed / absent -> NO_TRADE or HOLD, error logged by the arm)
             try:
-                dres = direct.act(snap, decision_secs_left, pr.get("decision_raw"), dblock, row["t_recv"], prompt_hash=PROMPT_HASH, model_name=client.model, raw_present=bool(res["text"]))
+                dres = direct.act(snap, decision_secs_left, pr.get("decision_raw"), dblock, row["t_recv"], prompt_hash=ph_prompt, model_name=client.model, raw_present=bool(res["text"]))
                 row["direct_decision"] = dres.get("decision"); row["direct_result"] = dres.get("result")
             except Exception as e:
                 row["direct_result"] = {"status": "arm_error", "error": red.redact(f"{type(e).__name__}: {str(e)[:160]}")}
@@ -435,7 +523,8 @@ def current_snapshot(now: float, max_age: float = CFG["max_snapshot_age_s"]) -> 
     try: return rebuild_snapshot(snap, now)
     except Exception: return None
 
-def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[float] | None = None, cap: int | None = None, dry_run: bool = False, once: bool = False, now_fn=time.time, direct_enabled: bool = True):
+def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[float] | None = None, cap: int | None = None, dry_run: bool = False, once: bool = False, now_fn=time.time, direct_enabled: bool = True, variant: str = "v1"):
+    assert variant in PROMPTS, f"unknown prompt variant {variant}"
     decision_secs = decision_secs or CFG["decision_secs_left"]; CFG["decision_secs_left"] = decision_secs
     from .s7_live import single_instance; _lock = single_instance(root)      # one sidecar per root: two loops would double every call and the budget count
     key, model, base = load_credentials(); client = LLMClient(key, model, base); red = client.red; del key
@@ -443,7 +532,7 @@ def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[floa
     direct = None
     if direct_enabled and not dry_run:
         from .llm_direct import DirectArm; direct = DirectArm(red=red)       # P24: paper-acts on the decision block of the same call (own family dir, shared risk ledger)
-    _log(root, red, f"start {VERSION} model={model} base={base} decision_secs={decision_secs} cap={budget.cap} prompt_hash={PROMPT_HASH} dry_run={dry_run} direct={'on:' + direct.VERSION if direct else 'off'} budget={budget.snapshot()}")
+    _log(root, red, f"start {VERSION} variant={variant} model={model} base={base} decision_secs={decision_secs} cap={budget.cap} prompt_hash={prompt_hash_for(variant)} dry_run={dry_run} direct={'on:' + direct.VERSION if direct else 'off'} budget={budget.snapshot()}")
     while True:
         try:
             now = now_fn()
@@ -454,7 +543,7 @@ def run(root: pathlib.Path = ROOT, poll_s: float = 5.0, decision_secs: list[floa
             close_ts = int(snap["close_ts"]); secs_left = close_ts - now
             for d in due_decisions(secs_left, done, close_ts, decision_secs, CFG["decision_tolerance_s"]):
                 done.add((close_ts, d))
-                row = forecast_once(client, budget, snap, d, now, root, dry_run, direct=direct)
+                row = forecast_once(client, budget, snap, d, now, root, dry_run, direct=direct, variant=variant)
                 _log(root, red, f"FORECAST {row['ticker']} T-{d:.0f}s p_llm={row['p_llm']} mid={row['mid']} p_model={None if row['p_model'] is None else round(row['p_model'], 4)} lat={row['latency_s']} tokens={(row['tokens'] or {}).get('total_tokens') if row['tokens'] else None} "
                                f"llm_dec={(row['llm_decision'] or {}).get('decision')} policy_dec={row['policy_decision'].get('decision')} direct={(row['direct_decision'] or {}).get('action')}->{(row['direct_result'] or {}).get('status')} err={row['error']} budget={row['budget_state']['calls'] if row['budget_state'] else None}")
                 if once: return row
@@ -473,13 +562,14 @@ if __name__ == "__main__":
     ap.add_argument("--model", default=None, help="model id override (e.g. anthropic/claude-opus-5.5)")
     ap.add_argument("--cap", type=int, default=CFG["daily_call_cap"]); ap.add_argument("--dry-run", action="store_true", help="assemble + log packets, no LLM call")
     ap.add_argument("--no-direct", action="store_true", help="disable the P24 direct-decision arm (probability arm only; the prompt still asks for the block)")
+    ap.add_argument("--prompt-variant", default="v1", choices=sorted(PROMPTS), help="P25: v1 = unchanged P23/P24 prompt+packet; v2a = pre-digested packet with p_model shown last; v2b = pre-digested packet without p_model (each its own prompt_hash cohort)")
     a = ap.parse_args()
     if a.model: os.environ["PREDHFT_LLM_MODEL"] = a.model
     root = pathlib.Path(a.root); ds = [float(x) for x in a.decision_secs.split(",") if x.strip()]
     if a.now:
         key, model, base = load_credentials(); client = LLMClient(key, model, base); del key
         snap = current_snapshot(time.time()); assert snap is not None, "no SOL-v1 snapshot (fresh or rebuildable)"
-        row = forecast_once(client, Budget(root / "budget.json", a.cap), snap, round(int(snap["close_ts"]) - time.time(), 1), time.time(), root, a.dry_run)
+        row = forecast_once(client, Budget(root / "budget.json", a.cap), snap, round(int(snap["close_ts"]) - time.time(), 1), time.time(), root, a.dry_run, variant=a.prompt_variant)
         print(json.dumps({k: row[k] for k in ("ticker", "secs_left", "p_llm", "mid", "p_model", "latency_s", "tokens", "rationale", "beyond_market", "llm_decision", "policy_decision", "error", "budget_state")}, indent=1, default=str))
-    elif a.loop or a.once: run(root, a.poll, ds, a.cap, a.dry_run, a.once, direct_enabled=not a.no_direct)
+    elif a.loop or a.once: run(root, a.poll, ds, a.cap, a.dry_run, a.once, direct_enabled=not a.no_direct, variant=a.prompt_variant)
     else: ap.print_help()

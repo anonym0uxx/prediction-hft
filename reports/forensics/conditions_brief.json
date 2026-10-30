@@ -1,0 +1,6407 @@
+{
+ "meta": {
+  "generated_pt": "2026-10-29 19:57 PT",
+  "yes_settlement_rate": {
+   "all": 0.384,
+   "first_half": 0.411,
+   "second_half": 0.357,
+   "n_closes": 112
+  },
+  "sol_index_first_last": [
+   102.23,
+   94.97
+  ],
+  "closes_with_a_sol_v1_position": 60,
+  "universe_coverage_closes_by_time_bucket": {
+   "T-10-14m": 111,
+   "T-5-10m": 112,
+   "T-2-5m": 77,
+   "T-60-120s": 34,
+   "T-10-60s": 17
+  },
+  "coverage_caveat": "entry snapshots are only logged while NO position is held; the counterfactual universe inside the final minutes is therefore conditioned on the policy not holding (60 of 112 closes had a position)",
+  "snapshots": 45612,
+  "closes_with_snapshots": 113,
+  "closes_with_result": 112,
+  "feed_vs_exchange_disagreements": [],
+  "universe_rows": 63312,
+  "universe_closes": 112,
+  "split": {
+   "in_sample_closes": [
+    "2026-10-28 14:00 PT",
+    "2026-10-29 05:45 PT"
+   ],
+   "out_of_sample_closes": [
+    "2026-10-29 06:00 PT",
+    "2026-10-29 19:45 PT"
+   ],
+   "n_is": 56,
+   "n_oos": 56
+  },
+  "execution_model": "sol_v1.side_levels/walk depth-weighted for lot 10 (partial allowed, never beyond displayed) + 1 tick; Kalshi taker fee ceil-to-cent per order; absent side => no fill",
+  "universe_px_bounds": [
+   0.02,
+   0.98
+  ],
+  "how_to_read": "net_c = realised net c/contract buying `side` at the depth-weighted executable price + tick and HOLDING to settlement, averaged over every evaluation snapshot (~2 s) in the state; SE clustered by 15-min close; verdict needs >= 20 closes and |t| >= 2; 'scope' says which closes. Nothing here is a trading rule; the search over 357 conditions found no Bonferroni/SPA survivor (see conditions_search.json).",
+  "drift_warning": "YES settled 38.4% of 112 closes (first half 41.1%, second half 35.7%); SOL index 102.23 -> 94.97 over the sample. Every side-literal 'favourable' (NO) / 'unfavourable' (YES) verdict is consistent with this drift; side-symmetric states are the ones to read."
+ },
+ "n_conditions_examined": 357,
+ "corrected_result": {
+  "holm_pos": [
+   {
+    "condition": "medge5-15c&no",
+    "p": 0.0016,
+    "threshold": 0.00179
+   }
+  ],
+  "holm_neg": [
+   {
+    "condition": "px.25-.50&spr1-3c",
+    "p": 0.0001,
+    "threshold": 0.00057
+   },
+   {
+    "condition": "px.25-.50&depth>=200",
+    "p": 0.0002,
+    "threshold": 0.00058
+   },
+   {
+    "condition": "px.25-.50",
+    "p": 0.0004,
+    "threshold": 0.00059
+   },
+   {
+    "condition": "px.25-.50&|z|<.5",
+    "p": 0.0004,
+    "threshold": 0.0006
+   },
+   {
+    "condition": "px.25-.50&vol.7-1.2bp",
+    "p": 0.0006,
+    "threshold": 0.0006
+   }
+  ],
+  "spa_oos_p_consistent_nonstud": 0.054,
+  "spa_oos_losers_p_consistent_nonstud": 0.078
+ },
+ "states": [
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "side": "yes"
+   },
+   "n": 31808,
+   "n_closes": 112,
+   "hit": 0.334,
+   "mkt_implied": 0.436,
+   "model_p": 0.43,
+   "net_c": -11.35,
+   "se_c": 3.53,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "side": "no"
+   },
+   "n": 31504,
+   "n_closes": 112,
+   "hit": 0.653,
+   "mkt_implied": 0.566,
+   "model_p": 0.557,
+   "net_c": 7.53,
+   "se_c": 3.58,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "with_model": "against_model"
+   },
+   "n": 31499,
+   "n_closes": 112,
+   "hit": 0.654,
+   "mkt_implied": 0.659,
+   "model_p": 0.62,
+   "net_c": -1.74,
+   "se_c": 1.85,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "with_model": "with_model"
+   },
+   "n": 31813,
+   "n_closes": 112,
+   "hit": 0.334,
+   "mkt_implied": 0.343,
+   "model_p": 0.368,
+   "net_c": -2.17,
+   "se_c": 1.82,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "fav": "favourite"
+   },
+   "n": 32064,
+   "n_closes": 112,
+   "hit": 0.751,
+   "mkt_implied": 0.739,
+   "model_p": 0.706,
+   "net_c": -0.08,
+   "se_c": 2.24,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "fav": "longshot"
+   },
+   "n": 31248,
+   "n_closes": 112,
+   "hit": 0.228,
+   "mkt_implied": 0.255,
+   "model_p": 0.276,
+   "net_c": -3.88,
+   "se_c": 2.28,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "pxb": "px.50-.75"
+   },
+   "n": 16699,
+   "n_closes": 109,
+   "hit": 0.618,
+   "mkt_implied": 0.617,
+   "model_p": 0.587,
+   "net_c": -1.58,
+   "se_c": 2.63,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "pxb": "px.25-.50"
+   },
+   "n": 16394,
+   "n_closes": 111,
+   "hit": 0.357,
+   "mkt_implied": 0.376,
+   "model_p": 0.394,
+   "net_c": -3.62,
+   "se_c": 2.88,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "pxb": "px.75-.90"
+   },
+   "n": 8740,
+   "n_closes": 107,
+   "hit": 0.861,
+   "mkt_implied": 0.82,
+   "model_p": 0.775,
+   "net_c": 3.02,
+   "se_c": 3.0,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "pxb": "px.10-.25"
+   },
+   "n": 8223,
+   "n_closes": 105,
+   "hit": 0.119,
+   "mkt_implied": 0.176,
+   "model_p": 0.205,
+   "net_c": -6.7,
+   "se_c": 2.92,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "pxb": "px>=.90"
+   },
+   "n": 6625,
+   "n_closes": 88,
+   "hit": 0.942,
+   "mkt_implied": 0.942,
+   "model_p": 0.914,
+   "net_c": -0.36,
+   "se_c": 2.79,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "pxb": "px<.10"
+   },
+   "n": 6631,
+   "n_closes": 88,
+   "hit": 0.047,
+   "mkt_implied": 0.054,
+   "model_p": 0.072,
+   "net_c": -1.04,
+   "se_c": 2.48,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "edgeb": "medge<=0"
+   },
+   "n": 35792,
+   "n_closes": 112,
+   "hit": 0.632,
+   "mkt_implied": 0.638,
+   "model_p": 0.603,
+   "net_c": -1.8,
+   "se_c": 1.57,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "edgeb": "medge5-15c"
+   },
+   "n": 4794,
+   "n_closes": 102,
+   "hit": 0.202,
+   "mkt_implied": 0.214,
+   "model_p": 0.284,
+   "net_c": -2.29,
+   "se_c": 3.84,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "edgeb": "medge0-5c"
+   },
+   "n": 22687,
+   "n_closes": 112,
+   "hit": 0.336,
+   "mkt_implied": 0.345,
+   "model_p": 0.365,
+   "net_c": -2.14,
+   "se_c": 2.05,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "edgeb": "medge>15c"
+   },
+   "n": 39,
+   "n_closes": 18,
+   "hit": 0.308,
+   "mkt_implied": 0.259,
+   "model_p": 0.446,
+   "net_c": 3.72,
+   "se_c": 10.82,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pick": "against_model"
+   },
+   "n": 12237,
+   "n_closes": 111,
+   "hit": 0.681,
+   "mkt_implied": 0.678,
+   "model_p": 0.641,
+   "net_c": -0.8,
+   "se_c": 2.42,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pick": "with_model"
+   },
+   "n": 12298,
+   "n_closes": 112,
+   "hit": 0.306,
+   "mkt_implied": 0.322,
+   "model_p": 0.346,
+   "net_c": -2.81,
+   "se_c": 2.41,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pick": "against_model"
+   },
+   "n": 13146,
+   "n_closes": 111,
+   "hit": 0.602,
+   "mkt_implied": 0.61,
+   "model_p": 0.574,
+   "net_c": -2.31,
+   "se_c": 2.53,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pick": "with_model"
+   },
+   "n": 13146,
+   "n_closes": 111,
+   "hit": 0.398,
+   "mkt_implied": 0.404,
+   "model_p": 0.425,
+   "net_c": -2.09,
+   "se_c": 2.52,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pick": "against_model"
+   },
+   "n": 4193,
+   "n_closes": 75,
+   "hit": 0.765,
+   "mkt_implied": 0.767,
+   "model_p": 0.718,
+   "net_c": -1.08,
+   "se_c": 2.76,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pick": "with_model"
+   },
+   "n": 4337,
+   "n_closes": 77,
+   "hit": 0.214,
+   "mkt_implied": 0.226,
+   "model_p": 0.262,
+   "net_c": -2.13,
+   "se_c": 2.62,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pick": "against_model"
+   },
+   "n": 1397,
+   "n_closes": 33,
+   "hit": 0.567,
+   "mkt_implied": 0.614,
+   "model_p": 0.566,
+   "net_c": -5.64,
+   "se_c": 6.14,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pick": "with_model"
+   },
+   "n": 1487,
+   "n_closes": 33,
+   "hit": 0.37,
+   "mkt_implied": 0.346,
+   "model_p": 0.375,
+   "net_c": 1.51,
+   "se_c": 5.8,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pick": "against_model"
+   },
+   "n": 526,
+   "n_closes": 17,
+   "hit": 0.684,
+   "mkt_implied": 0.719,
+   "model_p": 0.648,
+   "net_c": -4.31,
+   "se_c": 6.01,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pick": "with_model"
+   },
+   "n": 545,
+   "n_closes": 17,
+   "hit": 0.268,
+   "mkt_implied": 0.259,
+   "model_p": 0.307,
+   "net_c": -0.06,
+   "se_c": 5.69,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|<.5",
+    "pick": "against_model"
+   },
+   "n": 15441,
+   "n_closes": 107,
+   "hit": 0.587,
+   "mkt_implied": 0.604,
+   "model_p": 0.566,
+   "net_c": -3.39,
+   "se_c": 2.38,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|<.5",
+    "pick": "with_model"
+   },
+   "n": 15441,
+   "n_closes": 107,
+   "hit": 0.413,
+   "mkt_implied": 0.412,
+   "model_p": 0.434,
+   "net_c": -1.6,
+   "se_c": 2.38,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|.5-1",
+    "pick": "against_model"
+   },
+   "n": 8361,
+   "n_closes": 103,
+   "hit": 0.774,
+   "mkt_implied": 0.756,
+   "model_p": 0.705,
+   "net_c": 0.65,
+   "se_c": 2.76,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|.5-1",
+    "pick": "with_model"
+   },
+   "n": 8362,
+   "n_closes": 103,
+   "hit": 0.226,
+   "mkt_implied": 0.259,
+   "model_p": 0.295,
+   "net_c": -4.46,
+   "se_c": 2.75,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|1-2",
+    "pick": "with_model"
+   },
+   "n": 7696,
+   "n_closes": 87,
+   "hit": 0.277,
+   "mkt_implied": 0.282,
+   "model_p": 0.302,
+   "net_c": -0.99,
+   "se_c": 1.82,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|1-2",
+    "pick": "against_model"
+   },
+   "n": 7198,
+   "n_closes": 87,
+   "hit": 0.703,
+   "mkt_implied": 0.707,
+   "model_p": 0.679,
+   "net_c": -0.91,
+   "se_c": 1.93,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|>=2",
+    "pick": "against_model"
+   },
+   "n": 499,
+   "n_closes": 38,
+   "hit": 0.008,
+   "mkt_implied": 0.034,
+   "model_p": 0.02,
+   "net_c": -2.79,
+   "se_c": 0.26,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "zb": "|z|>=2",
+    "pick": "with_model"
+   },
+   "n": 314,
+   "n_closes": 38,
+   "hit": 0.713,
+   "mkt_implied": 0.687,
+   "model_p": 0.695,
+   "net_c": 2.37,
+   "se_c": 1.04,
+   "verdict": "favourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "sprb": "spr<=1c",
+    "pick": "against_model"
+   },
+   "n": 23923,
+   "n_closes": 112,
+   "hit": 0.659,
+   "mkt_implied": 0.664,
+   "model_p": 0.628,
+   "net_c": -1.72,
+   "se_c": 1.84,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "sprb": "spr<=1c",
+    "pick": "with_model"
+   },
+   "n": 24220,
+   "n_closes": 112,
+   "hit": 0.326,
+   "mkt_implied": 0.332,
+   "model_p": 0.358,
+   "net_c": -1.75,
+   "se_c": 1.81,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "sprb": "spr1-3c",
+    "pick": "against_model"
+   },
+   "n": 7440,
+   "n_closes": 112,
+   "hit": 0.641,
+   "mkt_implied": 0.643,
+   "model_p": 0.597,
+   "net_c": -1.62,
+   "se_c": 2.34,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "sprb": "spr1-3c",
+    "pick": "with_model"
+   },
+   "n": 7457,
+   "n_closes": 112,
+   "hit": 0.356,
+   "mkt_implied": 0.377,
+   "model_p": 0.399,
+   "net_c": -3.64,
+   "se_c": 2.35,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "sprb": "spr>3c",
+    "pick": "with_model"
+   },
+   "n": 136,
+   "n_closes": 31,
+   "hit": 0.463,
+   "mkt_implied": 0.404,
+   "model_p": 0.442,
+   "net_c": 4.53,
+   "se_c": 8.51,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "sprb": "spr>3c",
+    "pick": "against_model"
+   },
+   "n": 136,
+   "n_closes": 31,
+   "hit": 0.537,
+   "mkt_implied": 0.641,
+   "model_p": 0.558,
+   "net_c": -11.83,
+   "se_c": 8.51,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "depb": "depth<50",
+    "pick": "against_model"
+   },
+   "n": 7659,
+   "n_closes": 112,
+   "hit": 0.678,
+   "mkt_implied": 0.684,
+   "model_p": 0.643,
+   "net_c": -1.6,
+   "se_c": 1.96,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "depb": "depth50-200",
+    "pick": "with_model"
+   },
+   "n": 9887,
+   "n_closes": 112,
+   "hit": 0.324,
+   "mkt_implied": 0.337,
+   "model_p": 0.362,
+   "net_c": -2.48,
+   "se_c": 1.98,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "depb": "depth>=200",
+    "pick": "with_model"
+   },
+   "n": 14678,
+   "n_closes": 112,
+   "hit": 0.345,
+   "mkt_implied": 0.358,
+   "model_p": 0.384,
+   "net_c": -2.67,
+   "se_c": 2.09,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "depb": "depth50-200",
+    "pick": "against_model"
+   },
+   "n": 9562,
+   "n_closes": 112,
+   "hit": 0.649,
+   "mkt_implied": 0.654,
+   "model_p": 0.617,
+   "net_c": -1.64,
+   "se_c": 2.01,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "depb": "depth<50",
+    "pick": "with_model"
+   },
+   "n": 7248,
+   "n_closes": 112,
+   "hit": 0.323,
+   "mkt_implied": 0.32,
+   "model_p": 0.344,
+   "net_c": -0.72,
+   "se_c": 1.74,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "depb": "depth>=200",
+    "pick": "against_model"
+   },
+   "n": 14278,
+   "n_closes": 112,
+   "hit": 0.644,
+   "mkt_implied": 0.65,
+   "model_p": 0.61,
+   "net_c": -1.89,
+   "se_c": 1.97,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "volb": "vol.7-1.2bp",
+    "pick": "against_model"
+   },
+   "n": 12730,
+   "n_closes": 60,
+   "hit": 0.661,
+   "mkt_implied": 0.648,
+   "model_p": 0.611,
+   "net_c": 0.1,
+   "se_c": 2.23,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "volb": "vol.7-1.2bp",
+    "pick": "with_model"
+   },
+   "n": 12909,
+   "n_closes": 61,
+   "hit": 0.329,
+   "mkt_implied": 0.356,
+   "model_p": 0.379,
+   "net_c": -3.92,
+   "se_c": 2.19,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "volb": "vol<.7bp",
+    "pick": "against_model"
+   },
+   "n": 9494,
+   "n_closes": 45,
+   "hit": 0.649,
+   "mkt_implied": 0.678,
+   "model_p": 0.635,
+   "net_c": -4.2,
+   "se_c": 3.32,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "volb": "vol<.7bp",
+    "pick": "with_model"
+   },
+   "n": 9578,
+   "n_closes": 45,
+   "hit": 0.339,
+   "mkt_implied": 0.326,
+   "model_p": 0.354,
+   "net_c": 0.03,
+   "se_c": 3.24,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "volb": "vol>=1.2bp",
+    "pick": "against_model"
+   },
+   "n": 9275,
+   "n_closes": 37,
+   "hit": 0.649,
+   "mkt_implied": 0.655,
+   "model_p": 0.617,
+   "net_c": -1.75,
+   "se_c": 4.16,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "volb": "vol>=1.2bp",
+    "pick": "with_model"
+   },
+   "n": 9326,
+   "n_closes": 37,
+   "hit": 0.335,
+   "mkt_implied": 0.343,
+   "model_p": 0.367,
+   "net_c": -2.01,
+   "se_c": 4.16,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "partb": "partial0",
+    "pick": "against_model"
+   },
+   "n": 30975,
+   "n_closes": 112,
+   "hit": 0.654,
+   "mkt_implied": 0.658,
+   "model_p": 0.62,
+   "net_c": -1.7,
+   "se_c": 1.87,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "partb": "partial0",
+    "pick": "with_model"
+   },
+   "n": 31270,
+   "n_closes": 112,
+   "hit": 0.335,
+   "mkt_implied": 0.345,
+   "model_p": 0.369,
+   "net_c": -2.2,
+   "se_c": 1.84,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "partb": "partial1-30",
+    "pick": "against_model"
+   },
+   "n": 420,
+   "n_closes": 17,
+   "hit": 0.686,
+   "mkt_implied": 0.705,
+   "model_p": 0.637,
+   "net_c": -2.87,
+   "se_c": 4.49,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "partb": "partial1-30",
+    "pick": "with_model"
+   },
+   "n": 431,
+   "n_closes": 17,
+   "hit": 0.278,
+   "mkt_implied": 0.283,
+   "model_p": 0.328,
+   "net_c": -1.48,
+   "se_c": 4.29,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "partb": "partial31-59",
+    "pick": "against_model"
+   },
+   "n": 104,
+   "n_closes": 9,
+   "hit": 0.692,
+   "mkt_implied": 0.784,
+   "model_p": 0.703,
+   "net_c": -9.83,
+   "se_c": 14.72,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "partb": "partial31-59",
+    "pick": "with_model"
+   },
+   "n": 112,
+   "n_closes": 9,
+   "hit": 0.214,
+   "mkt_implied": 0.156,
+   "model_p": 0.213,
+   "net_c": 5.17,
+   "se_c": 13.44,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h12-17PT",
+    "pick": "against_model"
+   },
+   "n": 11655,
+   "n_closes": 41,
+   "hit": 0.65,
+   "mkt_implied": 0.656,
+   "model_p": 0.621,
+   "net_c": -1.83,
+   "se_c": 3.32,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h12-17PT",
+    "pick": "with_model"
+   },
+   "n": 11730,
+   "n_closes": 41,
+   "hit": 0.334,
+   "mkt_implied": 0.342,
+   "model_p": 0.363,
+   "net_c": -1.97,
+   "se_c": 3.29,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h18-23PT",
+    "pick": "with_model"
+   },
+   "n": 9445,
+   "n_closes": 31,
+   "hit": 0.336,
+   "mkt_implied": 0.346,
+   "model_p": 0.372,
+   "net_c": -2.28,
+   "se_c": 2.77,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h18-23PT",
+    "pick": "against_model"
+   },
+   "n": 9321,
+   "n_closes": 31,
+   "hit": 0.653,
+   "mkt_implied": 0.657,
+   "model_p": 0.616,
+   "net_c": -1.6,
+   "se_c": 2.83,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h00-05PT",
+    "pick": "against_model"
+   },
+   "n": 3755,
+   "n_closes": 16,
+   "hit": 0.676,
+   "mkt_implied": 0.678,
+   "model_p": 0.628,
+   "net_c": -1.61,
+   "se_c": 7.14,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h00-05PT",
+    "pick": "with_model"
+   },
+   "n": 3806,
+   "n_closes": 16,
+   "hit": 0.319,
+   "mkt_implied": 0.334,
+   "model_p": 0.368,
+   "net_c": -2.97,
+   "se_c": 7.02,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h06-11PT",
+    "pick": "against_model"
+   },
+   "n": 6768,
+   "n_closes": 24,
+   "hit": 0.651,
+   "mkt_implied": 0.657,
+   "model_p": 0.62,
+   "net_c": -1.87,
+   "se_c": 3.56,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "hourb": "h06-11PT",
+    "pick": "with_model"
+   },
+   "n": 6832,
+   "n_closes": 24,
+   "hit": 0.339,
+   "mkt_implied": 0.346,
+   "model_p": 0.371,
+   "net_c": -1.91,
+   "se_c": 3.46,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_agree",
+    "pick": "against_model"
+   },
+   "n": 22548,
+   "n_closes": 112,
+   "hit": 0.661,
+   "mkt_implied": 0.67,
+   "model_p": 0.632,
+   "net_c": -2.06,
+   "se_c": 2.26,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_agree",
+    "pick": "with_model"
+   },
+   "n": 22785,
+   "n_closes": 112,
+   "hit": 0.325,
+   "mkt_implied": 0.329,
+   "model_p": 0.354,
+   "net_c": -1.57,
+   "se_c": 2.23,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_disagree",
+    "pick": "against_model"
+   },
+   "n": 3688,
+   "n_closes": 81,
+   "hit": 0.633,
+   "mkt_implied": 0.602,
+   "model_p": 0.564,
+   "net_c": 1.58,
+   "se_c": 3.06,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_disagree",
+    "pick": "with_model"
+   },
+   "n": 3729,
+   "n_closes": 81,
+   "hit": 0.361,
+   "mkt_implied": 0.409,
+   "model_p": 0.43,
+   "net_c": -6.31,
+   "se_c": 3.02,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_mixed",
+    "pick": "with_model"
+   },
+   "n": 5019,
+   "n_closes": 81,
+   "hit": 0.36,
+   "mkt_implied": 0.365,
+   "model_p": 0.389,
+   "net_c": -1.88,
+   "se_c": 3.71,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_mixed",
+    "pick": "against_model"
+   },
+   "n": 5001,
+   "n_closes": 81,
+   "hit": 0.635,
+   "mkt_implied": 0.647,
+   "model_p": 0.607,
+   "net_c": -2.62,
+   "se_c": 3.75,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_na",
+    "pick": "with_model"
+   },
+   "n": 280,
+   "n_closes": 25,
+   "hit": 0.221,
+   "mkt_implied": 0.218,
+   "model_p": 0.268,
+   "net_c": -0.49,
+   "se_c": 8.4,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "comove": "comove_na",
+    "pick": "against_model"
+   },
+   "n": 262,
+   "n_closes": 24,
+   "hit": 0.718,
+   "mkt_implied": 0.749,
+   "model_p": 0.674,
+   "net_c": -4.01,
+   "se_c": 9.08,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid.70-.90",
+    "pick": "against_model"
+   },
+   "n": 4521,
+   "n_closes": 65,
+   "hit": 0.72,
+   "mkt_implied": 0.774,
+   "model_p": 0.717,
+   "net_c": -6.5,
+   "se_c": 5.48,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid.70-.90",
+    "pick": "with_model"
+   },
+   "n": 4521,
+   "n_closes": 65,
+   "hit": 0.28,
+   "mkt_implied": 0.242,
+   "model_p": 0.283,
+   "net_c": 2.58,
+   "se_c": 5.47,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid.30-.70",
+    "pick": "against_model"
+   },
+   "n": 13607,
+   "n_closes": 104,
+   "hit": 0.569,
+   "mkt_implied": 0.583,
+   "model_p": 0.549,
+   "net_c": -3.12,
+   "se_c": 2.3,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid.30-.70",
+    "pick": "with_model"
+   },
+   "n": 13607,
+   "n_closes": 104,
+   "hit": 0.431,
+   "mkt_implied": 0.434,
+   "model_p": 0.451,
+   "net_c": -1.95,
+   "se_c": 2.31,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid>=.90",
+    "pick": "with_model"
+   },
+   "n": 2113,
+   "n_closes": 34,
+   "hit": 0.203,
+   "mkt_implied": 0.184,
+   "model_p": 0.212,
+   "net_c": 1.47,
+   "se_c": 5.07,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid>=.90",
+    "pick": "against_model"
+   },
+   "n": 1972,
+   "n_closes": 34,
+   "hit": 0.749,
+   "mkt_implied": 0.774,
+   "model_p": 0.74,
+   "net_c": -2.86,
+   "se_c": 5.18,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid.10-.30",
+    "pick": "with_model"
+   },
+   "n": 7151,
+   "n_closes": 81,
+   "hit": 0.274,
+   "mkt_implied": 0.326,
+   "model_p": 0.356,
+   "net_c": -6.37,
+   "se_c": 3.12,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid.10-.30",
+    "pick": "against_model"
+   },
+   "n": 7151,
+   "n_closes": 81,
+   "hit": 0.726,
+   "mkt_implied": 0.689,
+   "model_p": 0.644,
+   "net_c": 2.56,
+   "se_c": 3.13,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid<.10",
+    "pick": "against_model"
+   },
+   "n": 4248,
+   "n_closes": 61,
+   "hit": 0.692,
+   "mkt_implied": 0.678,
+   "model_p": 0.648,
+   "net_c": 1.0,
+   "se_c": 0.79,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "midb": "mid<.10",
+    "pick": "with_model"
+   },
+   "n": 4421,
+   "n_closes": 61,
+   "hit": 0.249,
+   "mkt_implied": 0.271,
+   "model_p": 0.294,
+   "net_c": -2.65,
+   "se_c": 0.74,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 2833,
+   "n_closes": 63,
+   "hit": 0.493,
+   "mkt_implied": 0.62,
+   "model_p": 0.588,
+   "net_c": -14.31,
+   "se_c": 8.5,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 2827,
+   "n_closes": 64,
+   "hit": 0.465,
+   "mkt_implied": 0.375,
+   "model_p": 0.395,
+   "net_c": 7.35,
+   "se_c": 8.25,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 1301,
+   "n_closes": 35,
+   "hit": 0.824,
+   "mkt_implied": 0.814,
+   "model_p": 0.755,
+   "net_c": -0.14,
+   "se_c": 6.29,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 1137,
+   "n_closes": 34,
+   "hit": 0.193,
+   "mkt_implied": 0.182,
+   "model_p": 0.226,
+   "net_c": 0.03,
+   "se_c": 7.42,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 3921,
+   "n_closes": 84,
+   "hit": 0.483,
+   "mkt_implied": 0.609,
+   "model_p": 0.577,
+   "net_c": -14.33,
+   "se_c": 6.78,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 3668,
+   "n_closes": 82,
+   "hit": 0.501,
+   "mkt_implied": 0.381,
+   "model_p": 0.403,
+   "net_c": 10.24,
+   "se_c": 7.04,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 5285,
+   "n_closes": 92,
+   "hit": 0.284,
+   "mkt_implied": 0.381,
+   "model_p": 0.395,
+   "net_c": -11.42,
+   "se_c": 5.45,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 5429,
+   "n_closes": 92,
+   "hit": 0.693,
+   "mkt_implied": 0.614,
+   "model_p": 0.587,
+   "net_c": 6.2,
+   "se_c": 5.55,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 1359,
+   "n_closes": 38,
+   "hit": 0.828,
+   "mkt_implied": 0.814,
+   "model_p": 0.763,
+   "net_c": 0.24,
+   "se_c": 6.74,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 457,
+   "n_closes": 29,
+   "hit": 0.414,
+   "mkt_implied": 0.607,
+   "model_p": 0.576,
+   "net_c": -21.03,
+   "se_c": 11.09,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 452,
+   "n_closes": 30,
+   "hit": 0.573,
+   "mkt_implied": 0.385,
+   "model_p": 0.401,
+   "net_c": 17.17,
+   "se_c": 11.54,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 777,
+   "n_closes": 35,
+   "hit": 0.856,
+   "mkt_implied": 0.625,
+   "model_p": 0.587,
+   "net_c": 21.45,
+   "se_c": 6.74,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 820,
+   "n_closes": 35,
+   "hit": 0.134,
+   "mkt_implied": 0.371,
+   "model_p": 0.395,
+   "net_c": -25.32,
+   "se_c": 6.39,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 486,
+   "n_closes": 21,
+   "hit": 0.593,
+   "mkt_implied": 0.834,
+   "model_p": 0.774,
+   "net_c": -25.17,
+   "se_c": 13.3,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 1187,
+   "n_closes": 31,
+   "hit": 0.116,
+   "mkt_implied": 0.181,
+   "model_p": 0.218,
+   "net_c": -7.53,
+   "se_c": 6.05,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 1029,
+   "n_closes": 18,
+   "hit": 0.741,
+   "mkt_implied": 0.945,
+   "model_p": 0.92,
+   "net_c": -20.76,
+   "se_c": 13.17,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 1097,
+   "n_closes": 20,
+   "hit": 0.222,
+   "mkt_implied": 0.051,
+   "model_p": 0.068,
+   "net_c": 16.63,
+   "se_c": 11.87,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 570,
+   "n_closes": 17,
+   "hit": 0.905,
+   "mkt_implied": 0.945,
+   "model_p": 0.892,
+   "net_c": -4.4,
+   "se_c": 5.89,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 589,
+   "n_closes": 19,
+   "hit": 0.071,
+   "mkt_implied": 0.051,
+   "model_p": 0.095,
+   "net_c": 1.6,
+   "se_c": 4.56,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 496,
+   "n_closes": 20,
+   "hit": 0.353,
+   "mkt_implied": 0.166,
+   "model_p": 0.213,
+   "net_c": 17.71,
+   "se_c": 12.82,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 721,
+   "n_closes": 34,
+   "hit": 0.046,
+   "mkt_implied": 0.166,
+   "model_p": 0.208,
+   "net_c": -13.04,
+   "se_c": 3.29,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 722,
+   "n_closes": 35,
+   "hit": 0.949,
+   "mkt_implied": 0.831,
+   "model_p": 0.772,
+   "net_c": 10.81,
+   "se_c": 3.41,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 276,
+   "n_closes": 16,
+   "hit": 0.283,
+   "mkt_implied": 0.166,
+   "model_p": 0.196,
+   "net_c": 10.7,
+   "se_c": 17.34,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 512,
+   "n_closes": 24,
+   "hit": 0.945,
+   "mkt_implied": 0.95,
+   "model_p": 0.927,
+   "net_c": -0.88,
+   "se_c": 4.86,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 620,
+   "n_closes": 21,
+   "hit": 0.024,
+   "mkt_implied": 0.048,
+   "model_p": 0.057,
+   "net_c": -2.76,
+   "se_c": 2.47,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 2114,
+   "n_closes": 46,
+   "hit": 0.945,
+   "mkt_implied": 0.814,
+   "model_p": 0.788,
+   "net_c": 12.0,
+   "se_c": 2.38,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 1863,
+   "n_closes": 42,
+   "hit": 0.033,
+   "mkt_implied": 0.184,
+   "model_p": 0.192,
+   "net_c": -16.17,
+   "se_c": 1.86,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 475,
+   "n_closes": 18,
+   "hit": 1.0,
+   "mkt_implied": 0.924,
+   "model_p": 0.924,
+   "net_c": 7.06,
+   "se_c": 0.31,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 2283,
+   "n_closes": 52,
+   "hit": 0.091,
+   "mkt_implied": 0.17,
+   "model_p": 0.195,
+   "net_c": -9.0,
+   "se_c": 4.09,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 2256,
+   "n_closes": 51,
+   "hit": 0.884,
+   "mkt_implied": 0.824,
+   "model_p": 0.783,
+   "net_c": 4.98,
+   "se_c": 4.85,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 2770,
+   "n_closes": 66,
+   "hit": 0.245,
+   "mkt_implied": 0.362,
+   "model_p": 0.38,
+   "net_c": -13.39,
+   "se_c": 6.37,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 2715,
+   "n_closes": 68,
+   "hit": 0.738,
+   "mkt_implied": 0.629,
+   "model_p": 0.598,
+   "net_c": 9.23,
+   "se_c": 6.48,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 2204,
+   "n_closes": 32,
+   "hit": 1.0,
+   "mkt_implied": 0.94,
+   "model_p": 0.921,
+   "net_c": 5.54,
+   "se_c": 0.22,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 2083,
+   "n_closes": 32,
+   "hit": 0.0,
+   "mkt_implied": 0.054,
+   "model_p": 0.065,
+   "net_c": -5.84,
+   "se_c": 0.19,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 257,
+   "n_closes": 14,
+   "hit": 0.732,
+   "mkt_implied": 0.837,
+   "model_p": 0.786,
+   "net_c": -11.53,
+   "se_c": 16.83,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 178,
+   "n_closes": 12,
+   "hit": 0.011,
+   "mkt_implied": 0.048,
+   "model_p": 0.086,
+   "net_c": -4.08,
+   "se_c": 1.23,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 160,
+   "n_closes": 12,
+   "hit": 0.969,
+   "mkt_implied": 0.949,
+   "model_p": 0.881,
+   "net_c": 1.55,
+   "se_c": 3.27,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 355,
+   "n_closes": 12,
+   "hit": 1.0,
+   "mkt_implied": 0.929,
+   "model_p": 0.908,
+   "net_c": 6.63,
+   "se_c": 0.73,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 277,
+   "n_closes": 10,
+   "hit": 0.0,
+   "mkt_implied": 0.066,
+   "model_p": 0.077,
+   "net_c": -7.11,
+   "se_c": 0.89,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 359,
+   "n_closes": 14,
+   "hit": 0.0,
+   "mkt_implied": 0.074,
+   "model_p": 0.066,
+   "net_c": -7.96,
+   "se_c": 0.3,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 1262,
+   "n_closes": 39,
+   "hit": 0.003,
+   "mkt_implied": 0.051,
+   "model_p": 0.079,
+   "net_c": -5.15,
+   "se_c": 0.45,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 1178,
+   "n_closes": 39,
+   "hit": 0.995,
+   "mkt_implied": 0.946,
+   "model_p": 0.908,
+   "net_c": 4.49,
+   "se_c": 0.59,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 295,
+   "n_closes": 11,
+   "hit": 0.064,
+   "mkt_implied": 0.362,
+   "model_p": 0.373,
+   "net_c": -31.36,
+   "se_c": 6.45,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 286,
+   "n_closes": 10,
+   "hit": 0.937,
+   "mkt_implied": 0.642,
+   "model_p": 0.609,
+   "net_c": 27.86,
+   "se_c": 6.75,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 136,
+   "n_closes": 8,
+   "hit": 0.279,
+   "mkt_implied": 0.607,
+   "model_p": 0.579,
+   "net_c": -34.48,
+   "se_c": 19.98,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 142,
+   "n_closes": 8,
+   "hit": 0.676,
+   "mkt_implied": 0.379,
+   "model_p": 0.386,
+   "net_c": 28.08,
+   "se_c": 21.96,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 83,
+   "n_closes": 10,
+   "hit": 0.145,
+   "mkt_implied": 0.158,
+   "model_p": 0.2,
+   "net_c": -2.34,
+   "se_c": 14.03,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 61,
+   "n_closes": 9,
+   "hit": 0.836,
+   "mkt_implied": 0.83,
+   "model_p": 0.772,
+   "net_c": -0.41,
+   "se_c": 14.92,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 105,
+   "n_closes": 4,
+   "hit": 0.686,
+   "mkt_implied": 0.821,
+   "model_p": 0.764,
+   "net_c": -14.56,
+   "se_c": 25.7,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 106,
+   "n_closes": 4,
+   "hit": 0.33,
+   "mkt_implied": 0.168,
+   "model_p": 0.212,
+   "net_c": 15.25,
+   "se_c": 31.19,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 65,
+   "n_closes": 3,
+   "hit": 0.723,
+   "mkt_implied": 0.927,
+   "model_p": 0.871,
+   "net_c": -20.91,
+   "se_c": 30.29,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 84,
+   "n_closes": 5,
+   "hit": 0.024,
+   "mkt_implied": 0.043,
+   "model_p": 0.062,
+   "net_c": -2.28,
+   "se_c": 3.2,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 77,
+   "n_closes": 6,
+   "hit": 0.935,
+   "mkt_implied": 0.954,
+   "model_p": 0.9,
+   "net_c": -2.24,
+   "se_c": 7.63,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 82,
+   "n_closes": 6,
+   "hit": 0.061,
+   "mkt_implied": 0.055,
+   "model_p": 0.086,
+   "net_c": 0.21,
+   "se_c": 7.09,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 79,
+   "n_closes": 5,
+   "hit": 0.658,
+   "mkt_implied": 0.832,
+   "model_p": 0.747,
+   "net_c": -18.33,
+   "se_c": 28.31,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 71,
+   "n_closes": 5,
+   "hit": 0.296,
+   "mkt_implied": 0.178,
+   "model_p": 0.231,
+   "net_c": 10.68,
+   "se_c": 26.14,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 56,
+   "n_closes": 8,
+   "hit": 0.464,
+   "mkt_implied": 0.618,
+   "model_p": 0.578,
+   "net_c": -17.04,
+   "se_c": 20.83,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 54,
+   "n_closes": 7,
+   "hit": 0.389,
+   "mkt_implied": 0.348,
+   "model_p": 0.38,
+   "net_c": 2.44,
+   "se_c": 26.4,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 89,
+   "n_closes": 9,
+   "hit": 0.854,
+   "mkt_implied": 0.593,
+   "model_p": 0.573,
+   "net_c": 24.39,
+   "se_c": 11.24,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 81,
+   "n_closes": 8,
+   "hit": 0.16,
+   "mkt_implied": 0.403,
+   "model_p": 0.399,
+   "net_c": -25.94,
+   "se_c": 12.49,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 6535,
+   "n_closes": 102,
+   "hit": 0.495,
+   "mkt_implied": 0.587,
+   "model_p": 0.553,
+   "net_c": -10.41,
+   "se_c": 5.04,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 912,
+   "n_closes": 54,
+   "hit": 0.17,
+   "mkt_implied": 0.218,
+   "model_p": 0.285,
+   "net_c": -6.04,
+   "se_c": 5.19,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 4103,
+   "n_closes": 96,
+   "hit": 0.492,
+   "mkt_implied": 0.388,
+   "model_p": 0.409,
+   "net_c": 9.26,
+   "se_c": 5.68,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 7832,
+   "n_closes": 109,
+   "hit": 0.458,
+   "mkt_implied": 0.554,
+   "model_p": 0.522,
+   "net_c": -11.02,
+   "se_c": 4.52,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 4886,
+   "n_closes": 105,
+   "hit": 0.54,
+   "mkt_implied": 0.448,
+   "model_p": 0.468,
+   "net_c": 7.76,
+   "se_c": 4.94,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 4722,
+   "n_closes": 104,
+   "hit": 0.254,
+   "mkt_implied": 0.363,
+   "model_p": 0.383,
+   "net_c": -12.41,
+   "se_c": 4.51,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 7423,
+   "n_closes": 109,
+   "hit": 0.72,
+   "mkt_implied": 0.637,
+   "model_p": 0.606,
+   "net_c": 6.85,
+   "se_c": 4.36,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 588,
+   "n_closes": 47,
+   "hit": 0.247,
+   "mkt_implied": 0.266,
+   "model_p": 0.333,
+   "net_c": -3.34,
+   "se_c": 11.09,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 7221,
+   "n_closes": 100,
+   "hit": 0.804,
+   "mkt_implied": 0.716,
+   "model_p": 0.683,
+   "net_c": 7.62,
+   "se_c": 3.9,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 4999,
+   "n_closes": 93,
+   "hit": 0.145,
+   "mkt_implied": 0.259,
+   "model_p": 0.281,
+   "net_c": -12.54,
+   "se_c": 3.71,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 1921,
+   "n_closes": 61,
+   "hit": 0.498,
+   "mkt_implied": 0.662,
+   "model_p": 0.619,
+   "net_c": -17.32,
+   "se_c": 6.31,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 1045,
+   "n_closes": 54,
+   "hit": 0.5,
+   "mkt_implied": 0.289,
+   "model_p": 0.311,
+   "net_c": 20.06,
+   "se_c": 8.47,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 1704,
+   "n_closes": 59,
+   "hit": 0.073,
+   "mkt_implied": 0.187,
+   "model_p": 0.21,
+   "net_c": -12.24,
+   "se_c": 2.71,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 2655,
+   "n_closes": 66,
+   "hit": 0.909,
+   "mkt_implied": 0.796,
+   "model_p": 0.75,
+   "net_c": 10.4,
+   "se_c": 2.97,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 686,
+   "n_closes": 42,
+   "hit": 0.085,
+   "mkt_implied": 0.174,
+   "model_p": 0.251,
+   "net_c": -9.94,
+   "se_c": 4.07,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 513,
+   "n_closes": 34,
+   "hit": 0.121,
+   "mkt_implied": 0.139,
+   "model_p": 0.215,
+   "net_c": -2.58,
+   "se_c": 4.96,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 715,
+   "n_closes": 29,
+   "hit": 0.207,
+   "mkt_implied": 0.365,
+   "model_p": 0.329,
+   "net_c": -16.74,
+   "se_c": 7.53,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 902,
+   "n_closes": 32,
+   "hit": 0.828,
+   "mkt_implied": 0.777,
+   "model_p": 0.73,
+   "net_c": 4.17,
+   "se_c": 9.23,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 385,
+   "n_closes": 25,
+   "hit": 0.688,
+   "mkt_implied": 0.594,
+   "model_p": 0.611,
+   "net_c": 8.59,
+   "se_c": 5.66,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 571,
+   "n_closes": 29,
+   "hit": 0.089,
+   "mkt_implied": 0.185,
+   "model_p": 0.205,
+   "net_c": -10.4,
+   "se_c": 5.39,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 764,
+   "n_closes": 54,
+   "hit": 0.203,
+   "mkt_implied": 0.208,
+   "model_p": 0.27,
+   "net_c": -1.62,
+   "se_c": 7.84,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 288,
+   "n_closes": 17,
+   "hit": 0.493,
+   "mkt_implied": 0.62,
+   "model_p": 0.559,
+   "net_c": -13.64,
+   "se_c": 12.52,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 133,
+   "n_closes": 14,
+   "hit": 0.368,
+   "mkt_implied": 0.311,
+   "model_p": 0.335,
+   "net_c": 4.92,
+   "se_c": 10.25,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 841,
+   "n_closes": 45,
+   "hit": 0.264,
+   "mkt_implied": 0.248,
+   "model_p": 0.313,
+   "net_c": 0.35,
+   "se_c": 8.49,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 204,
+   "n_closes": 16,
+   "hit": 0.338,
+   "mkt_implied": 0.21,
+   "model_p": 0.293,
+   "net_c": 11.77,
+   "se_c": 23.55,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 7,
+   "n_closes": 5,
+   "hit": 0.143,
+   "mkt_implied": 0.241,
+   "model_p": 0.416,
+   "net_c": -11.07,
+   "se_c": 18.95,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge>15c",
+    "side": "no"
+   },
+   "n": 8,
+   "n_closes": 5,
+   "hit": 0.375,
+   "mkt_implied": 0.437,
+   "model_p": 0.629,
+   "net_c": -7.84,
+   "se_c": 21.81,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 92,
+   "n_closes": 12,
+   "hit": 0.63,
+   "mkt_implied": 0.297,
+   "model_p": 0.372,
+   "net_c": 32.19,
+   "se_c": 25.35,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 300,
+   "n_closes": 15,
+   "hit": 0.823,
+   "mkt_implied": 0.756,
+   "model_p": 0.69,
+   "net_c": 5.88,
+   "se_c": 8.06,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 120,
+   "n_closes": 14,
+   "hit": 0.133,
+   "mkt_implied": 0.166,
+   "model_p": 0.247,
+   "net_c": -4.07,
+   "se_c": 9.31,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 139,
+   "n_closes": 14,
+   "hit": 0.122,
+   "mkt_implied": 0.209,
+   "model_p": 0.233,
+   "net_c": -9.47,
+   "se_c": 6.02,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 5,
+   "n_closes": 4,
+   "hit": 0.0,
+   "mkt_implied": 0.153,
+   "model_p": 0.321,
+   "net_c": -16.18,
+   "se_c": 4.72,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 74,
+   "n_closes": 10,
+   "hit": 0.378,
+   "mkt_implied": 0.274,
+   "model_p": 0.362,
+   "net_c": 9.31,
+   "se_c": 17.65,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge>15c",
+    "side": "no"
+   },
+   "n": 10,
+   "n_closes": 5,
+   "hit": 0.5,
+   "mkt_implied": 0.292,
+   "model_p": 0.486,
+   "net_c": 19.47,
+   "se_c": 27.17,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge>15c",
+    "side": "no"
+   },
+   "n": 1,
+   "n_closes": 1,
+   "hit": 0.0,
+   "mkt_implied": 0.111,
+   "model_p": 0.269,
+   "net_c": -11.8,
+   "se_c": null,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 7,
+   "n_closes": 5,
+   "hit": 0.286,
+   "mkt_implied": 0.086,
+   "model_p": 0.288,
+   "net_c": 19.43,
+   "se_c": 24.75,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "full_sample_IN_SAMPLE",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 1,
+   "n_closes": 1,
+   "hit": 1.0,
+   "mkt_implied": 0.511,
+   "model_p": 0.699,
+   "net_c": 47.1,
+   "se_c": null,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "side": "yes"
+   },
+   "n": 16314,
+   "n_closes": 56,
+   "hit": 0.32,
+   "mkt_implied": 0.429,
+   "model_p": 0.422,
+   "net_c": -12.13,
+   "se_c": 4.91,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "side": "no"
+   },
+   "n": 16133,
+   "n_closes": 56,
+   "hit": 0.668,
+   "mkt_implied": 0.572,
+   "model_p": 0.566,
+   "net_c": 8.43,
+   "se_c": 4.99,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "with_model": "against_model"
+   },
+   "n": 16189,
+   "n_closes": 56,
+   "hit": 0.628,
+   "mkt_implied": 0.642,
+   "model_p": 0.607,
+   "net_c": -2.68,
+   "se_c": 2.77,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "with_model": "with_model"
+   },
+   "n": 16258,
+   "n_closes": 56,
+   "hit": 0.36,
+   "mkt_implied": 0.359,
+   "model_p": 0.38,
+   "net_c": -1.14,
+   "se_c": 2.75,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "fav": "favourite"
+   },
+   "n": 16409,
+   "n_closes": 56,
+   "hit": 0.758,
+   "mkt_implied": 0.744,
+   "model_p": 0.715,
+   "net_c": 0.12,
+   "se_c": 3.14,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "fav": "longshot"
+   },
+   "n": 16038,
+   "n_closes": 56,
+   "hit": 0.223,
+   "mkt_implied": 0.251,
+   "model_p": 0.266,
+   "net_c": -3.98,
+   "se_c": 3.19,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "pxb": "px.50-.75"
+   },
+   "n": 8375,
+   "n_closes": 55,
+   "hit": 0.624,
+   "mkt_implied": 0.617,
+   "model_p": 0.59,
+   "net_c": -0.92,
+   "se_c": 3.86,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "pxb": "px.25-.50"
+   },
+   "n": 8219,
+   "n_closes": 55,
+   "hit": 0.352,
+   "mkt_implied": 0.377,
+   "model_p": 0.39,
+   "net_c": -4.11,
+   "se_c": 4.24,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "pxb": "px.75-.90"
+   },
+   "n": 4305,
+   "n_closes": 54,
+   "hit": 0.859,
+   "mkt_implied": 0.822,
+   "model_p": 0.784,
+   "net_c": 2.69,
+   "se_c": 3.93,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "pxb": "px.10-.25"
+   },
+   "n": 4155,
+   "n_closes": 53,
+   "hit": 0.12,
+   "mkt_implied": 0.173,
+   "model_p": 0.195,
+   "net_c": -6.31,
+   "se_c": 3.74,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "pxb": "px>=.90"
+   },
+   "n": 3729,
+   "n_closes": 48,
+   "hit": 0.94,
+   "mkt_implied": 0.941,
+   "model_p": 0.918,
+   "net_c": -0.53,
+   "se_c": 3.65,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "pxb": "px<.10"
+   },
+   "n": 3664,
+   "n_closes": 48,
+   "hit": 0.048,
+   "mkt_implied": 0.055,
+   "model_p": 0.069,
+   "net_c": -1.04,
+   "se_c": 3.24,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "edgeb": "medge<=0"
+   },
+   "n": 18620,
+   "n_closes": 56,
+   "hit": 0.608,
+   "mkt_implied": 0.62,
+   "model_p": 0.589,
+   "net_c": -2.52,
+   "se_c": 2.32,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "edgeb": "medge0-5c"
+   },
+   "n": 12050,
+   "n_closes": 56,
+   "hit": 0.364,
+   "mkt_implied": 0.357,
+   "model_p": 0.376,
+   "net_c": -0.51,
+   "se_c": 3.25,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "edgeb": "medge5-15c"
+   },
+   "n": 1757,
+   "n_closes": 49,
+   "hit": 0.171,
+   "mkt_implied": 0.212,
+   "model_p": 0.281,
+   "net_c": -5.12,
+   "se_c": 4.36,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "edgeb": "medge>15c"
+   },
+   "n": 20,
+   "n_closes": 9,
+   "hit": 0.35,
+   "mkt_implied": 0.279,
+   "model_p": 0.466,
+   "net_c": 5.92,
+   "se_c": 18.0,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pick": "against_model"
+   },
+   "n": 6658,
+   "n_closes": 56,
+   "hit": 0.598,
+   "mkt_implied": 0.591,
+   "model_p": 0.56,
+   "net_c": -0.75,
+   "se_c": 3.42,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pick": "with_model"
+   },
+   "n": 6655,
+   "n_closes": 56,
+   "hit": 0.401,
+   "mkt_implied": 0.423,
+   "model_p": 0.44,
+   "net_c": -3.61,
+   "se_c": 3.41,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pick": "with_model"
+   },
+   "n": 6272,
+   "n_closes": 56,
+   "hit": 0.351,
+   "mkt_implied": 0.336,
+   "model_p": 0.357,
+   "net_c": 0.31,
+   "se_c": 3.45,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pick": "against_model"
+   },
+   "n": 6274,
+   "n_closes": 56,
+   "hit": 0.634,
+   "mkt_implied": 0.661,
+   "model_p": 0.627,
+   "net_c": -3.74,
+   "se_c": 3.43,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pick": "against_model"
+   },
+   "n": 2146,
+   "n_closes": 39,
+   "hit": 0.723,
+   "mkt_implied": 0.748,
+   "model_p": 0.706,
+   "net_c": -3.41,
+   "se_c": 4.31,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pick": "with_model"
+   },
+   "n": 2210,
+   "n_closes": 40,
+   "hit": 0.244,
+   "mkt_implied": 0.232,
+   "model_p": 0.264,
+   "net_c": 0.23,
+   "se_c": 4.13,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pick": "with_model"
+   },
+   "n": 779,
+   "n_closes": 16,
+   "hit": 0.418,
+   "mkt_implied": 0.372,
+   "model_p": 0.398,
+   "net_c": 3.63,
+   "se_c": 6.66,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pick": "against_model"
+   },
+   "n": 775,
+   "n_closes": 17,
+   "hit": 0.554,
+   "mkt_implied": 0.619,
+   "model_p": 0.576,
+   "net_c": -7.48,
+   "se_c": 6.71,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pick": "with_model"
+   },
+   "n": 342,
+   "n_closes": 10,
+   "hit": 0.33,
+   "mkt_implied": 0.313,
+   "model_p": 0.357,
+   "net_c": 0.73,
+   "se_c": 8.57,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pick": "against_model"
+   },
+   "n": 336,
+   "n_closes": 10,
+   "hit": 0.643,
+   "mkt_implied": 0.685,
+   "model_p": 0.618,
+   "net_c": -5.2,
+   "se_c": 8.9,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|<.5",
+    "pick": "against_model"
+   },
+   "n": 7513,
+   "n_closes": 54,
+   "hit": 0.575,
+   "mkt_implied": 0.596,
+   "model_p": 0.561,
+   "net_c": -3.76,
+   "se_c": 3.37,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|<.5",
+    "pick": "with_model"
+   },
+   "n": 7513,
+   "n_closes": 54,
+   "hit": 0.425,
+   "mkt_implied": 0.42,
+   "model_p": 0.439,
+   "net_c": -1.22,
+   "se_c": 3.37,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|.5-1",
+    "pick": "against_model"
+   },
+   "n": 4209,
+   "n_closes": 52,
+   "hit": 0.748,
+   "mkt_implied": 0.74,
+   "model_p": 0.694,
+   "net_c": -0.31,
+   "se_c": 3.87,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|.5-1",
+    "pick": "with_model"
+   },
+   "n": 4210,
+   "n_closes": 52,
+   "hit": 0.252,
+   "mkt_implied": 0.276,
+   "model_p": 0.306,
+   "net_c": -3.57,
+   "se_c": 3.85,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|1-2",
+    "pick": "against_model"
+   },
+   "n": 4116,
+   "n_closes": 48,
+   "hit": 0.653,
+   "mkt_implied": 0.679,
+   "model_p": 0.652,
+   "net_c": -3.15,
+   "se_c": 3.23,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|1-2",
+    "pick": "with_model"
+   },
+   "n": 4317,
+   "n_closes": 48,
+   "hit": 0.331,
+   "mkt_implied": 0.314,
+   "model_p": 0.333,
+   "net_c": 1.17,
+   "se_c": 3.12,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|>=2",
+    "pick": "against_model"
+   },
+   "n": 351,
+   "n_closes": 23,
+   "hit": 0.011,
+   "mkt_implied": 0.035,
+   "model_p": 0.023,
+   "net_c": -2.62,
+   "se_c": 0.34,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "zb": "|z|>=2",
+    "pick": "with_model"
+   },
+   "n": 218,
+   "n_closes": 21,
+   "hit": 0.757,
+   "mkt_implied": 0.725,
+   "model_p": 0.731,
+   "net_c": 3.01,
+   "se_c": 1.51,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "sprb": "spr<=1c",
+    "pick": "against_model"
+   },
+   "n": 12594,
+   "n_closes": 56,
+   "hit": 0.63,
+   "mkt_implied": 0.644,
+   "model_p": 0.611,
+   "net_c": -2.58,
+   "se_c": 2.82,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "sprb": "spr<=1c",
+    "pick": "with_model"
+   },
+   "n": 12663,
+   "n_closes": 56,
+   "hit": 0.355,
+   "mkt_implied": 0.352,
+   "model_p": 0.374,
+   "net_c": -0.84,
+   "se_c": 2.81,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "sprb": "spr1-3c",
+    "pick": "against_model"
+   },
+   "n": 3550,
+   "n_closes": 56,
+   "hit": 0.622,
+   "mkt_implied": 0.636,
+   "model_p": 0.594,
+   "net_c": -2.82,
+   "se_c": 3.11,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "sprb": "spr1-3c",
+    "pick": "with_model"
+   },
+   "n": 3550,
+   "n_closes": 56,
+   "hit": 0.373,
+   "mkt_implied": 0.382,
+   "model_p": 0.401,
+   "net_c": -2.38,
+   "se_c": 3.1,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "sprb": "spr>3c",
+    "pick": "with_model"
+   },
+   "n": 45,
+   "n_closes": 15,
+   "hit": 0.556,
+   "mkt_implied": 0.41,
+   "model_p": 0.458,
+   "net_c": 13.17,
+   "se_c": 17.52,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "sprb": "spr>3c",
+    "pick": "against_model"
+   },
+   "n": 45,
+   "n_closes": 15,
+   "hit": 0.444,
+   "mkt_implied": 0.635,
+   "model_p": 0.542,
+   "net_c": -20.38,
+   "se_c": 17.57,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "depb": "depth>=200",
+    "pick": "against_model"
+   },
+   "n": 7908,
+   "n_closes": 56,
+   "hit": 0.636,
+   "mkt_implied": 0.643,
+   "model_p": 0.607,
+   "net_c": -2.09,
+   "se_c": 2.86,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "depb": "depth50-200",
+    "pick": "with_model"
+   },
+   "n": 4665,
+   "n_closes": 56,
+   "hit": 0.331,
+   "mkt_implied": 0.344,
+   "model_p": 0.366,
+   "net_c": -2.43,
+   "se_c": 2.83,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "depb": "depth<50",
+    "pick": "against_model"
+   },
+   "n": 3810,
+   "n_closes": 56,
+   "hit": 0.634,
+   "mkt_implied": 0.652,
+   "model_p": 0.616,
+   "net_c": -2.76,
+   "se_c": 2.88,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "depb": "depth>=200",
+    "pick": "with_model"
+   },
+   "n": 7799,
+   "n_closes": 56,
+   "hit": 0.381,
+   "mkt_implied": 0.378,
+   "model_p": 0.4,
+   "net_c": -1.03,
+   "se_c": 3.16,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "depb": "depth50-200",
+    "pick": "against_model"
+   },
+   "n": 4471,
+   "n_closes": 56,
+   "hit": 0.607,
+   "mkt_implied": 0.632,
+   "model_p": 0.599,
+   "net_c": -3.65,
+   "se_c": 3.13,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "depb": "depth<50",
+    "pick": "with_model"
+   },
+   "n": 3794,
+   "n_closes": 56,
+   "hit": 0.35,
+   "mkt_implied": 0.337,
+   "model_p": 0.358,
+   "net_c": 0.23,
+   "se_c": 2.56,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "volb": "vol.7-1.2bp",
+    "pick": "against_model"
+   },
+   "n": 6729,
+   "n_closes": 26,
+   "hit": 0.641,
+   "mkt_implied": 0.641,
+   "model_p": 0.607,
+   "net_c": -1.34,
+   "se_c": 3.3,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "volb": "vol.7-1.2bp",
+    "pick": "with_model"
+   },
+   "n": 6805,
+   "n_closes": 26,
+   "hit": 0.352,
+   "mkt_implied": 0.364,
+   "model_p": 0.385,
+   "net_c": -2.5,
+   "se_c": 3.2,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "volb": "vol>=1.2bp",
+    "pick": "with_model"
+   },
+   "n": 8183,
+   "n_closes": 31,
+   "hit": 0.344,
+   "mkt_implied": 0.35,
+   "model_p": 0.372,
+   "net_c": -1.75,
+   "se_c": 4.64,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "volb": "vol>=1.2bp",
+    "pick": "against_model"
+   },
+   "n": 8175,
+   "n_closes": 31,
+   "hit": 0.64,
+   "mkt_implied": 0.648,
+   "model_p": 0.612,
+   "net_c": -2.01,
+   "se_c": 4.63,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "volb": "vol<.7bp",
+    "pick": "with_model"
+   },
+   "n": 1270,
+   "n_closes": 7,
+   "hit": 0.504,
+   "mkt_implied": 0.39,
+   "model_p": 0.406,
+   "net_c": 10.16,
+   "se_c": 7.41,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "volb": "vol<.7bp",
+    "pick": "against_model"
+   },
+   "n": 1285,
+   "n_closes": 7,
+   "hit": 0.482,
+   "mkt_implied": 0.608,
+   "model_p": 0.579,
+   "net_c": -13.91,
+   "se_c": 7.4,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "partb": "partial0",
+    "pick": "against_model"
+   },
+   "n": 15855,
+   "n_closes": 56,
+   "hit": 0.627,
+   "mkt_implied": 0.641,
+   "model_p": 0.607,
+   "net_c": -2.63,
+   "se_c": 2.83,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "partb": "partial0",
+    "pick": "with_model"
+   },
+   "n": 15918,
+   "n_closes": 56,
+   "hit": 0.36,
+   "mkt_implied": 0.36,
+   "model_p": 0.381,
+   "net_c": -1.17,
+   "se_c": 2.81,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "partb": "partial1-30",
+    "pick": "with_model"
+   },
+   "n": 251,
+   "n_closes": 10,
+   "hit": 0.347,
+   "mkt_implied": 0.356,
+   "model_p": 0.396,
+   "net_c": -2.1,
+   "se_c": 5.8,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "partb": "partial1-30",
+    "pick": "against_model"
+   },
+   "n": 248,
+   "n_closes": 10,
+   "hit": 0.649,
+   "mkt_implied": 0.662,
+   "model_p": 0.6,
+   "net_c": -2.41,
+   "se_c": 5.98,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "partb": "partial31-59",
+    "pick": "against_model"
+   },
+   "n": 86,
+   "n_closes": 6,
+   "hit": 0.64,
+   "mkt_implied": 0.762,
+   "model_p": 0.682,
+   "net_c": -12.94,
+   "se_c": 17.83,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "partb": "partial31-59",
+    "pick": "with_model"
+   },
+   "n": 89,
+   "n_closes": 6,
+   "hit": 0.27,
+   "mkt_implied": 0.178,
+   "model_p": 0.236,
+   "net_c": 8.42,
+   "se_c": 16.93,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h00-05PT",
+    "pick": "against_model"
+   },
+   "n": 238,
+   "n_closes": 1,
+   "hit": 0.723,
+   "mkt_implied": 0.576,
+   "model_p": 0.539,
+   "net_c": 12.89,
+   "se_c": null,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h00-05PT",
+    "pick": "with_model"
+   },
+   "n": 238,
+   "n_closes": 1,
+   "hit": 0.277,
+   "mkt_implied": 0.44,
+   "model_p": 0.461,
+   "net_c": -18.02,
+   "se_c": null,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h06-11PT",
+    "pick": "against_model"
+   },
+   "n": 6768,
+   "n_closes": 24,
+   "hit": 0.651,
+   "mkt_implied": 0.657,
+   "model_p": 0.62,
+   "net_c": -1.87,
+   "se_c": 3.56,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h06-11PT",
+    "pick": "with_model"
+   },
+   "n": 6832,
+   "n_closes": 24,
+   "hit": 0.339,
+   "mkt_implied": 0.346,
+   "model_p": 0.371,
+   "net_c": -1.91,
+   "se_c": 3.46,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h12-17PT",
+    "pick": "with_model"
+   },
+   "n": 7015,
+   "n_closes": 24,
+   "hit": 0.357,
+   "mkt_implied": 0.339,
+   "model_p": 0.359,
+   "net_c": 0.66,
+   "se_c": 5.0,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h12-17PT",
+    "pick": "against_model"
+   },
+   "n": 6985,
+   "n_closes": 24,
+   "hit": 0.627,
+   "mkt_implied": 0.659,
+   "model_p": 0.625,
+   "net_c": -4.4,
+   "se_c": 5.02,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h18-23PT",
+    "pick": "against_model"
+   },
+   "n": 2198,
+   "n_closes": 7,
+   "hit": 0.548,
+   "mkt_implied": 0.55,
+   "model_p": 0.519,
+   "net_c": -1.39,
+   "se_c": 7.07,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "hourb": "h18-23PT",
+    "pick": "with_model"
+   },
+   "n": 2173,
+   "n_closes": 7,
+   "hit": 0.44,
+   "mkt_implied": 0.454,
+   "model_p": 0.47,
+   "net_c": -2.66,
+   "se_c": 7.28,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_disagree",
+    "pick": "against_model"
+   },
+   "n": 1818,
+   "n_closes": 42,
+   "hit": 0.534,
+   "mkt_implied": 0.575,
+   "model_p": 0.542,
+   "net_c": -5.69,
+   "se_c": 4.91,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_disagree",
+    "pick": "with_model"
+   },
+   "n": 1817,
+   "n_closes": 42,
+   "hit": 0.465,
+   "mkt_implied": 0.439,
+   "model_p": 0.456,
+   "net_c": 0.99,
+   "se_c": 4.9,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_agree",
+    "pick": "with_model"
+   },
+   "n": 11536,
+   "n_closes": 56,
+   "hit": 0.348,
+   "mkt_implied": 0.352,
+   "model_p": 0.373,
+   "net_c": -1.49,
+   "se_c": 3.35,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_agree",
+    "pick": "against_model"
+   },
+   "n": 11477,
+   "n_closes": 56,
+   "hit": 0.636,
+   "mkt_implied": 0.645,
+   "model_p": 0.612,
+   "net_c": -2.06,
+   "se_c": 3.35,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_mixed",
+    "pick": "with_model"
+   },
+   "n": 2716,
+   "n_closes": 36,
+   "hit": 0.342,
+   "mkt_implied": 0.342,
+   "model_p": 0.368,
+   "net_c": -1.35,
+   "se_c": 5.76,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_mixed",
+    "pick": "against_model"
+   },
+   "n": 2709,
+   "n_closes": 36,
+   "hit": 0.653,
+   "mkt_implied": 0.669,
+   "model_p": 0.629,
+   "net_c": -2.98,
+   "se_c": 5.82,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_na",
+    "pick": "with_model"
+   },
+   "n": 189,
+   "n_closes": 12,
+   "hit": 0.291,
+   "mkt_implied": 0.252,
+   "model_p": 0.303,
+   "net_c": 2.98,
+   "se_c": 12.14,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "comove": "comove_na",
+    "pick": "against_model"
+   },
+   "n": 185,
+   "n_closes": 12,
+   "hit": 0.665,
+   "mkt_implied": 0.73,
+   "model_p": 0.657,
+   "net_c": -7.39,
+   "se_c": 12.59,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid.30-.70",
+    "pick": "against_model"
+   },
+   "n": 6849,
+   "n_closes": 53,
+   "hit": 0.557,
+   "mkt_implied": 0.577,
+   "model_p": 0.546,
+   "net_c": -3.75,
+   "se_c": 3.21,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid.30-.70",
+    "pick": "with_model"
+   },
+   "n": 6849,
+   "n_closes": 53,
+   "hit": 0.443,
+   "mkt_implied": 0.439,
+   "model_p": 0.454,
+   "net_c": -1.27,
+   "se_c": 3.21,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid.10-.30",
+    "pick": "with_model"
+   },
+   "n": 3585,
+   "n_closes": 42,
+   "hit": 0.3,
+   "mkt_implied": 0.355,
+   "model_p": 0.379,
+   "net_c": -6.65,
+   "se_c": 3.79,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid.10-.30",
+    "pick": "against_model"
+   },
+   "n": 3585,
+   "n_closes": 42,
+   "hit": 0.7,
+   "mkt_implied": 0.66,
+   "model_p": 0.621,
+   "net_c": 2.9,
+   "se_c": 3.8,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid.70-.90",
+    "pick": "against_model"
+   },
+   "n": 2237,
+   "n_closes": 31,
+   "hit": 0.686,
+   "mkt_implied": 0.772,
+   "model_p": 0.721,
+   "net_c": -9.74,
+   "se_c": 8.98,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid.70-.90",
+    "pick": "with_model"
+   },
+   "n": 2237,
+   "n_closes": 31,
+   "hit": 0.314,
+   "mkt_implied": 0.244,
+   "model_p": 0.279,
+   "net_c": 5.78,
+   "se_c": 8.95,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid>=.90",
+    "pick": "against_model"
+   },
+   "n": 1006,
+   "n_closes": 19,
+   "hit": 0.648,
+   "mkt_implied": 0.735,
+   "model_p": 0.707,
+   "net_c": -9.12,
+   "se_c": 9.77,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid>=.90",
+    "pick": "with_model"
+   },
+   "n": 1070,
+   "n_closes": 19,
+   "hit": 0.306,
+   "mkt_implied": 0.224,
+   "model_p": 0.247,
+   "net_c": 7.74,
+   "se_c": 9.65,
+   "verdict": "insufficient",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid<.10",
+    "pick": "against_model"
+   },
+   "n": 2512,
+   "n_closes": 34,
+   "hit": 0.656,
+   "mkt_implied": 0.641,
+   "model_p": 0.614,
+   "net_c": 1.15,
+   "se_c": 0.8,
+   "verdict": "indeterminate",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "midb": "mid<.10",
+    "pick": "with_model"
+   },
+   "n": 2517,
+   "n_closes": 34,
+   "hit": 0.281,
+   "mkt_implied": 0.306,
+   "model_p": 0.327,
+   "net_c": -2.85,
+   "se_c": 0.77,
+   "verdict": "unfavourable",
+   "side_literal": false,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 2112,
+   "n_closes": 43,
+   "hit": 0.519,
+   "mkt_implied": 0.607,
+   "model_p": 0.577,
+   "net_c": -10.46,
+   "se_c": 9.67,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 1968,
+   "n_closes": 42,
+   "hit": 0.466,
+   "mkt_implied": 0.386,
+   "model_p": 0.404,
+   "net_c": 6.34,
+   "se_c": 10.07,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 2654,
+   "n_closes": 46,
+   "hit": 0.728,
+   "mkt_implied": 0.614,
+   "model_p": 0.592,
+   "net_c": 9.67,
+   "se_c": 7.29,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 2557,
+   "n_closes": 46,
+   "hit": 0.243,
+   "mkt_implied": 0.381,
+   "model_p": 0.39,
+   "net_c": -15.44,
+   "se_c": 7.0,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 1241,
+   "n_closes": 30,
+   "hit": 0.275,
+   "mkt_implied": 0.363,
+   "model_p": 0.374,
+   "net_c": -10.41,
+   "se_c": 10.01,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 1204,
+   "n_closes": 30,
+   "hit": 0.711,
+   "mkt_implied": 0.629,
+   "model_p": 0.604,
+   "net_c": 6.6,
+   "se_c": 9.98,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 1427,
+   "n_closes": 34,
+   "hit": 0.474,
+   "mkt_implied": 0.619,
+   "model_p": 0.589,
+   "net_c": -16.18,
+   "se_c": 11.98,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 1430,
+   "n_closes": 34,
+   "hit": 0.49,
+   "mkt_implied": 0.379,
+   "model_p": 0.395,
+   "net_c": 9.42,
+   "se_c": 11.72,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 1007,
+   "n_closes": 27,
+   "hit": 0.902,
+   "mkt_implied": 0.831,
+   "model_p": 0.8,
+   "net_c": 6.07,
+   "se_c": 5.54,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 501,
+   "n_closes": 16,
+   "hit": 0.88,
+   "mkt_implied": 0.807,
+   "model_p": 0.767,
+   "net_c": 6.22,
+   "se_c": 7.04,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 411,
+   "n_closes": 14,
+   "hit": 0.068,
+   "mkt_implied": 0.188,
+   "model_p": 0.216,
+   "net_c": -13.08,
+   "se_c": 4.68,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 158,
+   "n_closes": 4,
+   "hit": 1.0,
+   "mkt_implied": 0.937,
+   "model_p": 0.933,
+   "net_c": 5.8,
+   "se_c": 1.07,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 139,
+   "n_closes": 4,
+   "hit": 0.0,
+   "mkt_implied": 0.059,
+   "model_p": 0.053,
+   "net_c": -6.38,
+   "se_c": 1.25,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 781,
+   "n_closes": 20,
+   "hit": 0.841,
+   "mkt_implied": 0.816,
+   "model_p": 0.762,
+   "net_c": 1.39,
+   "se_c": 7.8,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 722,
+   "n_closes": 19,
+   "hit": 0.181,
+   "mkt_implied": 0.185,
+   "model_p": 0.224,
+   "net_c": -1.46,
+   "se_c": 9.6,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 321,
+   "n_closes": 14,
+   "hit": 0.555,
+   "mkt_implied": 0.836,
+   "model_p": 0.78,
+   "net_c": -29.15,
+   "se_c": 16.42,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 318,
+   "n_closes": 14,
+   "hit": 0.387,
+   "mkt_implied": 0.163,
+   "model_p": 0.204,
+   "net_c": 21.36,
+   "se_c": 16.08,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 350,
+   "n_closes": 11,
+   "hit": 0.871,
+   "mkt_implied": 0.942,
+   "model_p": 0.896,
+   "net_c": -7.45,
+   "se_c": 9.29,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 356,
+   "n_closes": 12,
+   "hit": 0.101,
+   "mkt_implied": 0.056,
+   "model_p": 0.093,
+   "net_c": 4.11,
+   "se_c": 7.39,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 229,
+   "n_closes": 15,
+   "hit": 0.424,
+   "mkt_implied": 0.619,
+   "model_p": 0.592,
+   "net_c": -21.23,
+   "se_c": 16.16,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 248,
+   "n_closes": 15,
+   "hit": 0.577,
+   "mkt_implied": 0.37,
+   "model_p": 0.384,
+   "net_c": 19.05,
+   "se_c": 16.65,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 389,
+   "n_closes": 15,
+   "hit": 0.121,
+   "mkt_implied": 0.358,
+   "model_p": 0.383,
+   "net_c": -25.3,
+   "se_c": 8.64,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 358,
+   "n_closes": 15,
+   "hit": 0.874,
+   "mkt_implied": 0.638,
+   "model_p": 0.599,
+   "net_c": 22.0,
+   "se_c": 9.3,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 1155,
+   "n_closes": 25,
+   "hit": 0.926,
+   "mkt_implied": 0.819,
+   "model_p": 0.795,
+   "net_c": 9.63,
+   "se_c": 3.93,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 1083,
+   "n_closes": 25,
+   "hit": 0.053,
+   "mkt_implied": 0.18,
+   "model_p": 0.187,
+   "net_c": -13.79,
+   "se_c": 3.18,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 1077,
+   "n_closes": 27,
+   "hit": 0.066,
+   "mkt_implied": 0.159,
+   "model_p": 0.175,
+   "net_c": -10.3,
+   "se_c": 3.99,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 1360,
+   "n_closes": 19,
+   "hit": 1.0,
+   "mkt_implied": 0.938,
+   "model_p": 0.919,
+   "net_c": 5.78,
+   "se_c": 0.27,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 1280,
+   "n_closes": 19,
+   "hit": 0.0,
+   "mkt_implied": 0.057,
+   "model_p": 0.067,
+   "net_c": -6.14,
+   "se_c": 0.25,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 667,
+   "n_closes": 22,
+   "hit": 0.006,
+   "mkt_implied": 0.046,
+   "model_p": 0.065,
+   "net_c": -4.36,
+   "se_c": 0.75,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 586,
+   "n_closes": 22,
+   "hit": 0.99,
+   "mkt_implied": 0.949,
+   "model_p": 0.919,
+   "net_c": 3.69,
+   "se_c": 1.15,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 265,
+   "n_closes": 16,
+   "hit": 0.962,
+   "mkt_implied": 0.826,
+   "model_p": 0.774,
+   "net_c": 12.61,
+   "se_c": 4.09,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 269,
+   "n_closes": 15,
+   "hit": 0.037,
+   "mkt_implied": 0.161,
+   "model_p": 0.197,
+   "net_c": -13.39,
+   "se_c": 4.05,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 153,
+   "n_closes": 9,
+   "hit": 0.157,
+   "mkt_implied": 0.172,
+   "model_p": 0.183,
+   "net_c": -2.56,
+   "se_c": 15.35,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 156,
+   "n_closes": 9,
+   "hit": 0.853,
+   "mkt_implied": 0.828,
+   "model_p": 0.801,
+   "net_c": 1.43,
+   "se_c": 14.57,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 293,
+   "n_closes": 12,
+   "hit": 0.99,
+   "mkt_implied": 0.952,
+   "model_p": 0.929,
+   "net_c": 3.43,
+   "se_c": 1.2,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 195,
+   "n_closes": 8,
+   "hit": 0.087,
+   "mkt_implied": 0.351,
+   "model_p": 0.345,
+   "net_c": -28.02,
+   "se_c": 9.48,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 187,
+   "n_closes": 8,
+   "hit": 0.904,
+   "mkt_implied": 0.648,
+   "model_p": 0.633,
+   "net_c": 23.97,
+   "se_c": 10.21,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 83,
+   "n_closes": 6,
+   "hit": 0.072,
+   "mkt_implied": 0.602,
+   "model_p": 0.568,
+   "net_c": -54.69,
+   "se_c": 8.94,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 82,
+   "n_closes": 5,
+   "hit": 0.963,
+   "mkt_implied": 0.379,
+   "model_p": 0.388,
+   "net_c": 56.83,
+   "se_c": 5.4,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.25-.50",
+    "side": "yes"
+   },
+   "n": 77,
+   "n_closes": 7,
+   "hit": 0.117,
+   "mkt_implied": 0.406,
+   "model_p": 0.402,
+   "net_c": -30.61,
+   "se_c": 11.08,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.50-.75",
+    "side": "no"
+   },
+   "n": 84,
+   "n_closes": 7,
+   "hit": 0.905,
+   "mkt_implied": 0.59,
+   "model_p": 0.571,
+   "net_c": 29.78,
+   "se_c": 9.29,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.50-.75",
+    "side": "yes"
+   },
+   "n": 37,
+   "n_closes": 6,
+   "hit": 0.189,
+   "mkt_implied": 0.602,
+   "model_p": 0.566,
+   "net_c": -42.98,
+   "se_c": 14.73,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.25-.50",
+    "side": "no"
+   },
+   "n": 32,
+   "n_closes": 5,
+   "hit": 0.656,
+   "mkt_implied": 0.339,
+   "model_p": 0.378,
+   "net_c": 30.18,
+   "se_c": 27.24,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 42,
+   "n_closes": 3,
+   "hit": 0.357,
+   "mkt_implied": 0.818,
+   "model_p": 0.749,
+   "net_c": -47.19,
+   "se_c": 36.34,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 43,
+   "n_closes": 3,
+   "hit": 0.884,
+   "mkt_implied": 0.948,
+   "model_p": 0.898,
+   "net_c": -6.82,
+   "se_c": 16.87,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 44,
+   "n_closes": 3,
+   "hit": 0.114,
+   "mkt_implied": 0.061,
+   "model_p": 0.091,
+   "net_c": 4.8,
+   "se_c": 16.39,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 36,
+   "n_closes": 3,
+   "hit": 0.583,
+   "mkt_implied": 0.183,
+   "model_p": 0.217,
+   "net_c": 38.95,
+   "se_c": 37.06,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 308,
+   "n_closes": 10,
+   "hit": 0.0,
+   "mkt_implied": 0.051,
+   "model_p": 0.062,
+   "net_c": -5.51,
+   "se_c": 0.61,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 94,
+   "n_closes": 7,
+   "hit": 0.0,
+   "mkt_implied": 0.053,
+   "model_p": 0.097,
+   "net_c": -5.68,
+   "se_c": 0.24,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 94,
+   "n_closes": 7,
+   "hit": 1.0,
+   "mkt_implied": 0.948,
+   "model_p": 0.885,
+   "net_c": 4.8,
+   "se_c": 0.29,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.10-.25",
+    "side": "yes"
+   },
+   "n": 51,
+   "n_closes": 7,
+   "hit": 0.0,
+   "mkt_implied": 0.166,
+   "model_p": 0.191,
+   "net_c": -17.61,
+   "se_c": 1.24,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 522,
+   "n_closes": 9,
+   "hit": 0.249,
+   "mkt_implied": 0.049,
+   "model_p": 0.062,
+   "net_c": 19.63,
+   "se_c": 17.13,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px>=.90",
+    "side": "no"
+   },
+   "n": 332,
+   "n_closes": 12,
+   "hit": 1.0,
+   "mkt_implied": 0.922,
+   "model_p": 0.919,
+   "net_c": 7.28,
+   "se_c": 0.34,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "pxb": "px<.10",
+    "side": "yes"
+   },
+   "n": 243,
+   "n_closes": 10,
+   "hit": 0.0,
+   "mkt_implied": 0.077,
+   "model_p": 0.073,
+   "net_c": -8.22,
+   "se_c": 0.37,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 495,
+   "n_closes": 8,
+   "hit": 0.703,
+   "mkt_implied": 0.946,
+   "model_p": 0.926,
+   "net_c": -24.73,
+   "se_c": 19.06,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.75-.90",
+    "side": "yes"
+   },
+   "n": 33,
+   "n_closes": 2,
+   "hit": 0.0,
+   "mkt_implied": 0.812,
+   "model_p": 0.753,
+   "net_c": -82.29,
+   "se_c": 2.32,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px.10-.25",
+    "side": "no"
+   },
+   "n": 35,
+   "n_closes": 2,
+   "hit": 1.0,
+   "mkt_implied": 0.148,
+   "model_p": 0.218,
+   "net_c": 84.29,
+   "se_c": 0.75,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px>=.90",
+    "side": "yes"
+   },
+   "n": 18,
+   "n_closes": 1,
+   "hit": 0.0,
+   "mkt_implied": 0.905,
+   "model_p": 0.807,
+   "net_c": -91.19,
+   "se_c": null,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "pxb": "px<.10",
+    "side": "no"
+   },
+   "n": 11,
+   "n_closes": 2,
+   "hit": 0.182,
+   "mkt_implied": 0.034,
+   "model_p": 0.031,
+   "net_c": 14.54,
+   "se_c": 27.69,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "pxb": "px.75-.90",
+    "side": "no"
+   },
+   "n": 44,
+   "n_closes": 7,
+   "hit": 0.977,
+   "mkt_implied": 0.824,
+   "model_p": 0.772,
+   "net_c": 14.24,
+   "se_c": 2.53,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 4019,
+   "n_closes": 55,
+   "hit": 0.443,
+   "mkt_implied": 0.522,
+   "model_p": 0.494,
+   "net_c": -9.3,
+   "se_c": 6.46,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 2621,
+   "n_closes": 54,
+   "hit": 0.555,
+   "mkt_implied": 0.473,
+   "model_p": 0.493,
+   "net_c": 6.72,
+   "se_c": 7.11,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 3830,
+   "n_closes": 56,
+   "hit": 0.724,
+   "mkt_implied": 0.634,
+   "model_p": 0.606,
+   "net_c": 7.53,
+   "se_c": 5.62,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 2431,
+   "n_closes": 54,
+   "hit": 0.239,
+   "mkt_implied": 0.361,
+   "model_p": 0.379,
+   "net_c": -13.62,
+   "se_c": 5.57,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 204,
+   "n_closes": 21,
+   "hit": 0.054,
+   "mkt_implied": 0.238,
+   "model_p": 0.312,
+   "net_c": -19.63,
+   "se_c": 3.9,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 259,
+   "n_closes": 22,
+   "hit": 0.054,
+   "mkt_implied": 0.162,
+   "model_p": 0.223,
+   "net_c": -11.74,
+   "se_c": 3.81,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 3424,
+   "n_closes": 51,
+   "hit": 0.79,
+   "mkt_implied": 0.722,
+   "model_p": 0.694,
+   "net_c": 5.69,
+   "se_c": 5.32,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 2331,
+   "n_closes": 46,
+   "hit": 0.168,
+   "mkt_implied": 0.244,
+   "model_p": 0.264,
+   "net_c": -8.7,
+   "se_c": 5.11,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 3711,
+   "n_closes": 52,
+   "hit": 0.455,
+   "mkt_implied": 0.559,
+   "model_p": 0.528,
+   "net_c": -11.53,
+   "se_c": 6.99,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 2476,
+   "n_closes": 48,
+   "hit": 0.527,
+   "mkt_implied": 0.411,
+   "model_p": 0.431,
+   "net_c": 10.48,
+   "se_c": 7.67,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-5-10m",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 345,
+   "n_closes": 27,
+   "hit": 0.214,
+   "mkt_implied": 0.226,
+   "model_p": 0.288,
+   "net_c": -2.42,
+   "se_c": 8.88,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 1134,
+   "n_closes": 33,
+   "hit": 0.482,
+   "mkt_implied": 0.657,
+   "model_p": 0.618,
+   "net_c": -18.32,
+   "se_c": 8.79,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 276,
+   "n_closes": 17,
+   "hit": 0.091,
+   "mkt_implied": 0.134,
+   "model_p": 0.208,
+   "net_c": -5.13,
+   "se_c": 4.6,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 633,
+   "n_closes": 29,
+   "hit": 0.526,
+   "mkt_implied": 0.287,
+   "model_p": 0.307,
+   "net_c": 23.01,
+   "se_c": 11.88,
+   "verdict": "indeterminate",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 1222,
+   "n_closes": 34,
+   "hit": 0.894,
+   "mkt_implied": 0.776,
+   "model_p": 0.736,
+   "net_c": 10.81,
+   "se_c": 4.68,
+   "verdict": "favourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 857,
+   "n_closes": 29,
+   "hit": 0.077,
+   "mkt_implied": 0.189,
+   "model_p": 0.21,
+   "net_c": -12.04,
+   "se_c": 3.6,
+   "verdict": "unfavourable",
+   "side_literal": true,
+   "verdict_is_uncorrected": true,
+   "caveat": "side-literal result in a one-directional sample (YES settled 38% of closes, SOL 102.2 -> 95.0): attributable to drift, not a condition"
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 231,
+   "n_closes": 19,
+   "hit": 0.121,
+   "mkt_implied": 0.199,
+   "model_p": 0.276,
+   "net_c": -8.86,
+   "se_c": 8.01,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-14m",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 208,
+   "n_closes": 17,
+   "hit": 0.25,
+   "mkt_implied": 0.286,
+   "model_p": 0.348,
+   "net_c": -4.9,
+   "se_c": 9.96,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 344,
+   "n_closes": 16,
+   "hit": 0.061,
+   "mkt_implied": 0.181,
+   "model_p": 0.202,
+   "net_c": -12.88,
+   "se_c": 7.09,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 516,
+   "n_closes": 17,
+   "hit": 0.917,
+   "mkt_implied": 0.793,
+   "model_p": 0.757,
+   "net_c": 11.47,
+   "se_c": 7.46,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 61,
+   "n_closes": 9,
+   "hit": 0.18,
+   "mkt_implied": 0.21,
+   "model_p": 0.285,
+   "net_c": -4.07,
+   "se_c": 16.77,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 384,
+   "n_closes": 15,
+   "hit": 0.039,
+   "mkt_implied": 0.334,
+   "model_p": 0.296,
+   "net_c": -30.54,
+   "se_c": 9.7,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 184,
+   "n_closes": 14,
+   "hit": 0.962,
+   "mkt_implied": 0.727,
+   "model_p": 0.743,
+   "net_c": 22.39,
+   "se_c": 7.11,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 59,
+   "n_closes": 9,
+   "hit": 0.949,
+   "mkt_implied": 0.343,
+   "model_p": 0.423,
+   "net_c": 59.42,
+   "se_c": 16.3,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge>15c",
+    "side": "no"
+   },
+   "n": 5,
+   "n_closes": 3,
+   "hit": 0.4,
+   "mkt_implied": 0.513,
+   "model_p": 0.703,
+   "net_c": -12.98,
+   "se_c": 31.88,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge0-5c",
+    "side": "yes"
+   },
+   "n": 95,
+   "n_closes": 10,
+   "hit": 0.137,
+   "mkt_implied": 0.281,
+   "model_p": 0.303,
+   "net_c": -15.4,
+   "se_c": 7.2,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge<=0",
+    "side": "no"
+   },
+   "n": 207,
+   "n_closes": 10,
+   "hit": 0.889,
+   "mkt_implied": 0.718,
+   "model_p": 0.656,
+   "net_c": 16.13,
+   "se_c": 6.57,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge<=0",
+    "side": "yes"
+   },
+   "n": 173,
+   "n_closes": 10,
+   "hit": 0.312,
+   "mkt_implied": 0.589,
+   "model_p": 0.531,
+   "net_c": -28.77,
+   "se_c": 16.52,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge0-5c",
+    "side": "no"
+   },
+   "n": 78,
+   "n_closes": 9,
+   "hit": 0.551,
+   "mkt_implied": 0.383,
+   "model_p": 0.408,
+   "net_c": 15.95,
+   "se_c": 16.31,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge5-15c",
+    "side": "no"
+   },
+   "n": 43,
+   "n_closes": 8,
+   "hit": 0.651,
+   "mkt_implied": 0.341,
+   "model_p": 0.425,
+   "net_c": 29.78,
+   "se_c": 20.09,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge>15c",
+    "side": "no"
+   },
+   "n": 6,
+   "n_closes": 3,
+   "hit": 0.833,
+   "mkt_implied": 0.328,
+   "model_p": 0.509,
+   "net_c": 49.15,
+   "se_c": 22.89,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge5-15c",
+    "side": "yes"
+   },
+   "n": 71,
+   "n_closes": 9,
+   "hit": 0.028,
+   "mkt_implied": 0.185,
+   "model_p": 0.265,
+   "net_c": -16.54,
+   "se_c": 4.11,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-2-5m",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 3,
+   "n_closes": 2,
+   "hit": 0.0,
+   "mkt_implied": 0.097,
+   "model_p": 0.266,
+   "net_c": -10.37,
+   "se_c": 3.09,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-10-60s",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 5,
+   "n_closes": 4,
+   "hit": 0.0,
+   "mkt_implied": 0.074,
+   "model_p": 0.279,
+   "net_c": -7.92,
+   "se_c": 0.77,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  },
+  {
+   "scope": "second_half_OOS",
+   "state": {
+    "tb": "T-60-120s",
+    "edgeb": "medge>15c",
+    "side": "yes"
+   },
+   "n": 1,
+   "n_closes": 1,
+   "hit": 0.0,
+   "mkt_implied": 0.391,
+   "model_p": 0.563,
+   "net_c": -40.8,
+   "se_c": null,
+   "verdict": "insufficient",
+   "side_literal": true,
+   "verdict_is_uncorrected": true
+  }
+ ]
+}

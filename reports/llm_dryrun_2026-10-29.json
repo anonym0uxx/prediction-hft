@@ -1,0 +1,238 @@
+{
+ "retrospective": true,
+ "note": "in-sample dry-run on recorded closes the live cohorts also saw; NOT a forward test",
+ "variants": {
+  "v2a": {
+   "prompt_hash": "d1a3852ffee0b21a",
+   "n": 74,
+   "by_time": {
+    "T-10min": {
+     "n": 40,
+     "brier_llm": 0.1532,
+     "brier_mid": 0.1501,
+     "brier_model": 0.1571,
+     "llm_minus_mid": {
+      "mean": 0.0031,
+      "se": 0.0026
+     },
+     "llm_minus_model": -0.0039,
+     "median_abs_p_own_minus_p_model": 0.0277,
+     "frac_within_1c_of_model": 0.3,
+     "frac_less_extreme_than_mid": 0.4,
+     "actions": {
+      "NO_TRADE": 40
+     },
+     "intended_trades": 0,
+     "fills": 0,
+     "contracts": 0,
+     "pnl_usd": 0,
+     "net_c_per_ct": null,
+     "wins": 0,
+     "trades": []
+    },
+    "T-5min": {
+     "n": 34,
+     "brier_llm": 0.131,
+     "brier_mid": 0.1308,
+     "brier_model": 0.1324,
+     "llm_minus_mid": {
+      "mean": 0.0002,
+      "se": 0.0018
+     },
+     "llm_minus_model": -0.0014,
+     "median_abs_p_own_minus_p_model": 0.0123,
+     "frac_within_1c_of_model": 0.441,
+     "frac_less_extreme_than_mid": 0.588,
+     "actions": {
+      "NO_TRADE": 34
+     },
+     "intended_trades": 0,
+     "fills": 0,
+     "contracts": 0,
+     "pnl_usd": 0,
+     "net_c_per_ct": null,
+     "wins": 0,
+     "trades": []
+    }
+   }
+  },
+  "v2b": {
+   "prompt_hash": "55bd678581f7293b",
+   "n": 74,
+   "by_time": {
+    "T-10min": {
+     "n": 40,
+     "brier_llm": 0.1525,
+     "brier_mid": 0.1501,
+     "brier_model": 0.1571,
+     "llm_minus_mid": {
+      "mean": 0.0024,
+      "se": 0.0026
+     },
+     "llm_minus_model": -0.0047,
+     "median_abs_p_own_minus_p_model": 0.0269,
+     "frac_within_1c_of_model": 0.3,
+     "frac_less_extreme_than_mid": 0.425,
+     "actions": {
+      "NO_TRADE": 39,
+      "BUY_NO": 1
+     },
+     "intended_trades": 1,
+     "fills": 1,
+     "contracts": 5,
+     "pnl_usd": -1.83,
+     "net_c_per_ct": -36.7,
+     "wins": 0,
+     "trades": [
+      {
+       "ticker": "KXSOL15M-26OCT291630-30",
+       "side": "no",
+       "qty": 5,
+       "px": 0.351,
+       "p_own": 0.58,
+       "mid": 0.655,
+       "y": 1.0,
+       "pnl": -1.835
+      }
+     ]
+    },
+    "T-5min": {
+     "n": 34,
+     "brier_llm": 0.1305,
+     "brier_mid": 0.1308,
+     "brier_model": 0.1324,
+     "llm_minus_mid": {
+      "mean": -0.0003,
+      "se": 0.0019
+     },
+     "llm_minus_model": -0.0019,
+     "median_abs_p_own_minus_p_model": 0.0146,
+     "frac_within_1c_of_model": 0.412,
+     "frac_less_extreme_than_mid": 0.588,
+     "actions": {
+      "NO_TRADE": 34
+     },
+     "intended_trades": 0,
+     "fills": 0,
+     "contracts": 0,
+     "pnl_usd": 0,
+     "net_c_per_ct": null,
+     "wins": 0,
+     "trades": []
+    }
+   }
+  }
+ },
+ "live_same_closes": {
+  "571ef22c0ce7a845": {
+   "n": 23,
+   "by_time": {
+    "T-10min": {
+     "n": 13,
+     "brier_llm": 0.123,
+     "brier_mid": 0.1188,
+     "brier_model": 0.1265,
+     "llm_minus_mid": 0.0042,
+     "median_abs_p_llm_minus_p_model": 0.0082,
+     "frac_less_extreme_than_mid": 0.692,
+     "direct_actions": {
+      "NO_TRADE": 13
+     }
+    },
+    "T-5min": {
+     "n": 10,
+     "brier_llm": 0.1245,
+     "brier_mid": 0.1217,
+     "brier_model": 0.131,
+     "llm_minus_mid": 0.0027,
+     "median_abs_p_llm_minus_p_model": 0.014,
+     "frac_less_extreme_than_mid": 0.7,
+     "direct_actions": {
+      "NO_TRADE": 10
+     }
+    }
+   }
+  },
+  "6c8d03af884f0000": {
+   "n": 45,
+   "by_time": {
+    "T-10min": {
+     "n": 23,
+     "brier_llm": 0.16,
+     "brier_mid": 0.158,
+     "brier_model": 0.162,
+     "llm_minus_mid": 0.002,
+     "median_abs_p_llm_minus_p_model": 0.0108,
+     "frac_less_extreme_than_mid": 0.826,
+     "direct_actions": {
+      "NO_TRADE": 22,
+      "BUY_YES": 1
+     }
+    },
+    "T-5min": {
+     "n": 22,
+     "brier_llm": 0.1347,
+     "brier_mid": 0.1357,
+     "brier_model": 0.1335,
+     "llm_minus_mid": -0.001,
+     "median_abs_p_llm_minus_p_model": 0.0058,
+     "frac_less_extreme_than_mid": 0.818,
+     "direct_actions": {
+      "NO_TRADE": 19,
+      "BUY_NO": 1,
+      "BUY_YES": 1,
+      "HOLD": 1
+     }
+    }
+   }
+  },
+  "7c1b4812090bfb87": {
+   "n": 6,
+   "by_time": {
+    "T-10min": {
+     "n": 4,
+     "brier_llm": 0.2181,
+     "brier_mid": 0.2061,
+     "brier_model": 0.2287,
+     "llm_minus_mid": 0.012,
+     "median_abs_p_llm_minus_p_model": 0.0261,
+     "frac_less_extreme_than_mid": 0.75,
+     "direct_actions": {
+      "NO_TRADE": 4
+     }
+    },
+    "T-5min": {
+     "n": 2,
+     "brier_llm": 0.0724,
+     "brier_mid": 0.0667,
+     "brier_model": 0.0799,
+     "llm_minus_mid": 0.0057,
+     "median_abs_p_llm_minus_p_model": 0.0189,
+     "frac_less_extreme_than_mid": 1.0,
+     "direct_actions": {
+      "NO_TRADE": 2
+     }
+    }
+   }
+  }
+ },
+ "live_direct_same_closes": {
+  "settled_positions": 3,
+  "pnl_usd": -3.13,
+  "contracts": 45,
+  "wins": 0
+ },
+ "n_rows": 148,
+ "closes": 40,
+ "budget_offline": {
+  "day_pt": "2026-10-29",
+  "calls": 148,
+  "prompt_tokens": 1075003,
+  "completion_tokens": 55046,
+  "n429": 0,
+  "n402": 0,
+  "errors": 0,
+  "stopped": false,
+  "stop_reason": null
+ }
+}

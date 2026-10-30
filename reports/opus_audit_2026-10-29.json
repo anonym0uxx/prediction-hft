@@ -1,0 +1,1335 @@
+{
+ "generated_pt": "2026-10-29 20:05 PT",
+ "model": "anthropic/claude-opus-5.5",
+ "n_answers": 183,
+ "n_settled": 182,
+ "cohorts": {
+  "b9b52b5e795277e7": 4,
+  "571ef22c0ce7a845": 124,
+  "7c1b4812090bfb87": 7,
+  "6c8d03af884f0000": 48
+ },
+ "decision_times": {
+  "407.8": 1,
+  "300.0": 91,
+  "600.0": 91
+ },
+ "modes": {
+  "anchor_cites_model": {
+   "title": "rationale cites the Gaussian/model probability or z",
+   "n": 130,
+   "of": 183,
+   "frac": 0.71,
+   "note": "the packet handed it p_model, z, sd: it re-derived the policy's number",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-6",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.295,
+     "p_model": 0.351,
+     "p_llm": 0.33,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 5.3bp below K with about 408s left. The Gaussian model gives about 0.35 and the market mid is 0.295, so I land between them, slightly above the mid. OKX taker flow is bearish, but the perp basis is positive and the path has been recovering off its"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-5",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.475,
+     "p_model": 0.486,
+     "p_llm": 0.49,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 0.4 bp below K with about 5 minutes left and an expected settle-mean SD of about 11 bp, so this is essentially a coin flip. The model's 0.486 matches the mid of 0.475, and the recent uptick plus positive perp basis lean slightly toward YES. Slight we"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-10",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.73,
+     "p_model": 0.666,
+     "p_llm": 0.69,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 7 bp above K with 600 s left. Realized vol puts the settlement-mean SD near 0.17 USD against a 0.072 USD cushion (z\u22480.43), so the model gives about 0.67. Slightly positive order flow and a perp premium point up, so I land between the model and the"
+    }
+   ]
+  },
+  "anchor_averaging_words": {
+   "title": "explicit averaging language ('land between', 'blend', 'shade toward', 'midway')",
+   "n": 10,
+   "of": 183,
+   "frac": 0.055,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-6",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.295,
+     "p_model": 0.351,
+     "p_llm": 0.33,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 5.3bp below K with about 408s left. The Gaussian model gives about 0.35 and the market mid is 0.295, so I land between them, slightly above the mid. OKX taker flow is bearish, but the perp basis is positive and the path has been recovering off its"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-10",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.73,
+     "p_model": 0.666,
+     "p_llm": 0.69,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 7 bp above K with 600 s left. Realized vol puts the settlement-mean SD near 0.17 USD against a 0.072 USD cushion (z\u22480.43), so the model gives about 0.67. Slightly positive order flow and a perp premium point up, so I land between the model and the"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-5",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.365,
+     "p_model": 0.406,
+     "p_llm": 0.39,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 2.7bp below K with 5 minutes left; the Gaussian model gives about 0.41 and the market mid is 0.365. A mild downtrend across SOL, ETH and BTC offsets a strongly positive short-term Coinbase buy imbalance, so I land between the two. Coinbase 60s order-"
+    }
+   ]
+  },
+  "anchor_between_mid_and_model": {
+   "title": "p_llm lies between the mid and p_model (inclusive)",
+   "n": 153,
+   "of": 183,
+   "frac": 0.836,
+   "note": "a forecaster with independent information would fall outside that interval about half the time",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-6",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.295,
+     "p_model": 0.351,
+     "p_llm": 0.33,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 5.3bp below K with about 408s left. The Gaussian model gives about 0.35 and the market mid is 0.295, so I land between them, slightly above the mid. OKX taker flow is bearish, but the perp basis is positive and the path has been recovering off its"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-10",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.73,
+     "p_model": 0.666,
+     "p_llm": 0.69,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 7 bp above K with 600 s left. Realized vol puts the settlement-mean SD near 0.17 USD against a 0.072 USD cushion (z\u22480.43), so the model gives about 0.67. Slightly positive order flow and a perp premium point up, so I land between the model and the"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-5",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.365,
+     "p_model": 0.406,
+     "p_llm": 0.39,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 2.7bp below K with 5 minutes left; the Gaussian model gives about 0.41 and the market mid is 0.365. A mild downtrend across SOL, ETH and BTC offsets a strongly positive short-term Coinbase buy imbalance, so I land between the two. Coinbase 60s order-"
+    }
+   ]
+  },
+  "anchor_within_1c_of_model": {
+   "title": "|p_llm - p_model| <= 1 c",
+   "n": 82,
+   "of": 183,
+   "frac": 0.448,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-5",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.475,
+     "p_model": 0.486,
+     "p_llm": 0.49,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 0.4 bp below K with about 5 minutes left and an expected settle-mean SD of about 11 bp, so this is essentially a coin flip. The model's 0.486 matches the mid of 0.475, and the recent uptick plus positive perp basis lean slightly toward YES. Slight we"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-5",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.385,
+     "p_model": 0.391,
+     "p_llm": 0.4,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 2.8bp below K with about 5 minutes left. The Gaussian model gives about 0.39, in line with the 0.385 mid, and the recent uptick plus perp basis are mild offsets. Slight recovery momentum over the last 5 minutes and a positive OKX perp basis, though bot"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-10",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.22999999999999998,
+     "p_model": 0.247,
+     "p_llm": 0.24,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits 11bp below K with about 10 minutes left; the model gives 0.247 and the mid is 0.23. There's a mild downtrend, with BTC and ETH also weak, while the perp basis and taker imbalance are slightly positive, so these roughly offset. none No edge beyon"
+    }
+   ]
+  },
+  "anchor_p_own_within_1c_of_model": {
+   "title": "|p_own - p_model| <= 1 c (A3 cohort only, p_own logged)",
+   "n": 22,
+   "of": 183,
+   "frac": 0.12,
+   "note": "of 42 rows with p_own; A3 asked for p_own BEFORE reconciliation",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT291800-00",
+     "t": "T-5",
+     "pt": "10-29 15:00",
+     "cohort": "6c8d",
+     "mid": 0.575,
+     "p_model": 0.567,
+     "p_llm": 0.565,
+     "p_own": 0.565,
+     "y": 1.0,
+     "text": "Spot sits 4.8bp above K with about 270s to the window midpoint; with sigma near 1.5bp/s the z-score is about 0.17, which gives roughly 0.57. none Ask of 0.58 roughly equals my fair value, so there is no edge after fees."
+    },
+    {
+     "ticker": "KXSOL15M-26OCT291815-15",
+     "t": "T-10",
+     "pt": "10-29 15:15",
+     "cohort": "6c8d",
+     "mid": 0.125,
+     "p_model": 0.13,
+     "p_llm": 0.13,
+     "p_own": 0.13,
+     "y": 0.0,
+     "text": "Spot is 62bp below K with about 570s to the settlement window; at 2bp/s, sd is about 50bp, giving z near -1.2 and P\u22480.12-0.14, with downward momentum offset by long liquidations possibly exhausted. none My probability sits within the spread and fees of the mar"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT291815-15",
+     "t": "T-5",
+     "pt": "10-29 15:15",
+     "cohort": "6c8d",
+     "mid": 0.0235,
+     "p_model": 0.035,
+     "p_llm": 0.033,
+     "p_own": 0.035,
+     "y": 0.0,
+     "text": "Spot is 75bp below K with 300s left; the ~0.41 USD sd on the settle mean gives z\u2248-1.8, so P(YES)\u22483.5%. none YES at 2.4c is roughly fair against my ~3-4% estimate, and there is no edge after fees."
+    }
+   ]
+  },
+  "tail_words": {
+   "title": "'fat tails'/'tail risk'/'jump risk' invoked as a word, no number",
+   "n": 13,
+   "of": 183,
+   "frac": 0.071,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-5",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.0295,
+     "p_model": 0.065,
+     "p_llm": 0.05,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 17 bp below K with ~5 min left; the Gaussian model gives ~6.5% using realized 1s vol, and the market mid sits at ~3%. Fat tails and SOL's 1m rv of ~4 bp make 3% look slightly low, but the momentum is negative. Using the policy model's realized-vol esti"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290030-30",
+     "t": "T-5",
+     "pt": "10-28 21:30",
+     "cohort": "571e",
+     "mid": 0.9724999999999999,
+     "p_model": 0.917,
+     "p_llm": 0.935,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot sits 18.7bp above K with about 5 minutes left. Realized vol implies a settle-mean SD of roughly 13.4bp, giving z\u22481.39 and p\u22480.92; slightly positive momentum and perp basis push this a little higher, but the market's 0.9725 looks rich. I used the realized-"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290115-15",
+     "t": "T-5",
+     "pt": "10-28 22:15",
+     "cohort": "571e",
+     "mid": 0.9944999999999999,
+     "p_model": 0.997,
+     "p_llm": 0.993,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 36.9 bp above K with 5 minutes left and the settlement window not yet started; with realized vol near 0.7 bp/s, z is about 2.7, so YES is very likely. none Mid at 0.9945 matches the model; buying YES at 0.995 risks 99.5c to make 0.5c, and NO is overpri"
+    }
+   ]
+  },
+  "less_extreme_than_mid": {
+   "title": "p_llm closer to 0.5 than the mid (inherited Gaussian variance inflation)",
+   "n": 152,
+   "of": 183,
+   "frac": 0.831,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-6",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.295,
+     "p_model": 0.351,
+     "p_llm": 0.33,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 5.3bp below K with about 408s left. The Gaussian model gives about 0.35 and the market mid is 0.295, so I land between them, slightly above the mid. OKX taker flow is bearish, but the perp basis is positive and the path has been recovering off its"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-5",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.475,
+     "p_model": 0.486,
+     "p_llm": 0.49,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 0.4 bp below K with about 5 minutes left and an expected settle-mean SD of about 11 bp, so this is essentially a coin flip. The model's 0.486 matches the mid of 0.475, and the recent uptick plus positive perp basis lean slightly toward YES. Slight we"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-10",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.73,
+     "p_model": 0.666,
+     "p_llm": 0.69,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 7 bp above K with 600 s left. Realized vol puts the settlement-mean SD near 0.17 USD against a 0.072 USD cushion (z\u22480.43), so the model gives about 0.67. Slightly positive order flow and a perp premium point up, so I land between the model and the"
+    }
+   ]
+  },
+  "tails_lifted_outcomes": {
+   "title": "settled: mid <= 0.20 and p_llm > mid (tail lifted)",
+   "n": 30,
+   "won": 2,
+   "mean_mid": 0.091,
+   "mean_p_llm": 0.115,
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-5",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.0295,
+     "p_model": 0.065,
+     "p_llm": 0.05,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 17 bp below K with ~5 min left; the Gaussian model gives ~6.5% using realized 1s vol, and the market mid sits at ~3%. Fat tails and SOL's 1m rv of ~4 bp make 3% look slightly low, but the momentum is negative. Using the policy model's realized-vol esti"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282045-45",
+     "t": "T-10",
+     "pt": "10-28 17:45",
+     "cohort": "571e",
+     "mid": 0.14500000000000002,
+     "p_model": 0.223,
+     "p_llm": 0.18,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 13 bp below K with about 10 minutes left; realized volatility implies z\u2248-0.76, but the model's p of 0.22 looks generous given the steady downtrend and negative flow. The market mid of 0.145 is reasonable, and I sit slightly above it. none No edge "
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282045-45",
+     "t": "T-5",
+     "pt": "10-28 17:45",
+     "cohort": "571e",
+     "mid": 0.051000000000000004,
+     "p_model": 0.09,
+     "p_llm": 0.07,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 15 bp below K with 5 minutes left and the settlement window not yet started; at 1-second sigma of about 0.6 bp, z is about -1.3, giving the model's 9%. Recent downward drift and long liquidations argue slightly lower, so I land between the model and th"
+    }
+   ]
+  },
+  "favourites_faded_outcomes": {
+   "title": "settled: mid >= 0.80 and p_llm < mid (favourite faded)",
+   "n": 30,
+   "won": 27,
+   "mean_mid": 0.903,
+   "mean_p_llm": 0.867,
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282230-30",
+     "t": "T-5",
+     "pt": "10-28 19:30",
+     "cohort": "571e",
+     "mid": 0.9875,
+     "p_model": 0.973,
+     "p_llm": 0.975,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot sits 43 bp above K with about 5 minutes left, and the Gaussian model on realized volatility gives z\u22481.9, i.e. p\u22480.973. Short-term momentum is mildly positive and the perp trades at a premium, but the market's 0.9875 already prices this at or above fair. n"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282300-00",
+     "t": "T-10",
+     "pt": "10-28 20:00",
+     "cohort": "571e",
+     "mid": 0.9245000000000001,
+     "p_model": 0.898,
+     "p_llm": 0.91,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot sits about 35bp above K with 10 minutes left; the policy's Gaussian gives 0.90 and the market is at 0.924. Recent upward momentum is offset by the negative OKX taker imbalance, so I lean slightly below the mid. none There is no meaningful edge against the"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290030-30",
+     "t": "T-5",
+     "pt": "10-28 21:30",
+     "cohort": "571e",
+     "mid": 0.9724999999999999,
+     "p_model": 0.917,
+     "p_llm": 0.935,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot sits 18.7bp above K with about 5 minutes left. Realized vol implies a settle-mean SD of roughly 13.4bp, giving z\u22481.39 and p\u22480.92; slightly positive momentum and perp basis push this a little higher, but the market's 0.9725 looks rich. I used the realized-"
+    }
+   ]
+  },
+  "spread_plus_fees_double_count": {
+   "title": "'spread and/plus fees' counted as costs on top of the ask (the ask already is the spread)",
+   "n": 50,
+   "of": 183,
+   "frac": 0.273,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-10",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.295,
+     "p_model": 0.355,
+     "p_llm": 0.32,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 5.7bp below K with 10 minutes left; the Gaussian model gives about 0.36, but momentum and order flow are negative (Coinbase imbalance -0.85 over 60s, SOL down over 15m with ETH weak). I land slightly above the 0.295 mid. none Edge after spread and fees"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-5",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.385,
+     "p_model": 0.391,
+     "p_llm": 0.4,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 2.8bp below K with about 5 minutes left. The Gaussian model gives about 0.39, in line with the 0.385 mid, and the recent uptick plus perp basis are mild offsets. Slight recovery momentum over the last 5 minutes and a positive OKX perp basis, though bot"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-10",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.22999999999999998,
+     "p_model": 0.247,
+     "p_llm": 0.24,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits 11bp below K with about 10 minutes left; the model gives 0.247 and the mid is 0.23. There's a mild downtrend, with BTC and ETH also weak, while the perp basis and taker imbalance are slightly positive, so these roughly offset. none No edge beyon"
+    }
+   ]
+  },
+  "thin_edge_words": {
+   "title": "'too thin'/'no edge'/'marginal edge' as the stated reason",
+   "n": 110,
+   "of": 183,
+   "frac": 0.601,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-10",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.295,
+     "p_model": 0.355,
+     "p_llm": 0.32,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 5.7bp below K with 10 minutes left; the Gaussian model gives about 0.36, but momentum and order flow are negative (Coinbase imbalance -0.85 over 60s, SOL down over 15m with ETH weak). I land slightly above the 0.295 mid. none Edge after spread and fees"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-5",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.385,
+     "p_model": 0.391,
+     "p_llm": 0.4,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 2.8bp below K with about 5 minutes left. The Gaussian model gives about 0.39, in line with the 0.385 mid, and the recent uptick plus perp basis are mild offsets. Slight recovery momentum over the last 5 minutes and a positive OKX perp basis, though bot"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-10",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.22999999999999998,
+     "p_model": 0.247,
+     "p_llm": 0.24,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits 11bp below K with about 10 minutes left; the model gives 0.247 and the mid is 0.23. There's a mild downtrend, with BTC and ETH also weak, while the perp basis and taker imbalance are slightly positive, so these roughly offset. none No edge beyon"
+    }
+   ]
+  },
+  "no_trade_with_own_edge_ge_4c": {
+   "title": "NO_TRADE while own p vs executable price shows >= 4 c edge after fee (inconsistency)",
+   "n": 8,
+   "of": 171,
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT290115-15",
+     "t": "T-10",
+     "pt": "10-28 22:15",
+     "cohort": "571e",
+     "mid": 0.9065000000000001,
+     "p_model": 0.83,
+     "p_llm": 0.86,
+     "p_own": null,
+     "y": 1.0,
+     "text": "NO_TRADE with own-p edge yes=-5.3c no=4.0c (p=0.86, ask=0.907, bid=0.906) :: The index is about 20bp above K with 10 minutes left. Realized sigma suggests about 83% and the market says about 91%. Momentum, positive order-flow imbalance and the perp premium lea"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290145-45",
+     "t": "T-5",
+     "pt": "10-28 22:45",
+     "cohort": "571e",
+     "mid": 0.865,
+     "p_model": 0.779,
+     "p_llm": 0.79,
+     "p_own": null,
+     "y": 0.0,
+     "text": "NO_TRADE with own-p edge yes=-8.8c no=6.1c (p=0.79, ask=0.87, bid=0.86) :: Spot is 9 bp above K with 5 minutes left. Realized-vol Gaussian gives about 0.78 (z\u22480.77), so the 0.865 mid looks rich. I relied on the realized-vol model rather than the market mid; po"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290300-00",
+     "t": "T-5",
+     "pt": "10-29 00:00",
+     "cohort": "571e",
+     "mid": 0.835,
+     "p_model": 0.735,
+     "p_llm": 0.77,
+     "p_own": null,
+     "y": 1.0,
+     "text": "NO_TRADE with own-p edge yes=-8.0c no=5.0c (p=0.77, ask=0.84, bid=0.83) :: Spot is 7.5bp above K with about 5 minutes left, giving a Gaussian estimate near 0.74. Recent upward drift and a positive perp basis lean slightly toward YES, but the 0.835 mid looks a "
+    }
+   ]
+  },
+  "trades_taken": {
+   "title": "BUY decisions taken: own edge at decision and outcome",
+   "n": 7,
+   "rows": [
+    {
+     "ticker": "KXSOL15M-26OCT282015-15",
+     "t": "T-5",
+     "pt": "10-28 17:15",
+     "cohort": "571e",
+     "mid": 0.46499999999999997,
+     "p_model": 0.608,
+     "p_llm": 0.57,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Model edge of about 10c over the 0.47 ask, net of the fee. Size is kept within the $15 cap.",
+     "action": "BUY_YES",
+     "qty": 15,
+     "limit": 0.47,
+     "own_edge_c": 8.2
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290700-00",
+     "t": "T-10",
+     "pt": "10-29 04:00",
+     "cohort": "571e",
+     "mid": 0.9395,
+     "p_model": 0.846,
+     "p_llm": 0.87,
+     "p_own": null,
+     "y": 1.0,
+     "text": "NO costs about 0.061 against an estimated true probability of 0.13, a positive edge even after the small fee. Size stays small because the outcome is a longshot.",
+     "action": "BUY_NO",
+     "qty": 10,
+     "limit": 0.061,
+     "own_edge_c": 6.4
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290715-15",
+     "t": "T-10",
+     "pt": "10-29 04:15",
+     "cohort": "571e",
+     "mid": 0.265,
+     "p_model": 0.366,
+     "p_llm": 0.32,
+     "p_own": null,
+     "y": 1.0,
+     "text": "My estimate of about 0.32 beats the 0.27-0.28 asks by a few cents after fees. The size is small.",
+     "action": "BUY_YES",
+     "qty": 10,
+     "limit": 0.28,
+     "own_edge_c": 3.6
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290800-00",
+     "t": "T-5",
+     "pt": "10-29 05:00",
+     "cohort": "571e",
+     "mid": 0.235,
+     "p_model": 0.304,
+     "p_llm": 0.29,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Estimated edge is about 5c against a 0.24 ask and roughly 1.3c fee. Small size given the uncertainty.",
+     "action": "BUY_YES",
+     "qty": 10,
+     "limit": 0.24,
+     "own_edge_c": 3.7
+    },
+    {
+     "ticker": "KXSOL15M-26OCT291730-30",
+     "t": "T-5",
+     "pt": "10-29 14:30",
+     "cohort": "6c8d",
+     "mid": 0.954,
+     "p_model": 0.903,
+     "p_llm": 0.895,
+     "p_own": null,
+     "y": 1.0,
+     "text": "NO at about 4.7c is underpriced against my roughly 11% chance of a 61bp drop.",
+     "action": "BUY_NO",
+     "qty": 20,
+     "limit": 0.05,
+     "own_edge_c": 5.4
+    },
+    {
+     "ticker": "KXSOL15M-26OCT292000-00",
+     "t": "T-5",
+     "pt": "10-29 17:00",
+     "cohort": "6c8d",
+     "mid": 0.0655,
+     "p_model": 0.126,
+     "p_llm": 0.095,
+     "p_own": 0.09,
+     "y": 0.0,
+     "text": "I put YES at about 9% against a 6.6c ask, which beats the roughly 0.4c fee with a margin of about 2c.",
+     "action": "BUY_YES",
+     "qty": 15,
+     "limit": 0.068,
+     "own_edge_c": 1.9
+    },
+    {
+     "ticker": "KXSOL15M-26OCT292300-00",
+     "t": "T-10",
+     "pt": "10-29 20:00",
+     "cohort": "6c8d",
+     "mid": 0.14500000000000002,
+     "p_model": 0.19,
+     "p_llm": 0.195,
+     "p_own": 0.2,
+     "y": 0.0,
+     "text": "Own p around 0.20 vs 0.15 ask leaves about 4c edge after a 1c fee.",
+     "action": "BUY_YES",
+     "qty": 10,
+     "limit": 0.15,
+     "own_edge_c": 4.1
+    }
+   ]
+  },
+  "required_move_as_terminal_spot": {
+   "title": "frames the requirement as 'spot needs +X bp' with no mention of the 60-s averaging",
+   "n": 1,
+   "of": 183,
+   "frac": 0.005,
+   "note": "settlement is the mean of 60 future seconds, so the effective horizon is shorter than the time to close",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT292300-00",
+     "t": "T-5",
+     "pt": "10-29 20:00",
+     "cohort": "6c8d",
+     "mid": 0.072,
+     "p_model": 0.079,
+     "p_llm": 0.08,
+     "p_own": 0.08,
+     "y": 0.0,
+     "text": "Spot needs +24bp in 5 min against ~15bp sigma, z about -1.5. none Expected value of holding (~0.08) exceeds the after-fee exit value (~0.067)."
+    }
+   ]
+  },
+  "mentions_settlement_averaging": {
+   "title": "mentions the settlement average / window",
+   "n": 77,
+   "of": 183,
+   "frac": 0.421,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281930-30",
+     "t": "T-5",
+     "pt": "10-28 16:30",
+     "cohort": "b9b5",
+     "mid": 0.475,
+     "p_model": 0.486,
+     "p_llm": 0.49,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 0.4 bp below K with about 5 minutes left and an expected settle-mean SD of about 11 bp, so this is essentially a coin flip. The model's 0.486 matches the mid of 0.475, and the recent uptick plus positive perp basis lean slightly toward YES. Slight we"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-10",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.73,
+     "p_model": 0.666,
+     "p_llm": 0.69,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 7 bp above K with 600 s left. Realized vol puts the settlement-mean SD near 0.17 USD against a 0.072 USD cushion (z\u22480.43), so the model gives about 0.67. Slightly positive order flow and a perp premium point up, so I land between the model and the"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282045-45",
+     "t": "T-5",
+     "pt": "10-28 17:45",
+     "cohort": "571e",
+     "mid": 0.051000000000000004,
+     "p_model": 0.09,
+     "p_llm": 0.07,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 15 bp below K with 5 minutes left and the settlement window not yet started; at 1-second sigma of about 0.6 bp, z is about -1.3, giving the model's 9%. Recent downward drift and long liquidations argue slightly lower, so I land between the model and th"
+    }
+   ]
+  },
+  "no_side_price_error": {
+   "title": "BUY_NO limit inconsistent with 1 - yes_bid (> 3 c off)",
+   "n": 0,
+   "of": 183,
+   "frac": 0.0,
+   "note": "",
+   "examples": []
+  },
+  "no_side_mentioned": {
+   "title": "mentions the NO side / 1 - price at all",
+   "n": 31,
+   "of": 183,
+   "frac": 0.169,
+   "note": "the v1 prompt asked it to convert; the v2 packet converts for it",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282045-45",
+     "t": "T-5",
+     "pt": "10-28 17:45",
+     "cohort": "571e",
+     "mid": 0.051000000000000004,
+     "p_model": 0.09,
+     "p_llm": 0.07,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 15 bp below K with 5 minutes left and the settlement window not yet started; at 1-second sigma of about 0.6 bp, z is about -1.3, giving the model's 9%. Recent downward drift and long liquidations argue slightly lower, so I land between the model and th"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282200-00",
+     "t": "T-10",
+     "pt": "10-28 19:00",
+     "cohort": "571e",
+     "mid": 0.036500000000000005,
+     "p_model": 0.023,
+     "p_llm": 0.03,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits about 70bp below K with 10 minutes left, so the settlement mean needs roughly a +2 sigma move against a strong downtrend, heavy long liquidations and negative Coinbase flow. The model's 2.3% and the 3.65% mid bracket a fair value near 3%. Downside mo"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282200-00",
+     "t": "T-5",
+     "pt": "10-28 19:00",
+     "cohort": "571e",
+     "mid": 0.0205,
+     "p_model": 0.041,
+     "p_llm": 0.035,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits at 100.14, about 49 bp below K=100.63, with 5 minutes left. Using realized 1-second volatility, the settlement-mean SD is about $0.28, giving z\u2248-1.7 and a model probability near 4%; recent upward momentum is partly offset by long liquidations an"
+    }
+   ]
+  },
+  "btc_eth_mentioned": {
+   "title": "BTC/ETH mentioned at all",
+   "n": 13,
+   "of": 183,
+   "frac": 0.071,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-5",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.365,
+     "p_model": 0.406,
+     "p_llm": 0.39,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 2.7bp below K with 5 minutes left; the Gaussian model gives about 0.41 and the market mid is 0.365. A mild downtrend across SOL, ETH and BTC offsets a strongly positive short-term Coinbase buy imbalance, so I land between the two. Coinbase 60s order-"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-10",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.295,
+     "p_model": 0.355,
+     "p_llm": 0.32,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 5.7bp below K with 10 minutes left; the Gaussian model gives about 0.36, but momentum and order flow are negative (Coinbase imbalance -0.85 over 60s, SOL down over 15m with ETH weak). I land slightly above the 0.295 mid. none Edge after spread and fees"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-10",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.22999999999999998,
+     "p_model": 0.247,
+     "p_llm": 0.24,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits 11bp below K with about 10 minutes left; the model gives 0.247 and the mid is 0.23. There's a mild downtrend, with BTC and ETH also weak, while the perp basis and taker imbalance are slightly positive, so these roughly offset. none No edge beyon"
+    }
+   ]
+  },
+  "btc_eth_used_directionally": {
+   "title": "BTC/ETH direction used as a reason (not just listed)",
+   "n": 4,
+   "of": 183,
+   "frac": 0.022,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-5",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.365,
+     "p_model": 0.406,
+     "p_llm": 0.39,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot sits 2.7bp below K with 5 minutes left; the Gaussian model gives about 0.41 and the market mid is 0.365. A mild downtrend across SOL, ETH and BTC offsets a strongly positive short-term Coinbase buy imbalance, so I land between the two. Coinbase 60s order-"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-10",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.295,
+     "p_model": 0.355,
+     "p_llm": 0.32,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 5.7bp below K with 10 minutes left; the Gaussian model gives about 0.36, but momentum and order flow are negative (Coinbase imbalance -0.85 over 60s, SOL down over 15m with ETH weak). I land slightly above the 0.295 mid. none Edge after spread and fees"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-10",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.22999999999999998,
+     "p_model": 0.247,
+     "p_llm": 0.24,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits 11bp below K with about 10 minutes left; the model gives 0.247 and the mid is 0.23. There's a mild downtrend, with BTC and ETH also weak, while the perp basis and taker imbalance are slightly positive, so these roughly offset. none No edge beyon"
+    }
+   ]
+  },
+  "p_own_differs_from_p_yes": {
+   "title": "p_own != final p_yes (moved after 'reconciliation')",
+   "n": 15,
+   "of": 183,
+   "frac": 0.082,
+   "note": "of 42 rows with p_own",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT291845-45",
+     "t": "T-10",
+     "pt": "10-29 15:45",
+     "cohort": "6c8d",
+     "mid": 0.8,
+     "p_model": 0.775,
+     "p_llm": 0.775,
+     "p_own": 0.77,
+     "y": 1.0,
+     "text": "Spot is 35 bp above K with about 10 min of roughly 45-60 bp vol, giving z near 0.75. Positive flow imbalance and perp basis are mild tailwinds, already mostly priced. Edge versus the 0.81 ask or 0.21 NO price is within fee plus margin."
+    },
+    {
+     "ticker": "KXSOL15M-26OCT291900-00",
+     "t": "T-10",
+     "pt": "10-29 16:00",
+     "cohort": "6c8d",
+     "mid": 0.255,
+     "p_model": 0.28,
+     "p_llm": 0.26,
+     "p_own": 0.25,
+     "y": 0.0,
+     "text": "Index is 23bp below K with about 10 minutes left; at roughly 19bp/min realised vol the move needed is about -0.5 sd, giving ~29%, shaded down for negative flow. Negative taker imbalance and long liquidations slightly favour NO but are offset by the positive pe"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT291930-30",
+     "t": "T-5",
+     "pt": "10-29 16:30",
+     "cohort": "6c8d",
+     "mid": 0.875,
+     "p_model": 0.829,
+     "p_llm": 0.855,
+     "p_own": 0.86,
+     "y": 0.0,
+     "text": "Spot is 25.8bp above K (about 0.25 USD); the settlement-mean sd of about 0.26 gives z near 0.95-1.1 with realized 1m vol of 13.8bp, so P is about 0.83-0.87. The sharp last-minute 33bp spike may partially revert, which offsets the positive perp basis. Ask 0.88 "
+    }
+   ]
+  },
+  "uncertainty_as_reason_to_pass": {
+   "title": "'model uncertainty' / 'conflicting signals' as the reason not to trade",
+   "n": 21,
+   "of": 183,
+   "frac": 0.115,
+   "note": "uncertainty is already in the probability; it is not a second cost",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282015-15",
+     "t": "T-10",
+     "pt": "10-28 17:15",
+     "cohort": "571e",
+     "mid": 0.20500000000000002,
+     "p_model": 0.285,
+     "p_llm": 0.25,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 9.5 bp below K with about 10 minutes left. The policy model gives 0.285, and the 1-minute candles imply somewhat higher volatility (about 4 bp/min, so roughly 13 bp over 10 minutes), which would push z toward -0.7 and P toward about 0.24-0.28. Recent s"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-5",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.0295,
+     "p_model": 0.065,
+     "p_llm": 0.05,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 17 bp below K with ~5 min left; the Gaussian model gives ~6.5% using realized 1s vol, and the market mid sits at ~3%. Fat tails and SOL's 1m rv of ~4 bp make 3% look slightly low, but the momentum is negative. Using the policy model's realized-vol esti"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282215-15",
+     "t": "T-10",
+     "pt": "10-28 19:15",
+     "cohort": "571e",
+     "mid": 0.6,
+     "p_model": 0.541,
+     "p_llm": 0.56,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is about 4.5 bp above K with 10 minutes left and a settle-mean SD of about 43 bp of value (~0.43 USD), so the edge is small and the model gives about 0.54. The market mid of 0.60 looks slightly rich, but the gap does not cover spread plus fees. Short-term"
+    }
+   ]
+  },
+  "cites_1m_candle_vol_as_feed_vol": {
+   "title": "cites the 1-min candle vol where the 1-s feed sigma drives settlement",
+   "n": 7,
+   "of": 183,
+   "frac": 0.038,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT282245-45",
+     "t": "T-5",
+     "pt": "10-28 19:45",
+     "cohort": "571e",
+     "mid": 0.185,
+     "p_model": 0.243,
+     "p_llm": 0.22,
+     "p_own": null,
+     "y": 0.0,
+     "text": "Spot is 17 bp below K with 5 minutes left; the model's Gaussian puts YES at about 0.24, while the market mid is 0.185 amid a bearish trend and long liquidations. I'll blend toward the model slightly, since realized vol may be underestimated given the 1-minute "
+    },
+    {
+     "ticker": "KXSOL15M-26OCT290815-15",
+     "t": "T-5",
+     "pt": "10-29 05:15",
+     "cohort": "571e",
+     "mid": 0.06,
+     "p_model": 0.113,
+     "p_llm": 0.09,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 14.4 bp below K with about 5 minutes left, and the model z of -1.21 gives about 11%. Realized 1-minute vol of about 4.4 bp suggests a 5-minute SD near 10 bp, so roughly 8-11% is fair, close to the market mid of 6%. The OKX perp trades about 6 bp a"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT291730-30",
+     "t": "T-5",
+     "pt": "10-29 14:30",
+     "cohort": "6c8d",
+     "mid": 0.954,
+     "p_model": 0.903,
+     "p_llm": 0.895,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 61bp above K with about 270s to the window midpoint; realised 1-minute vol of 30bp implies a 45-65bp move SD, z of about 1.0-1.3, before fat tails. The market's 95.5% looks too confident given 1-minute candle volatility and the 500bp 60m range. NO at a"
+    }
+   ]
+  },
+  "beyond_market_none": {
+   "title": "beyond_market = 'none' (used nothing the price does not reflect)",
+   "n": 113,
+   "of": 183,
+   "frac": 0.617,
+   "note": "",
+   "examples": [
+    {
+     "ticker": "KXSOL15M-26OCT281945-45",
+     "t": "T-10",
+     "pt": "10-28 16:45",
+     "cohort": "b9b5",
+     "mid": 0.73,
+     "p_model": 0.666,
+     "p_llm": 0.69,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index is 7 bp above K with 600 s left. Realized vol puts the settlement-mean SD near 0.17 USD against a 0.072 USD cushion (z\u22480.43), so the model gives about 0.67. Slightly positive order flow and a perp premium point up, so I land between the model and the"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282000-00",
+     "t": "T-10",
+     "pt": "10-28 17:00",
+     "cohort": "571e",
+     "mid": 0.295,
+     "p_model": 0.355,
+     "p_llm": 0.32,
+     "p_own": null,
+     "y": 1.0,
+     "text": "Spot is 5.7bp below K with 10 minutes left; the Gaussian model gives about 0.36, but momentum and order flow are negative (Coinbase imbalance -0.85 over 60s, SOL down over 15m with ETH weak). I land slightly above the 0.295 mid. none Edge after spread and fees"
+    },
+    {
+     "ticker": "KXSOL15M-26OCT282030-30",
+     "t": "T-10",
+     "pt": "10-28 17:30",
+     "cohort": "571e",
+     "mid": 0.22999999999999998,
+     "p_model": 0.247,
+     "p_llm": 0.24,
+     "p_own": null,
+     "y": 0.0,
+     "text": "The index sits 11bp below K with about 10 minutes left; the model gives 0.247 and the mid is 0.23. There's a mild downtrend, with BTC and ETH also weak, while the perp basis and taker imbalance are slightly positive, so these roughly offset. none No edge beyon"
+    }
+   ]
+  }
+ },
+ "calibration": {
+  "571ef22c0ce7a845|T-10": {
+   "n": 62,
+   "brier_llm": 0.1693,
+   "brier_mid": 0.1712,
+   "brier_model": 0.1684,
+   "llm_minus_mid": -0.0019,
+   "se": 0.0033,
+   "yes_rate": 0.435,
+   "mean_p_llm": 0.472,
+   "mean_mid": 0.471,
+   "p_own": null
+  },
+  "571ef22c0ce7a845|T-5": {
+   "n": 62,
+   "brier_llm": 0.0992,
+   "brier_mid": 0.0974,
+   "brier_model": 0.1036,
+   "llm_minus_mid": 0.0018,
+   "se": 0.0038,
+   "yes_rate": 0.435,
+   "mean_p_llm": 0.488,
+   "mean_mid": 0.483,
+   "p_own": null
+  },
+  "6c8d03af884f0000|T-10": {
+   "n": 23,
+   "brier_llm": 0.16,
+   "brier_mid": 0.158,
+   "brier_model": 0.162,
+   "llm_minus_mid": 0.002,
+   "se": 0.003,
+   "yes_rate": 0.391,
+   "mean_p_llm": 0.443,
+   "mean_mid": 0.446,
+   "p_own": {
+    "n": 20,
+    "brier_p_own": 0.1502,
+    "brier_mid": 0.1475,
+    "brier_p_llm": 0.1505
+   }
+  },
+  "6c8d03af884f0000|T-5": {
+   "n": 24,
+   "brier_llm": 0.1293,
+   "brier_mid": 0.129,
+   "brier_model": 0.1291,
+   "llm_minus_mid": 0.0003,
+   "se": 0.0029,
+   "yes_rate": 0.417,
+   "mean_p_llm": 0.477,
+   "mean_mid": 0.482,
+   "p_own": {
+    "n": 21,
+    "brier_p_own": 0.0998,
+    "brier_mid": 0.1001,
+    "brier_p_llm": 0.0993
+   }
+  },
+  "7c1b4812090bfb87|T-10": {
+   "n": 4,
+   "brier_llm": 0.2181,
+   "brier_mid": 0.2061,
+   "brier_model": 0.2287,
+   "llm_minus_mid": 0.012,
+   "se": 0.0109,
+   "yes_rate": 0.5,
+   "mean_p_llm": 0.297,
+   "mean_mid": 0.304,
+   "p_own": null
+  },
+  "7c1b4812090bfb87|T-5": {
+   "n": 3,
+   "brier_llm": 0.0659,
+   "brier_mid": 0.0535,
+   "brier_model": 0.0789,
+   "llm_minus_mid": 0.0124,
+   "se": 0.0074,
+   "yes_rate": 0.333,
+   "mean_p_llm": 0.39,
+   "mean_mid": 0.404,
+   "p_own": null
+  },
+  "b9b52b5e795277e7|T-10": {
+   "n": 1,
+   "brier_llm": 0.4761,
+   "brier_mid": 0.5329,
+   "brier_model": 0.4433,
+   "llm_minus_mid": -0.0568,
+   "se": null,
+   "yes_rate": 0.0,
+   "mean_p_llm": 0.69,
+   "mean_mid": 0.73,
+   "p_own": null
+  },
+  "b9b52b5e795277e7|T-5": {
+   "n": 2,
+   "brier_llm": 0.1961,
+   "brier_mid": 0.1794,
+   "brier_model": 0.2005,
+   "llm_minus_mid": 0.0167,
+   "se": 0.0022,
+   "yes_rate": 0.0,
+   "mean_p_llm": 0.44,
+   "mean_mid": 0.42,
+   "p_own": null
+  },
+  "all|T-10": {
+   "n": 90,
+   "brier_llm": 0.1725,
+   "brier_mid": 0.1734,
+   "brier_model": 0.1725,
+   "llm_minus_mid": -0.0009,
+   "se": 0.0025,
+   "yes_rate": 0.422,
+   "mean_p_llm": 0.459,
+   "mean_mid": 0.46,
+   "p_own": {
+    "n": 20,
+    "brier_p_own": 0.1502,
+    "brier_mid": 0.1475,
+    "brier_p_llm": 0.1505
+   }
+  },
+  "all|T-5": {
+   "n": 91,
+   "brier_llm": 0.1082,
+   "brier_mid": 0.1061,
+   "brier_model": 0.1116,
+   "llm_minus_mid": 0.0021,
+   "se": 0.0027,
+   "yes_rate": 0.418,
+   "mean_p_llm": 0.481,
+   "mean_mid": 0.479,
+   "p_own": {
+    "n": 21,
+    "brier_p_own": 0.0998,
+    "brier_mid": 0.1001,
+    "brier_p_llm": 0.0993
+   }
+  }
+ },
+ "reliability": [
+  {
+   "bin": "[0,0.1)",
+   "llm_n": 23,
+   "llm_mean_p": 0.045,
+   "llm_hit": 0.0,
+   "mid_n": 29,
+   "mid_mean_p": 0.048,
+   "mid_hit": 0.0
+  },
+  {
+   "bin": "[0.1,0.3)",
+   "llm_n": 40,
+   "llm_mean_p": 0.194,
+   "llm_hit": 0.1,
+   "mid_n": 41,
+   "mid_mean_p": 0.205,
+   "mid_hit": 0.171
+  },
+  {
+   "bin": "[0.3,0.5)",
+   "llm_n": 34,
+   "llm_mean_p": 0.393,
+   "llm_hit": 0.265,
+   "mid_n": 32,
+   "mid_mean_p": 0.407,
+   "mid_hit": 0.312
+  },
+  {
+   "bin": "[0.5,0.7)",
+   "llm_n": 37,
+   "llm_mean_p": 0.58,
+   "llm_hit": 0.568,
+   "mid_n": 29,
+   "mid_mean_p": 0.593,
+   "mid_hit": 0.552
+  },
+  {
+   "bin": "[0.7,0.9)",
+   "llm_n": 27,
+   "llm_mean_p": 0.794,
+   "llm_hit": 0.815,
+   "mid_n": 27,
+   "mid_mean_p": 0.81,
+   "mid_hit": 0.741
+  },
+  {
+   "bin": "[0.9,1)",
+   "llm_n": 21,
+   "llm_mean_p": 0.968,
+   "llm_hit": 0.952,
+   "mid_n": 24,
+   "mid_mean_p": 0.974,
+   "mid_hit": 0.958
+  }
+ ],
+ "big_disagreements_ge_5c": {
+  "n": 16,
+  "llm_closer_than_mid": 5,
+  "examples": [
+   {
+    "ticker": "KXSOL15M-26OCT282015-15",
+    "t": "T-5",
+    "pt": "10-28 17:15",
+    "cohort": "571e",
+    "mid": 0.46499999999999997,
+    "p_model": 0.608,
+    "p_llm": 0.57,
+    "p_own": null,
+    "y": 1.0,
+    "text": "The index at 102.38 sits about 3 bp above K of 102.3475 with 5 minutes left. Short-horizon volatility makes this roughly z\u22480.27, giving p near 0.58-0.60, and the market mid of 0.465 looks low. The current index sits above the strike and short-term momentum and"
+   },
+   {
+    "ticker": "KXSOL15M-26OCT282215-15",
+    "t": "T-5",
+    "pt": "10-28 19:15",
+    "cohort": "571e",
+    "mid": 0.185,
+    "p_model": 0.273,
+    "p_llm": 0.24,
+    "p_own": null,
+    "y": 0.0,
+    "text": "Spot sits 18.6 bp below K with about 5 minutes left; with realized 1-second vol of about 1.7 bp, the Gaussian model gives roughly 0.27, but the trend and flow (negative Coinbase imbalance, long liquidations) lean bearish. A fair value of about 0.22-0.26 sits n"
+   },
+   {
+    "ticker": "KXSOL15M-26OCT290145-45",
+    "t": "T-5",
+    "pt": "10-28 22:45",
+    "cohort": "571e",
+    "mid": 0.865,
+    "p_model": 0.779,
+    "p_llm": 0.79,
+    "p_own": null,
+    "y": 0.0,
+    "text": "Spot is 9 bp above K with 5 minutes left. Realized-vol Gaussian gives about 0.78 (z\u22480.77), so the 0.865 mid looks rich. I relied on the realized-vol model rather than the market mid; positive Coinbase imbalance is offset by negative OKX taker flow. A NO costs "
+   },
+   {
+    "ticker": "KXSOL15M-26OCT290200-00",
+    "t": "T-10",
+    "pt": "10-28 23:00",
+    "cohort": "571e",
+    "mid": 0.755,
+    "p_model": 0.678,
+    "p_llm": 0.7,
+    "p_own": null,
+    "y": 0.0,
+    "text": "Spot is 100.52 against K 100.439, about 8 bp above with 10 minutes left, and realized 1s vol implies a z of roughly 0.46-0.6 for the settlement mean, which gives about 0.68-0.72. The market at 0.755 looks slightly rich, but the edge is too small after fees and"
+   },
+   {
+    "ticker": "KXSOL15M-26OCT290300-00",
+    "t": "T-5",
+    "pt": "10-29 00:00",
+    "cohort": "571e",
+    "mid": 0.835,
+    "p_model": 0.735,
+    "p_llm": 0.77,
+    "p_own": null,
+    "y": 1.0,
+    "text": "Spot is 7.5bp above K with about 5 minutes left, giving a Gaussian estimate near 0.74. Recent upward drift and a positive perp basis lean slightly toward YES, but the 0.835 mid looks a little rich. Perp basis is +7.5bp and the last 5 minutes trended up, which "
+   }
+  ]
+ },
+ "actions": {
+  "null": 4,
+  "NO_TRADE": 171,
+  "BUY_YES": 5,
+  "BUY_NO": 2,
+  "HOLD": 1
+ }
+}
