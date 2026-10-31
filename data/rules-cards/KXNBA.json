@@ -1,0 +1,37 @@
+{
+ "series": "KXNBA",
+ "settlement_source": "Governing league (NBA, nba.com) first official final result; Source Agencies: league, AP, ESPN, WSJ, Fox Sports (TITLE.pdf)",
+ "settlement_variable": "Which team wins the NBA Finals (holds the title) for the specified year (e.g. 2027)",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "If multiple teams reported title holders: Yes pays $1/N rounded down, No = $1 minus Yes.",
+ "rounding": "Rounded down to nearest cent; min tick $0.01",
+ "trading_close_vs_settlement": "Last trading = expiration time (10:00 AM ET, day after official final result at latest). API close/expiration 2029-07-30T14:00Z is a far backstop; can_close_early=1 so it closes early once result is official. Settlement within a day; timer 300s.",
+ "early_close_or_void_clauses": "Postponed/suspended: stays open until winner reported or 2 years after original date. Cancelled/no contest: eligible (non-eliminated) teams pay $1/N. Forfeit => No. Disqualified before expiry => No. Team eliminated (as reported by Source Agency) => No immediately. Event ended early but governing body declares winner => that result. Post-expiry revisions ignored. Kalshi sole-discretion Outcome Review; Rule 6.3(b) fallback.",
+ "title_vs_rules_divergences": [
+  "Generic 'Pro Basketball' wording; actual league (NBA) evident only from source URL; PDF <title> may be NFL/NHL/NBA/NCAA",
+  "close_time 2029-07-30 is a placeholder far beyond Finals (~June 2027)",
+  "Elimination resolves an individual team No before the Finals end"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NBA.com playoffs",
+   "url": "https://www.nba.com/playoffs",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN NBA scoreboard",
+   "url": "https://www.espn.com/nba/scoreboard",
+   "latency": "real-time",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Insider list (players, coaches, staff, owners): injury/rotation MNPI",
+  "Elimination resolves No immediately; live game info gives fast-moving informed flow",
+  "Very long duration (placeholder 2029 close) ties up capital; 0.01-0.03 strikes lottery-like",
+  "Kalshi discretion in cancel/no-contest allocation"
+ ],
+ "notes": "Futures market on 30 teams, ~1.86M 24h volume. Partial now (season not started/in progress); effectively high at the final game."
+}

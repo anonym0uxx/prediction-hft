@@ -1,0 +1,44 @@
+{
+ "series": "KXMLBWSMVP",
+ "settlement_source": "MLB (mlb.com) official World Series MVP announcement; Source Agencies hierarchical: league, award body, ESPN, AP, The Athletic, SI, Fox, CBS, NBC, Sporting News, Bleacher Report, team sites (MLBAWARD.pdf)",
+ "settlement_variable": "Official recipient(s) of the World Series Most Valuable Player Award, 2026 season",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "Co-winners: Yes pays $1/N rounded down (rules_secondary). PDF alternative: if a 'Tie/Co-Winners' strike is listed it resolves Yes and others No.",
+ "rounding": "Rounded down to nearest cent",
+ "trading_close_vs_settlement": "Last trading = expiration time; API close/expiration 2026-12-08T15:00Z is latest backstop; can_close_early=1 so closes sooner after official announcement. Settlement within a day; timer 300s.",
+ "early_close_or_void_clauses": "'No Award Given' resolves Yes if listed, others No. Ineligible participant => No immediately. Resolution only on official announcement, not leaks/media/odds. Post-expiry revocations ignored. Kalshi sole-discretion Outcome Review; Rule 7.1 fallback.",
+ "title_vs_rules_divergences": [
+  "Title 'Pro Baseball Championship Series MVP' vs rules 'World Series Most Valuable Player Award' (not ALCS/NLCS MVP)",
+  "rules_secondary 1/N co-winner payout vs PDF 'Tie/Co-Winners' strike clause: unknown whether such a strike exists",
+  "PDF mentions 'Other'/'No Award Given' participants; sample contracts list only players"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "MLB postseason",
+   "url": "https://www.mlb.com/postseason",
+   "latency": "real-time; MVP announced minutes after final out",
+   "cost": "free"
+  },
+  {
+   "name": "MLB Stats API",
+   "url": "https://statsapi.mlb.com/api/v1/schedule?sportId=1",
+   "latency": "real-time",
+   "cost": "free (public, unofficial)"
+  },
+  {
+   "name": "ESPN MLB scoreboard",
+   "url": "https://www.espn.com/mlb/scoreboard",
+   "latency": "real-time",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Award announced within minutes of final out; prices gap as series clinches while market may still be open",
+  "Final-game performance public live, voting outcome not: informed in-play flow",
+  "Insider prohibitions (players, staff, owners, Source Agency employees)",
+  "Voting is subjective (pitcher vs hitter) even after series outcome known",
+  "Title vs rules mismatch (Championship Series vs World Series)"
+ ],
+ "notes": "World Series state as of 2026-10-31 not verified; Chourio ~0.50, 117 open markets, ~1.76M volume."
+}

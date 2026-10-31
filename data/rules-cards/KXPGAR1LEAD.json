@@ -1,0 +1,38 @@
+{
+ "series": "KXPGAR1LEAD",
+ "settlement_source": "PGA TOUR (pgatour.com) official leaderboard; Source Agencies: governing league, AP, ESPN, WSJ, Fox Sports (ACHIEVEMENTS.pdf)",
+ "settlement_variable": "Player leading (first place) at end of Round 1 of the specified tournament (e.g. 2026 VidantaWorld Mexico Open)",
+ "timezone": "ET for expiration (10:00 AM ET); tournament local time unspecified",
+ "tie_handling": "Tied leaders: Yes pays $1/N rounded down to nearest cent; No = 1 - Yes payout.",
+ "rounding": "Rounded down to nearest cent",
+ "trading_close_vs_settlement": "Last trading = expiration time. API close/expiration 2026-11-15T00:00Z is a placeholder; can_close_early=1, so market closes early once Round 1 result is official. Settlement timer 60s.",
+ "early_close_or_void_clauses": "Postponement: open until reported or 2 weeks after final scheduled event (ambiguous for a Round 1 market). Cancelled/no result: eligible participants pay LAST TRADED PRICE before cancellation, then Outcome Review Committee, then 1/N. Withdrawal/forfeit => No. DQ => No. Truncated event with reported result => that result. Behavior for darkness-suspended Round 1: unknown.",
+ "title_vs_rules_divergences": [
+  "Title 'X leads at the end of Round 1' vs generic achievement template ('held by participant') with no golf-specific rules on suspended rounds or split tees/waves",
+  "Placeholder close 2026-11-15 vs actual Round 1 end early Nov 2026",
+  "'Leader at end of round' undefined if play suspended"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "PGA TOUR leaderboard",
+   "url": "https://www.pgatour.com/leaderboard",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN golf leaderboard",
+   "url": "https://www.espn.com/golf/leaderboard",
+   "latency": "real-time",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement variable (live leaderboard) is public and updating before close: adverse selection vs slow quotes",
+  "Wave/tee-time asymmetry: early-wave scores known while late wave plays",
+  "Ties common in R1 (1/N payout) make pricing noisy",
+  "Insider prohibitions (players, staff)",
+  "Placeholder close hides true, abrupt early close"
+ ],
+ "notes": "Per-tournament event (VIMO26 in sample). 123 open markets, ~1.84M 24h volume; longshots bid 0.001."
+}

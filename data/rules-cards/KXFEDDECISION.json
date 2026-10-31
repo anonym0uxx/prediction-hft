@@ -1,0 +1,42 @@
+{
+ "series": "KXFEDDECISION",
+ "settlement_source": "Federal Reserve System (FOMC statement / federalreserve.gov press release)",
+ "settlement_variable": "FOMC decision on the target federal funds rate range at the specified meeting: hike by X bps / cut / no change (mutually exclusive bins)",
+ "timezone": "ET (last trading 1:55 PM ET per PDF; expiration 2:05 PM ET)",
+ "tie_handling": "N/A; outcomes mutually exclusive (e.g. a 50bp hike resolves only that bin Yes).",
+ "rounding": "Bins by bps change of target range; no rounding specified (handling of non-25bp-multiple moves: unknown)",
+ "trading_close_vs_settlement": "PDF: last trading 1:55 PM ET; expiration first 2:05 PM ET after decision release (statement normally 2:00 PM ET), so trading stops BEFORE release. API close_time 2026-10-28T17:59Z; expiration_time 2027-01-27 is 3-month backstop; settlement_timer 297s.",
+ "early_close_or_void_clauses": "If Fed cancels the target meeting: 'no change' bin Yes, all others No. Kalshi may open Market Outcome Review at sole discretion; if value undeterminable Kalshi decides payouts per Rule 6.3(b). Post-expiry revisions ignored. Unscheduled intermeeting moves: unknown/not addressed.",
+ "title_vs_rules_divergences": [
+  "Title says 'Hike rates by 0bps' for the hold bin (yes_sub_title 'Fed maintains rate'): awkward wording",
+  "rules_secondary example has garbled 'Hike   25 bps' label text",
+  "PDF says the 'Instructions' link is convenience-only, not binding"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Federal Reserve press releases",
+   "url": "https://www.federalreserve.gov/newsevents/pressreleases.htm",
+   "latency": "~2:00 PM ET on decision day, after market close",
+   "cost": "free"
+  },
+  {
+   "name": "CME FedWatch (probabilities, not the variable)",
+   "url": "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+   "latency": "delayed/near real-time",
+   "cost": "free (delayed)"
+  },
+  {
+   "name": "FRED DFEDTARU/DFEDTARL",
+   "url": "https://fred.stlouisfed.org/series/DFEDTARU",
+   "latency": "next business day",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "none",
+ "toxicity_flags": [
+  "Decision is released after trading closes, but futures/fedspeak price it ~90%+ in advance (hold bin 0.91-0.92): informed rates-futures flow",
+  "Press lock-up leak risk (MNPI prohibition applies)",
+  "Far-tail bins (0.01-0.08) are lottery-like and negative EV after fees"
+ ],
+ "notes": "FOMC decision bins, ~8/yr. Sample KXFEDDECISION-26OCT-H0 had close_time 2026-10-28 yet refresh still lists it open (likely awaiting settlement). Source PDF FEDDECISION.pdf."
+}
