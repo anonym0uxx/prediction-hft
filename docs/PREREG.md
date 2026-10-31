@@ -199,3 +199,8 @@ Evidence: realized -USD 30.76 over 209 closes; forensics (docs/TRADE_FORENSICS_2
 Operational trigger: SOL-v1 losses consumed the GLOBAL USD 50/week halt, blocking four valid Opus v2c trade intents on 10-30 14:05-16:05 PT.
 Action: Stop-ScheduledTask + Disable-ScheduledTask on PredHFT-SOL-v1 and PredHFT-SOL-WSBook (survives reboot/logon). Owner directive: user "Go" in Telegram 2026-10-30.
 Scope: paper only. SOL-v1 remains scored on recorded data; no deletion of code or data. Weekly halt budget now reserved for Opus v2c.
+
+## P28 — Opus direct arm: halts shadow-only (2026-10-30 20:57 PT)
+Decision: llm_direct CFG enforce_halts True -> False. In paper mode the direct (Opus) arm no longer refuses entries when GLOBAL daily/weekly or family loss halts are hit; halts are shadow-logged to the risk ledger like every other paper family (risk.size line for the halt_shadow event is unchanged).
+Owner directive: user, Telegram 2026-10-30 "Dont put a $50 limit on paper trades... so opus can just freely trade".
+Untouched: Kelly sizing, lot 5-20, per-market/per-close cost caps, error kill switch, and full halt enforcement under PREDHFT_MODE=live. Scope: paper only.

@@ -43,7 +43,7 @@ CFG = {
     "min_px": 0.01, "max_px": 0.99,    # the model's limit must be a price in dollars inside (0, 1); no further price gate
     "max_book_age_s": 2.5,             # ws book freshness for the fill; older -> REST re-fetch; failing that the snapshot book (flagged)
     "mark_interval_s": 60.0, "settle_after_s": 90.0, "settle_poll_s": 30.0,
-    "enforce_halts": True,             # loss halts refuse this arm's entries even in paper mode (hard limit per the directive)
+    "enforce_halts": False,            # P28 (user 2026-10-30): direct arm no longer refuses entries on loss halts in paper — halts are shadow-logged like every other paper family. Live mode still enforces via risk.halted().
     "rest_ttl_s": 60.0,                # execution model v2: the unfilled remainder rests this long at the model's limit ...
     "rest_cancel_before_close_s": 60.0,  # ... but never into the market's final minute (cancelled at T-60 s)
     "rest_poll_s": 1.0,                # fill monitor cadence while anything rests (sidecar loop sleeps this instead of its poll)
