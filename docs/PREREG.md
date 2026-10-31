@@ -204,3 +204,6 @@ Scope: paper only. SOL-v1 remains scored on recorded data; no deletion of code o
 Decision: llm_direct CFG enforce_halts True -> False. In paper mode the direct (Opus) arm no longer refuses entries when GLOBAL daily/weekly or family loss halts are hit; halts are shadow-logged to the risk ledger like every other paper family (risk.size line for the halt_shadow event is unchanged).
 Owner directive: user, Telegram 2026-10-30 "Dont put a $50 limit on paper trades... so opus can just freely trade".
 Untouched: Kelly sizing, lot 5-20, per-market/per-close cost caps, error kill switch, and full halt enforcement under PREDHFT_MODE=live. Scope: paper only.
+
+## P27 amendment — SOL-v1 runs --scored-only (2026-10-31 09:12 PT)
+P27 disabled PredHFT-SOL-v1 + PredHFT-SOL-WSBook outright. That silently starved the Opus sidecar: llm_shadow tails data/sol-v1/snapshots.jsonl and llm_direct reads the SOL-v1 ws book, so Opus made no decisions from 10-30 20:29 PT to 10-31 09:12 PT (~13 h, ~50 closes lost). Fix: WSBook re-enabled; SOL-v1 re-enabled with --scored-only (writes snapshots, abstains with reason scored_only, never opens or exits). SOL-v1 trading remains off as P27 intended. Verified: snapshots fresh (1-3 s), first Opus decision 09:20 PT.
