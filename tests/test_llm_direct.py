@@ -89,9 +89,12 @@ def test_hard_limits_clamp_and_refuse_without_any_edge_logic(tmp_path, monkeypat
     led_sol = R.Ledger(tmp_path / "sol-v1", family="sol-v1"); led_sol.record_open("KXSOL15M-X", "KXSOL15M", 9.0, close_ts=T, side="yes")
     hl = D.hard_limits("BUY_YES", 20, 0.50, led, T); assert hl["ok"] and hl["qty"] == 6 and any("crypto_close" in c for c in hl["clamps"])
     hl = D.hard_limits("BUY_YES", 20, 0.80, led, T); assert not hl["ok"] and hl["reason"].startswith("risk_limited:") and hl["qty"] == 0   # 3/.8 = 3 < min lot
-    # loss halt refuses (enforced for this arm even in paper mode)
+    # P28 (2026-10-30): halts no longer refuse this arm's entries in paper mode —
+    # they are shadow-logged. A -16 settle trips the family daily halt; the entry
+    # must still be ALLOWED (halts recorded, not enforced), with the ledger
+    # noting the shadow halt event.
     led.record_settle("KXSOL15M-L", -16.0)
-    hl = D.hard_limits("BUY_YES", 10, 0.50, led, T + 900); assert not hl["ok"] and hl["reason"].startswith("risk_limited:halt:")
+    hl = D.hard_limits("BUY_YES", 10, 0.50, led, T + 900); assert hl["ok"] and hl["qty"] == 10
 
 
 # ------------------------------------------------------------------ fills at the model's limit
