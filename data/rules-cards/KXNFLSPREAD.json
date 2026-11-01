@@ -1,0 +1,44 @@
+{
+ "series": "KXNFLSPREAD",
+ "settlement_source": "League governing the game (NFL, nfl.com), 'the Governing League'",
+ "settlement_variable": "Point differential (team score minus opponent score) over entire game incl. overtime unless otherwise specified; threshold e.g. wins by over 10.5",
+ "timezone": "ET (all time periods ET; Expiration time 10:00 AM ET)",
+ "tie_handling": "Tied: differential 0; 'wins by' any positive margin resolves No; 'exactly 0' resolves Yes.",
+ "rounding": "Half-point strikes (x.5) so no push; no rounding",
+ "trading_close_vs_settlement": "Listed close_time is placeholder ~2-3 days after game (game Nov 1, close Nov 3); can_close_early=1, settlement_timer 60s; expiration 10:00 AM ET, latest 15th day after game.",
+ "early_close_or_void_clauses": "Suspended/abandoned after kickoff and not resuming within 48h: before 55 min of play -> last fair price (Exchange sole discretion) except already-decided markets; after 55 min or league declares final -> settle on state at that point. Postponed but starts within 48h -> stays open. Venue change: same home/away within 48h OK; reversal or >48h -> last fair price. Forfeit before kickoff -> last fair price. Stat corrections after expiration ignored. Market Outcome Review at discretion (Rule 6.3(d)).",
+ "title_vs_rules_divergences": [
+  "Title 'wins by over X points?' vs rules: overtime points count; tie yields No.",
+  "Terms Source Agency is generic 'league governing <game>'; title says 'Pro Football' without naming NFL.",
+  "Title omits 55-minute suspension rule and last-fair-price outcomes."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NFL.com scores",
+   "url": "https://www.nfl.com/scores",
+   "latency": "seconds",
+   "cost": "free web"
+  },
+  {
+   "name": "ESPN scoreboard API (unofficial)",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+   "latency": "seconds",
+   "cost": "free, unofficial"
+  },
+  {
+   "name": "NFL official data (licensed)",
+   "url": "https://operations.nfl.com",
+   "latency": "real-time",
+   "cost": "licensed/paid"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "In-game live score public with low latency; in-play quotes exposed to faster data than TV",
+  "High-volume series (~1.6M/24h) with sharp participants",
+  "Close time placeholder; halts at game end/early close",
+  "Discretionary last-fair-price on suspension before 55 minutes",
+  "Half-point strikes near margin boundaries amplify late-game jumps"
+ ],
+ "notes": "Terms: FOOTBALLSPREAD.pdf. Sample KXNFLSPREAD-26NOV01TENCIN-CIN11. Fee type quadratic_with_maker_fees. Retrieved 2026-11-01 PT."
+}

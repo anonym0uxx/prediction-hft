@@ -1,0 +1,51 @@
+{
+ "series": "KXTESTMATCH",
+ "settlement_source": "Official result declared by governing body of the competition; Source Agencies in hierarchy: ICC, ESPNcricinfo, relevant national board, official broadcaster",
+ "settlement_variable": "Official match result of a men's Test: winner team, or Draw/Tie strike (tie, or time elapsed with no winner). 'No Result' is NOT a draw.",
+ "timezone": "ET (expiration 10:00 AM ET; match start quoted in EDT)",
+ "tie_handling": "Draw/Tie strike listed: Yes on tie or draw, all team strikes No. Tie with no Draw/Tie strike listed: $0.50. 'No Result' -> last fair price, not Draw/Tie.",
+ "rounding": "n/a (binary); $0.50 for tie without Draw/Tie strike; tick $0.01",
+ "trading_close_vs_settlement": "Listed close/expiration ~8 days after match start (sample 2026-11-03T08:30Z for match scheduled Oct 27) = placeholder; can_close_early=1; settlement_timer 240s; latest Expiration Date is 3rd day after match ends; Expiration time 10:00 AM ET.",
+ "early_close_or_void_clauses": "Cancelled before commencement or abandoned before toss with no official result -> fair market price. Delayed >5 days from original start -> fair market price. Abandoned after toss -> official result. Forfeit before play -> last fair price. Kalshi may start Market Outcome Review at sole discretion (Rule 7.1). Revisions after expiration ignored.",
+ "title_vs_rules_divergences": [
+  "Tie with no Draw/Tie strike pays $0.50 rather than Yes/No.",
+  "'No Result' is neither Draw nor Tie; Draw/Tie holders get last-fair-price not Yes.",
+  "Terms PDF is a generic cricket template (T20/ODI/IPL) though series is Tests only.",
+  "Rain-affected Tests commonly end in draw so team 'wins' strikes resolve No."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPNcricinfo live scorecard",
+   "url": "https://www.espncricinfo.com",
+   "latency": "seconds to ~1 min",
+   "cost": "free web (no official API)"
+  },
+  {
+   "name": "Cricbuzz live",
+   "url": "https://www.cricbuzz.com/",
+   "latency": "seconds",
+   "cost": "free web"
+  },
+  {
+   "name": "ICC fixtures & results",
+   "url": "https://www.icc-cricket.com/fixtures-results",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "BBC Sport cricket",
+   "url": "https://www.bbc.co.uk/sport/cricket",
+   "latency": "~1 min",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Live in-play outcome visible on public feeds with seconds latency; latency-driven informed flow",
+  "Draw probability drifts with weather/time; 3-way structure with discretionary $0.50 / fair-price outcomes",
+  "Close time is a placeholder (can_close_early); real halt unpredictable",
+  "Fair-price resolution at Exchange discretion on abandonment/delay",
+  "Multi-day match; stale quotes after wickets/rain delays"
+ ],
+ "notes": "Sample KXTESTMATCH-26OCT270430AUSSA (South Africa v Australia). Terms: CRICKETTESTMATCHWIN.pdf. Middle of PDF partly not read. Retrieved 2026-11-01 PT."
+}

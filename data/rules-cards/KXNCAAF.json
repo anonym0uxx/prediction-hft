@@ -1,0 +1,51 @@
+{
+ "series": "KXNCAAF",
+ "settlement_source": "League/association governing the achievement (NCAA/CFP), AP, ESPN, WSJ, Fox Sports",
+ "settlement_variable": "First official final result of the College Football Playoff National Championship Game (champion participant)",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "If multiple participants reported as result: each Yes gets $1/N rounded down to cent, No gets $1 minus Yes payout.",
+ "rounding": "Round down to nearest cent for split payouts; tick $0.01",
+ "trading_close_vs_settlement": "Listed close 2027-02-23T04:00Z (placeholder; title game ~Jan 2027); can_close_early=1; settlement_timer 300s; expiration 10:00 AM ET; first-official-result rule, later revisions ignored.",
+ "early_close_or_void_clauses": "Final event postponed: sooner of result or 2 weeks after scheduled date (2 years if date unknown). Suspended during: sooner of result or 2 years. Cancelled/no result: eligible participants pay Yes at last traded price; if unfair, Outcome Review Committee; fallback equal split $1/N. Withdrawal, disqualification or elimination (as reported by Source Agency) -> No, even before final. Truncated event with reported result stands. Review at Exchange discretion (Rule 6.3(d)).",
+ "title_vs_rules_divergences": [
+  "Title 'Will X win the CFP National Championship?' - rules resolve No as soon as team is reported eliminated, so per-team market can settle before the final.",
+  "Disqualification/withdrawal -> No even if team later reinstated (new market created).",
+  "Terms PDF is a generic ACHIEVEMENTS template for all sports; Appendix B bans current AND former players/staff while series metadata lists only current.",
+  "Cancellation pays last traded price, not $0."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "CFP rankings/bracket",
+   "url": "https://collegefootballplayoff.com",
+   "latency": "at selection/game end",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN college football scoreboard",
+   "url": "https://www.espn.com/college-football/scoreboard",
+   "latency": "seconds",
+   "cost": "free web"
+  },
+  {
+   "name": "NCAA.com football",
+   "url": "https://www.ncaa.com/sports/football/fbs",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "AP college football",
+   "url": "https://apnews.com/hub/college-football",
+   "latency": "minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Long-dated futures, many strikes mostly at 0-3c with wide relative spreads",
+  "Per-team market jumps to zero on elimination, public feed sub-minute",
+  "Injury/transfer/CFP selection news leaks before public",
+  "Near-zero price levels: tick size and fee drag dominate",
+  "Exchange discretionary outcome review on cancellation"
+ ],
+ "notes": "Sample KXNCAAF-27-WAKE, KXNCAAF-27-UTAH. Terms: NCAAF.pdf (ACHIEVEMENTS template). Middle of PDF not read. Retrieved 2026-11-01 PT."
+}

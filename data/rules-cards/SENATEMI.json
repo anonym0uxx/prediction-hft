@@ -1,0 +1,57 @@
+{
+ "series": "SENATEMI",
+ "settlement_source": "United States Congress (congress.gov); accelerated determination via >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) with no contradictory call",
+ "settlement_variable": "Party of first candidate presenting certificate of election AND sworn in for the Michigan Senate term beginning 2027 (if vacancy, party of first person sworn in as replacement)",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "unknown (not addressed in contract terms; contested results handled only via accelerated-call conditions or Outcome Review)",
+ "rounding": "n/a (binary)",
+ "trading_close_vs_settlement": "Listed close_time 2027-11-03T15:00Z is a latest-date placeholder; contract expires at the sooner of first 10:00 AM ET after swearing-in or 1 year after the popular vote; can_close_early=1 and accelerated resolution once 4/8 media sources call it. Market closes at determination, not at a fixed time.",
+ "early_close_or_void_clauses": "Accelerated determination (4 of 8 sources, no contradictory declaration; national desk supersedes affiliates; Exchange may replace a source at sole discretion). Kalshi may initiate Market Outcome Review at sole discretion (Rule 6.3(c)). Post-expiration revisions ignored. Party switch between election and swearing-in: resolves on election-day party. No explicit void clause.",
+ "title_vs_rules_divergences": [
+  "Title says 'win the Senate race'; rules resolve on party of person sworn in (could differ if winner resigns/vacancy before seating).",
+  "Early resolution is on media projections, not on the Congress.gov swearing-in the named source implies; a wrong/retracted call could pay out before official result.",
+  "Title typo 'Democratics'.",
+  "Source Agency named is Congress, but practical settlement trigger is media consensus."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections / race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes after poll close/call",
+   "cost": "free web"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes",
+   "cost": "free web"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/",
+   "latency": "minutes",
+   "cost": "free web"
+  },
+  {
+   "name": "Michigan Secretary of State results",
+   "url": "https://mielections.us/election/results/",
+   "latency": "election night to weeks (canvass)",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov members",
+   "url": "https://www.congress.gov/members",
+   "latency": "at swearing-in (Jan 2027)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Outcome observable live on election night via public feeds; price moves on race calls are fast and informed traders lead",
+  "Accelerated resolution can occur abruptly (4/8 media rule) so trading halts with little warning",
+  "Long-dated: capital locked, thin edge in non-competitive state",
+  "Reliance on Exchange discretion (media source replacement, outcome review)",
+  "Event-driven jumps near election night: adverse selection for resting quotes"
+ ],
+ "notes": "Race is Nov 3 2026 election for term starting Jan 2027. Terms: SENATEPARTY.pdf. Position accountability $250k/strike. Retrieved 2026-11-01 PT."
+}
