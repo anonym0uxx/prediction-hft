@@ -214,3 +214,6 @@ Evidence so far (hypothesis-generating only): backfill +6.6+/-4.8 pp; v2c forwar
 Test: from 2026-11-01 00:00 PT forward only (no reuse of the above), compute lean_pp = mean((y - mid) * sign(poly - mid)) over qualifying decisions; one event per close (T-5 if both qualify). Net test subtracts the Kalshi taker fee + half-spread at the decision mid.
 Decision rule: at n>=150 events, adopt as a deterministic paper arm only if net lean >= 2 SE above zero; else drop. No interim tuning of the 5c threshold.
 Scoring: scripts/quant_v2c_read_2026_10_31.py (read-only). Scope: paper/scored only; no trading change now.
+
+## P30 - Opus decisions at T-5 only (2026-10-31 22:05 PT)
+llm_shadow CFG decision_secs_left [600, 300] -> [300]. Reason: v2c forward read (reports/quant/v2c_read_2026-10-31.json) shows Opus Brier at T-10 0.1961 vs mid 0.1943 (worse) and at T-5 0.0860 vs 0.0880 (slightly better); halves API cost (~$1.25/day) after repeated HTTP 402 stops. Entries now happen at T-5 and hold to settlement (no T-5 exit decision on a T-10 entry). Prompt unchanged (same prompt_hash); cohort boundary recorded here. Owner: user "Sure" 2026-10-31.

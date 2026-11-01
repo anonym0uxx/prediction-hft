@@ -31,7 +31,7 @@ HERMES_HOME = pathlib.Path(os.environ.get("HERMES_HOME", str(pathlib.Path.home()
 PT = ZoneInfo("America/Los_Angeles")
 
 CFG = {
-    "decision_secs_left": [600.0, 300.0],   # T-10 min, T-5 min
+    "decision_secs_left": [300.0],          # P30 (2026-10-31): T-5 only (was [600, 300]); halves API cost, T-5 Brier slightly better
     "decision_tolerance_s": 45.0,           # fire when secs_left in (d - tol, d]; one call per (close, d)
     "max_snapshot_age_s": 12.0,             # the SOL-v1 snapshot we hand over must be this fresh
     "daily_call_cap": 192, "max_tokens": 700, "temperature": 0.0, "timeout_s": 60.0,
