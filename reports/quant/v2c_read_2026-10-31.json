@@ -1,0 +1,107 @@
+{
+ "n_forecasts": 287,
+ "n_closes": 144,
+ "brier": {
+  "mid": 0.141,
+  "opus": 0.1408,
+  "p_model": 0.144,
+  "n": 271
+ },
+ "opus_minus_mid": [
+  -0.0002,
+  -0.003,
+  0.0028
+ ],
+ "with_poly": {
+  "n": 271,
+  "mid": 0.141,
+  "poly": 0.1407,
+  "opus": 0.1408,
+  "blend50": 0.1406
+ },
+ "poly_minus_mid": [
+  -0.0003,
+  -0.003,
+  0.0027
+ ],
+ "blend_minus_mid": [
+  -0.0004,
+  -0.0017,
+  0.0011
+ ],
+ "opus_disagree": {
+  ">=2c": {
+   "n": 84,
+   "lean_pp": 1.8,
+   "se_pp": 4.3
+  },
+  ">=3c": {
+   "n": 45,
+   "lean_pp": 3.9,
+   "se_pp": 6.3
+  },
+  ">=5c": {
+   "n": 20,
+   "lean_pp": 6.0,
+   "se_pp": 10.8
+  },
+  ">=10c": {
+   "n": 1,
+   "lean_pp": -53.0,
+   "se_pp": null
+  }
+ },
+ "poly_disagree": {
+  ">=3c": {
+   "n": 47,
+   "lean_pp": 3.9,
+   "se_pp": 6.6
+  },
+  ">=5c": {
+   "n": 19,
+   "lean_pp": 10.6,
+   "se_pp": 9.6
+  },
+  ">=10c": {
+   "n": 5,
+   "lean_pp": -4.2,
+   "se_pp": 18.5
+  }
+ },
+ "pmodel_disagree": {
+  ">=3c": {
+   "n": 148,
+   "lean_pp": -2.5,
+   "se_pp": 3.1
+  },
+  ">=5c": {
+   "n": 78,
+   "lean_pp": 0.7,
+   "se_pp": 4.5
+  },
+  ">=10c": {
+   "n": 8,
+   "lean_pp": -3.7,
+   "se_pp": 12.5
+  }
+ },
+ "by_horizon": {
+  "600": {
+   "n": 135,
+   "mid": 0.1943,
+   "opus": 0.1961
+  },
+  "300": {
+   "n": 136,
+   "mid": 0.088,
+   "opus": 0.086
+  }
+ },
+ "opus_minus_blend": [
+  0.0002,
+  -0.0026,
+  0.0028
+ ],
+ "opus_within_2c_of_mid_pct": 69.0,
+ "opus_closer_to_poly_than_mid_when_poly_disagrees5c": 10.5
+}

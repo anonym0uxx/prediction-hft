@@ -207,3 +207,10 @@ Untouched: Kelly sizing, lot 5-20, per-market/per-close cost caps, error kill sw
 
 ## P27 amendment — SOL-v1 runs --scored-only (2026-10-31 09:12 PT)
 P27 disabled PredHFT-SOL-v1 + PredHFT-SOL-WSBook outright. That silently starved the Opus sidecar: llm_shadow tails data/sol-v1/snapshots.jsonl and llm_direct reads the SOL-v1 ws book, so Opus made no decisions from 10-30 20:29 PT to 10-31 09:12 PT (~13 h, ~50 closes lost). Fix: WSBook re-enabled; SOL-v1 re-enabled with --scored-only (writes snapshots, abstains with reason scored_only, never opens or exits). SOL-v1 trading remains off as P27 intended. Verified: snapshots fresh (1-3 s), first Opus decision 09:20 PT.
+
+## P29 - Cross-venue disagreement rule, scored forward (pre-registered 2026-10-31 21:55 PT, before any further data)
+Hypothesis: when Polymarket "SOL Up or Down 15m" (same window) up_mid differs from the Kalshi KXSOL15M mid by >=5c at T-10 or T-5, the Kalshi outcome leans toward Polymarket.
+Evidence so far (hypothesis-generating only): backfill +6.6+/-4.8 pp; v2c forward (10-29 21:23 to 10-31 21:20 PT) +10.6+/-9.6 pp, n=19. Neither significant alone.
+Test: from 2026-11-01 00:00 PT forward only (no reuse of the above), compute lean_pp = mean((y - mid) * sign(poly - mid)) over qualifying decisions; one event per close (T-5 if both qualify). Net test subtracts the Kalshi taker fee + half-spread at the decision mid.
+Decision rule: at n>=150 events, adopt as a deterministic paper arm only if net lean >= 2 SE above zero; else drop. No interim tuning of the 5c threshold.
+Scoring: scripts/quant_v2c_read_2026_10_31.py (read-only). Scope: paper/scored only; no trading change now.
