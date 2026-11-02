@@ -220,3 +220,5 @@ llm_shadow CFG decision_secs_left [600, 300] -> [300]. Reason: v2c forward read 
 
 ## P31 - Kalshi LIP recorder (2026-11-02 01:08 PT)
 Read-only recorder (src/predhft/lip_recorder.py, task PredHFT-LIP-Recorder, BelowNormal priority) logs active liquidity-incentive programs hourly and, every 10 min, order books + trades for the top 150 programs by reward per target contract. Purpose: 7-day paper replay of resting-at-reference quoting (LIP credit minus adverse-fill losses) before any capital decision. No credentials, no orders. Kill rule for the strategy (pre-registered): proceed to a live test only if replay net >= 0.05%/day of deployed capital after modelled fills; program end date 2027-01-01 is a hard horizon.
+
+## P31 closed (2026-11-02): owner declined Kalshi LIP market making. Recorder task disabled; no strategy built. data/lip kept (gitignored).
