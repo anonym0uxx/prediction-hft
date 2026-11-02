@@ -217,3 +217,6 @@ Scoring: scripts/quant_v2c_read_2026_10_31.py (read-only). Scope: paper/scored o
 
 ## P30 - Opus decisions at T-5 only (2026-10-31 22:05 PT)
 llm_shadow CFG decision_secs_left [600, 300] -> [300]. Reason: v2c forward read (reports/quant/v2c_read_2026-10-31.json) shows Opus Brier at T-10 0.1961 vs mid 0.1943 (worse) and at T-5 0.0860 vs 0.0880 (slightly better); halves API cost (~$1.25/day) after repeated HTTP 402 stops. Entries now happen at T-5 and hold to settlement (no T-5 exit decision on a T-10 entry). Prompt unchanged (same prompt_hash); cohort boundary recorded here. Owner: user "Sure" 2026-10-31.
+
+## P31 - Kalshi LIP recorder (2026-11-02 01:08 PT)
+Read-only recorder (src/predhft/lip_recorder.py, task PredHFT-LIP-Recorder, BelowNormal priority) logs active liquidity-incentive programs hourly and, every 10 min, order books + trades for the top 150 programs by reward per target contract. Purpose: 7-day paper replay of resting-at-reference quoting (LIP credit minus adverse-fill losses) before any capital decision. No credentials, no orders. Kill rule for the strategy (pre-registered): proceed to a live test only if replay net >= 0.05%/day of deployed capital after modelled fills; program end date 2027-01-01 is a hard horizon.
