@@ -1,0 +1,65 @@
+{
+ "series": "CONTROLS",
+ "settlement_source": "congress.gov (Source Agency, CONTROL.pdf); rules_secondary: party identification of the President pro tempore of the Senate on February 1, 2027.",
+ "settlement_variable": "Party of the Senate leader (President Pro Tempore) on the Expiration Date (Feb 1, 2027) per congress.gov; Independent caucus decisions considered by the Exchange.",
+ "timezone": "ET (Expiration 10:00 AM ET)",
+ "tie_handling": "50-50 Senate not addressed in terms (VP tiebreak vs pro tem) -> unknown / Exchange discretion",
+ "rounding": "n/a (binary $1, tick $0.001)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time = 2027-02-01 10:00 AM ET; settlement within a day unless under review. May resolve early on 4/8 media consensus (settlement_timer_seconds=3600).",
+ "early_close_or_void_clauses": "Accelerated 4/8 media consensus; Market Outcome Review at Kalshi sole discretion; Rule 7.2: Kalshi may designate a new Source Agency/Underlying and change contract specs after first trading day if source reliability is impaired; media-source replacement at sole discretion.",
+ "title_vs_rules_divergences": [
+  "Title 'win the U.S. Senate' vs terms: payout is party of President pro tempore on Feb 1, not seat count; independents' caucusing and 50-50 ambiguity can diverge from seat majority.",
+  "Early path settles on media 'projections of control', potentially before pro tem is chosen; pending runoffs could delay or complicate.",
+  "CONTROL.pdf is a shared Senate/House template (order size 5,000 contracts, position-limit text); applicability to this listing unknown.",
+  "API close_time (2027) is a nominal max date; real resolution is via accelerated determination or expiry."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections (race calls/results)",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "seconds-minutes after poll close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free (paywall may apply)"
+  },
+  {
+   "name": "CNN / Fox / NBC / CBS / ABC decision desks",
+   "url": "https://www.cnn.com/election/2026",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "State secretary-of-state election results pages",
+   "url": "https://www.usa.gov/state-governments",
+   "latency": "real-time unofficial counts",
+   "cost": "free"
+  },
+  {
+   "name": "senate.gov senators / leadership",
+   "url": "https://www.senate.gov/senators/",
+   "latency": "changes at swearing-in (Jan 2027)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "accelerated-resolution-on-media-calls",
+  "public-realtime-results-feed-informed-flow",
+  "discretionary-outcome-review",
+  "exchange-may-replace-designated-media-source",
+  "election-night-adverse-selection",
+  "unilateral-source-agency-change-rule-7.2",
+  "50-50/independent-caucus-ambiguity"
+ ],
+ "notes": "Control aggregates many races; public seat trackers give high observability as calls come in. Runoffs can delay. Quotes at refresh: R 0.27/0.28, D 0.72/0.73."
+}

@@ -1,0 +1,57 @@
+{
+ "series": "GOVPARTYFL",
+ "settlement_source": "Contract terms name the state government of Florida as Source Agency (API lists usa.gov/state-governments). In practice accelerated resolution uses media decision-desk calls.",
+ "settlement_variable": "Party of person sworn in as governor of Florida pursuant to the 2026 election (GOVPARTY terms). Party switch between election and swearing-in: party on election day counts. Vacancy before seating: party of first person sworn in as replacement.",
+ "timezone": "ET (Expiration time 10:00 AM ET)",
+ "tie_handling": "unknown (not specified in terms)",
+ "rounding": "n/a (binary $1.00 settlement, tick $0.01)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time. Expiration = sooner of first 10:00 AM ET after governor swearing-in or 1 year after the popular vote; settlement no later than day after expiration unless under review. Accelerated: resolves early when >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) declare a winner and none contradict. API close_time 2027-11-03 is nominal; can_close_early=1; settlement_timer_seconds=14.",
+ "early_close_or_void_clauses": "Accelerated determination by 4/8 media consensus (an unambiguous news-article statement also counts; affiliates count with parent network; national desk supersedes). Exchange may replace a media source at sole discretion. Kalshi may start Market Outcome Review (Rule 6.3(c)) at sole discretion before settlement. Revisions after Expiration ignored.",
+ "title_vs_rules_divergences": [
+  "Title 'win the governorship' vs rules: payout is on person SWORN IN, not election winner; only the accelerated media-call path settles near election time.",
+  "Accelerated path settles on projections, not certification; a call later reversed before swearing-in would already have settled.",
+  "yes_sub_title names a candidate but contract is party-based; candidate replacement/withdrawal does not change it.",
+  "API close_time (2027) is a nominal max date; real resolution is via accelerated determination or expiry."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections (race calls/results)",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "seconds-minutes after poll close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free (paywall may apply)"
+  },
+  {
+   "name": "CNN / Fox / NBC / CBS / ABC decision desks",
+   "url": "https://www.cnn.com/election/2026",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "State secretary-of-state election results pages",
+   "url": "https://www.usa.gov/state-governments",
+   "latency": "real-time unofficial counts",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "accelerated-resolution-on-media-calls",
+  "public-realtime-results-feed-informed-flow",
+  "discretionary-outcome-review",
+  "exchange-may-replace-designated-media-source",
+  "election-night-adverse-selection"
+ ],
+ "notes": "Today (2026-11-03) is election day: highest information-asymmetry window. Settlement timer 14s after accelerated trigger; fast-feed latency (AP/DDHQ API vs web) is the edge/toxicity axis. Terms are shared across all states (GOVPARTY.pdf); state recount/certification law not covered. Prohibited-trader list includes vote-tallying staff and decision-desk employees."
+}

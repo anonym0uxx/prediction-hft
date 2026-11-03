@@ -1,0 +1,65 @@
+{
+ "series": "KXHOUSERACE",
+ "settlement_source": "Contract terms (HOUSEPARTY.pdf): Source Agency = United States Congress (API lists congress.gov); accelerated path uses 8 media decision desks.",
+ "settlement_variable": "Party of the first candidate who presents certificate of election for the specific House seat and is sworn into the House for the term beginning 2027. Party switch between election and swearing-in: election-day party. Vacancy: party of first person sworn in as replacement.",
+ "timezone": "ET (Expiration 10:00 AM ET)",
+ "tie_handling": "unknown (not specified)",
+ "rounding": "n/a (binary $1.00, tick $0.01)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time. Expiration = sooner of first 10:00 AM ET after Representative swearing-in or one year after popular vote. Settlement within 1 day unless under review. API close 2027-11-03 nominal; accelerated resolution when >=4/8 Designated Media Sources declare and none contradict; settlement_timer_seconds=1800.",
+ "early_close_or_void_clauses": "Accelerated determination (4/8 media, no contradiction); Exchange may swap media sources at sole discretion; Market Outcome Review at Kalshi sole discretion; no explicit no-data void. Close races with recounts may leave 4/8 unreached, waiting until swearing-in (Jan 2027) with capital locked.",
+ "title_vs_rules_divergences": [
+  "Title 'Will X win the House race' vs rules: pays on PARTY of person sworn in, not the election winner or the named candidate (yes_sub_title names a candidate).",
+  "Independents: individual must be specified; otherwise contract is party-based.",
+  "Delayed/contested seating could push resolution to the 1-year cap after the popular vote.",
+  "API close_time (2027) is a nominal max date; real resolution is via accelerated determination or expiry."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections (race calls/results)",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "seconds-minutes after poll close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free (paywall may apply)"
+  },
+  {
+   "name": "CNN / Fox / NBC / CBS / ABC decision desks",
+   "url": "https://www.cnn.com/election/2026",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "State secretary-of-state election results pages",
+   "url": "https://www.usa.gov/state-governments",
+   "latency": "real-time unofficial counts",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov members",
+   "url": "https://www.congress.gov/members",
+   "latency": "post-swearing-in (Jan 2027)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "accelerated-resolution-on-media-calls",
+  "public-realtime-results-feed-informed-flow",
+  "discretionary-outcome-review",
+  "exchange-may-replace-designated-media-source",
+  "election-night-adverse-selection",
+  "long-capital-lock-if-close-race-uncalled",
+  "705 open markets: thin per-market liquidity"
+ ],
+ "notes": "Election day 2026-11-03; 30-min settle timer. Low-profile districts may be called slowly by some desks, creating stale quotes after AP/DDHQ call."
+}
