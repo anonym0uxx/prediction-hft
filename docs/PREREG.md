@@ -222,3 +222,14 @@ llm_shadow CFG decision_secs_left [600, 300] -> [300]. Reason: v2c forward read 
 Read-only recorder (src/predhft/lip_recorder.py, task PredHFT-LIP-Recorder, BelowNormal priority) logs active liquidity-incentive programs hourly and, every 10 min, order books + trades for the top 150 programs by reward per target contract. Purpose: 7-day paper replay of resting-at-reference quoting (LIP credit minus adverse-fill losses) before any capital decision. No credentials, no orders. Kill rule for the strategy (pre-registered): proceed to a live test only if replay net >= 0.05%/day of deployed capital after modelled fills; program end date 2027-01-01 is a hard horizon.
 
 ## P31 closed (2026-11-02): owner declined Kalshi LIP market making. Recorder task disabled; no strategy built. data/lip kept (gitignored).
+
+## P32 - T-5 near-certain favourite, taker, paper (2026-11-02 ~11:40 PT)
+Source: scripts/fav_t5_history.py, 9,000 settled KXSOL15M/KXBTC15M/KXETH15M markets 2026-10-01..11-02 (1-min candles).
+Finding: favourites at T-5 are fairly priced in 0.50-0.97 (taker loses ~0-2 c/ct after fee; the +10-16 c seen in our 144-close sample was noise).
+Only mid >= 0.97 shows an edge: +0.72 c/ct after lot-100 taker fee (se 0.18), chronological halves +0.72/+0.73, 11 losses / 1,795;
+SOL +1.12 (1 loss / 677), BTC +0.73, ETH +0.29. Bucket chosen after looking at 4 buckets x 3 series: treat as hypothesis, not edge.
+Maker replay (scripts/maker_t5_replay_2026_11_02.py) rejected resting orders at T-5: fills are adversely selected.
+Rule: src/predhft/fav_t5.py, task PredHFT-FavT5. At T-5 (+-20 s) buy favourite side if mid >= 0.97, walking real asks <= 0.99, lot cap 300; hold to settle.
+Paper only; module has no order code. Real-money use needs its own gate and the owner's explicit Go.
+Evaluation: after >= 700 settled entries (~12-14 days). Pass = mean P&L per contract > 0 at >= 2 se AND net $ > 0 with the single
+best day removed AND max drawdown < 3 losses' worth. Kill = mean < 0 after 300 entries, or any loss cluster of >= 3 in 24 h.
