@@ -17,7 +17,8 @@ def test_decide_yes_favourite():
     assert d["side"] == "yes" and d["qty"] == 90 and d["fee"] > 0
 
 def test_decide_skips_coinflip_and_no_depth():
-    assert decide({}, ob([(0.50, 10)], [(0.48, 10)])) is None
+    d0 = decide({}, ob([(0.50, 10)], [(0.48, 10)]))
+    assert d0["qty"] == 0 and d0["side"] is None and 0.4 < d0["mid"] < 0.6
     d = decide({}, ob([(0.995, 10)], [(0.004, 10)]))
     assert d["qty"] == 0
 

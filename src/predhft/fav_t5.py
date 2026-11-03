@@ -64,7 +64,7 @@ def decide(m: dict, ob: dict, cfg: dict = CFG) -> dict | None:
     yes_bid = 1 - best_no_ask; mid = (yes_bid + best_yes_ask) / 2
     if mid >= cfg["fav_min_mid"]: side, asks = "yes", yes_asks
     elif 1 - mid >= cfg["fav_min_mid"]: side, asks = "no", no_asks
-    else: return None
+    else: return {"side": None, "qty": 0, "mid": round(mid, 4), "reason": "not near-certain"}
     qty, cost = walk(asks, cfg["lot"], cfg["max_px"])
     q = int(qty)
     if q <= 0: return {"side": side, "qty": 0, "mid": mid, "reason": "no depth <= max_px"}
