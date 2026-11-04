@@ -1,0 +1,42 @@
+{
+ "series": "KXPRESNOMD",
+ "settlement_source": "Democratic Party (Source Agency per PRESNOM terms; democrats.org), as documented on Expiration Date at 10:00 AM ET",
+ "settlement_variable": "Identity of the person nominated by AND accepting the nomination of the Democratic Party for President in 2028 (first person nominated and accepted)",
+ "timezone": "Expiration time 10:00 AM ET; settlement no later than the day after Expiration Date",
+ "tie_handling": "unknown (not addressed)",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Last trading time = Expiration time. Expiration = sooner of first 10:00 AM ET after any candidate meets payout criterion or the day of Nov 2028 popular vote; listed close 2028-11-07 is an upper bound; can_close_early=1; settlement_timer 14s.",
+ "early_close_or_void_clauses": [
+  "Expires early once any candidate is nominated and accepts",
+  "Kalshi may initiate Market Outcome Review at sole discretion (Rule 6.3(c))",
+  "No explicit clause for no nominee, withdrawal, replacement nominee, or contested convention - unknown"
+ ],
+ "title_vs_rules_divergences": [
+  "Titles say 'be the nominee' but rule requires BOTH nomination and acceptance",
+  "Rule is 'first person nominated and accepted' - later replacement nominee would not count",
+  "rules_secondary empty on sampled markets"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Democratic National Committee",
+   "url": "https://democrats.org/",
+   "latency": "convention-time announcement (summer 2028)",
+   "cost": "free"
+  },
+  {
+   "name": "AP / major media convention coverage",
+   "url": "https://apnews.com/",
+   "latency": "real-time at convention roll call",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "none",
+ "toxicity_flags": [
+  "Event ~2 years away; no settlement-variable feed until 2028 convention - price is pure belief/news-flow",
+  "Headline-driven jumps (announcements) with informed-flow risk",
+  "Long-dated capital lock-up across ~50 mutually exclusive strikes",
+  "Discretionary review; unspecified handling of withdrawn/replaced nominees",
+  "Insider prohibitions (party/campaign/polling staff)"
+ ],
+ "notes": "Settlement >2 years out; polls/endorsements are leading indicators only. Terms from PRESNOM.pdf."
+}

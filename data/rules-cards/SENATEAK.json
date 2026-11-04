@@ -1,0 +1,57 @@
+{
+ "series": "SENATEAK",
+ "settlement_source": "United States Congress (Source Agency); in practice party of first-sworn Senator, accelerated via 8 media decision desks",
+ "settlement_variable": "Party of the first candidate presenting certificate of election and sworn in to the seat for the term beginning in the stated year",
+ "timezone": "Expiration time 10:00 AM ET; settlement no later than day after Expiration Date",
+ "tie_handling": "unknown (no tie clause in SENATEPARTY terms; party of first-sworn Senator decides; vacancy -> party of first person sworn as temporary or permanent replacement)",
+ "rounding": "n/a (categorical party outcome)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time. Expiration = sooner of first 10:00 AM ET after swearing-in or 1 year after popular vote; listed close_time (2027-11-03 / 2029-11-07) is a placeholder upper bound. Accelerated determination: >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) declare a winner with none contradicting -> early resolution; can_close_early=1, settlement_timer 1800s.",
+ "early_close_or_void_clauses": [
+  "Accelerated resolution on 4/8 media-source consensus with no contradiction",
+  "Exchange may replace a Designated Media Source at sole discretion",
+  "Kalshi may initiate Market Outcome Review (Rule 6.3(c)) at sole discretion before settlement",
+  "Party switch between election and swearing-in: resolves on party at election day",
+  "No explicit void clause; no-data fallback is discretionary"
+ ],
+ "title_vs_rules_divergences": [
+  "Title says 'win the Senate race' but rule is 'sworn in' - resolution can wait for swearing-in (Jan) unless accelerated by media consensus",
+  "Title typo 'Democratics'; resolves on Democratic party of sworn Senator",
+  "Independent winners: terms specify Independent only by named individual",
+  "close_time (Nov 2027) is far after the Nov 3 2026 election; actual expiry is earlier"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls / results",
+   "url": "https://apnews.com/hub/election-2026",
+   "latency": "seconds-minutes after poll close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT/CNN/Fox/NBC/CBS/ABC results pages",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "State election-night result feeds (via NASS)",
+   "url": "https://www.nass.org/can-I-vote",
+   "latency": "real-time unofficial; certification days-weeks",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Resolution by media-call consensus (4/8) rather than certified result; wrong-call/contradiction risk",
+  "Outcome public minutes before price fully adjusts after poll close; fast news bots / informed flow",
+  "Discretionary exchange review and source substitution",
+  "Insider prohibitions (campaign staff, decision-desk employees) imply known information asymmetry",
+  "Alaska RCV/slow absentee count -> prolonged uncertainty, contradictory-call risk"
+ ],
+ "notes": "Rules from SENATEPARTY.pdf. Series maps to SENATEPARTY terms. 2026 election already held as of 2026-11-04 PT; results observable from AP/DDHQ. Alaska uses top-4 RCV general and slow absentee counts; calls may lag, raising contradiction/delay risk. 2028 iteration (SENATEAK-28-D) is thin: 0.26/0.34."
+}

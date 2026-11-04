@@ -1,0 +1,60 @@
+{
+ "series": "KXMIDTERMMOV",
+ "settlement_source": "Hierarchical: official election authority certifying results in the geography; then FEC / state Secretary of State; then AP, Reuters, Bloomberg, NYT, WSJ, CNN, Fox, NBC, ABC, CBS, NPR, Politico, Ballotpedia, official gov site",
+ "settlement_variable": "Margin of victory (percentage points; raw/electoral variants exist) of named party in the specified election, from official certified results; strike = margin range, lower-inclusive/upper-exclusive",
+ "timezone": "10:00 AM ET per listed close 2027-11-03T15:00Z; full expiration-time clause not read (unknown)",
+ "tie_handling": "Exact unresolved tie for first: margin-0 range pays $1/N split among tied entities, No holders get remainder; other strikes No. Tie = margin 0.",
+ "rounding": "No rounding applied (5.99999 stays in 5-6 range; exactly 6 in 6-7). Range with upper bound at maximum (100 pts) is upper-inclusive.",
+ "trading_close_vs_settlement": "close_time 2027-11-03 is a long-dated upper bound; can_close_early=1. Strikes resolve early if >=4 of 8 Designated Media Sources make unambiguous declarations (formal projection or unambiguous article statement, incl. margin) that Yes is definitively satisfied or cannot be, with no contradiction. Otherwise only certified results are used.",
+ "early_close_or_void_clauses": [
+  "Election cancelled/suspended/postponed before voting ends, or no results by Expiration -> all markets No (except uncontested provisions)",
+  "Uncontested race (incl. cancelled general) -> margin 100 pts",
+  "Recount changing certified % before Expiration -> latest certified used",
+  "Change of voting system/round structure -> margin from new system / decisive round",
+  "Accelerated resolution by 4/8 media consensus",
+  "Kalshi discretionary Market Outcome Review (Rule 7.1); if value cannot be determined Kalshi sets payouts"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'margin at least N points' vs rules: margin is vs runner-up if winning, vs first place if losing; a loss gives negative margin",
+  "Margin from certified results, not election-night counts, unless media-accelerated",
+  "Votes across multiple party lines summed",
+  "Title implies 2026 results but close_time is Nov 2027",
+  "Margin is vs runner-up in multi-way race, not two-party vote share"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls / results",
+   "url": "https://apnews.com/hub/election-2026",
+   "latency": "seconds-minutes after poll close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT/CNN/Fox/NBC/CBS/ABC results pages",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "State election-night result feeds (via NASS)",
+   "url": "https://www.nass.org/can-I-vote",
+   "latency": "real-time unofficial; certification days-weeks",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Strikes near thresholds decided by late-counted ballots; AP/DDHQ updates move prices fast",
+  "Accelerated resolution relies on 'unambiguous statement' judgement - premature or contested resolution risk",
+  "Two resolution paths (certified vs media) create ambiguity on exact margin",
+  "Many thin strikes; deep ITM strikes (0.996/0.997) offer little edge vs review risk",
+  "Discretionary exchange review/payout determination",
+  "Insider prohibition indicates information-asymmetry concern"
+ ],
+ "notes": "Per-race markets (e.g. KXMIDTERMMOV-TXSEND-P9). Terms from ELECTIONMOV.pdf; middle section (Fully-Conducted Elections provision) not read in full. Variable observable live on election night as counts accumulate."
+}
