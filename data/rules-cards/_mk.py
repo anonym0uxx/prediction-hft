@@ -1,0 +1,53 @@
+import json
+def feeds(*a): return [dict(name=n,url=u,latency=l,cost=c) for n,u,l,c in a]
+C={}
+C["KXSB"]=dict(series="KXSB",settlement_source="Source Agencies per TITLE.pdf: governing league (NFL), AP, ESPN, WSJ, Fox Sports (API lists ESPN, Fox Sports, AP); value 'as documented by the Source Agency' at expiration",
+settlement_variable="Winner of the Super Bowl (first official final result reported); per-team Yes/No",
+timezone="ET (expiration 10:00 AM ET on day after the official final result)",
+tie_handling="Multiple co-winners: Yes and No each get $1/N per team, rounded down to the cent. Cancelled/no-contest: $1/(eligible teams with listed strike) rounded down to Yes, No gets remainder.",
+rounding="Pro-rata payouts rounded down to nearest cent; min tick $0.01",
+trading_close_vs_settlement="API close_time=expiration_time=2029-02-13T23:30Z (placeholder, far later than the real Feb 2027 game); contract says last trading time = expiration time (10:00 AM ET day after final result); can_close_early=1, timer 300s.",
+early_close_or_void_clauses="Postponed/suspended: open until winner reported or 2 years after original date. Moved earlier: open until winner reported. Cancelled/no contest: pro-rata split. Forfeit: forfeiting team No. Disqualified before expiry: No even if event finished; eliminated (as reported by Source Agency): No. Post-expiration revisions ignored. Kalshi may start Market Outcome Review at sole discretion; if value cannot be determined Kalshi decides payouts (Rule 6.3(b)).",
+title_vs_rules_divergences=["Market title says 'Pro Football Championship' while series is 'Super Bowl'; generic TITLE template covers NFL/NHL/NBA/NCAA titles","Settlement is the first official final result, not eventual title holder if later stripped (but disqualification before expiry resolves No)","Terms URL is a generic template (TITLE.pdf) with placeholders; API close_time 2029 does not match real event date","Terms list WSJ as Source Agency; API settlement_sources omits WSJ and the league"],
+public_feeds_for_settlement_variable=feeds(("ESPN scoreboard","https://www.espn.com/nfl/scoreboard","seconds (live)","free"),("NFL.com scores","https://www.nfl.com/scores/","seconds (live)","free"),("AP","https://apnews.com/","minutes","free")),
+observability_before_settlement="high",
+toxicity_flags=["outcome public in real time during game before market closes; latency-arb risk near game end","trading prohibitions on players/coaches/staff/owners imply insider-information concern","can_close_early=1 makes close timing discretionary","API close_time (2029) unreliable for time-to-settle features","sole-discretion review and payout determination clauses"],
+notes="Futures-style multi-outcome market (one per team). Elimination clause means teams resolve No as soon as Source Agency reports elimination, long before the Super Bowl. Toxicity concentrates in playoff game windows.")
+C["CONTROLS"]=dict(series="CONTROLS",settlement_source="congress.gov (Source Agency per CONTROL.pdf; 'Library of Congress' in API); early resolution via Designated Media Sources consensus",
+settlement_variable="Party membership of the President Pro Tempore of the U.S. Senate on Feb 1, 2027 (caucus decisions of independents considered); not a seat-majority count",
+timezone="ET (expiration 10:00 AM ET Feb 1)",
+tie_handling="unknown - for a 50-50 Senate the outcome follows party of the President pro tempore; no explicit tie rule",
+rounding="n/a (binary $1); min tick $0.001",
+trading_close_vs_settlement="close_time=expiration_time=2027-02-01T15:00Z; can_close_early=1; settlement timer 3600s. May settle early on media consensus.",
+early_close_or_void_clauses="Accelerated resolution if >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) declare a winner and none contradict; sources replaceable at Exchange sole discretion. Market Outcome Review at Kalshi discretion; Kalshi may designate a new Source Agency/Underlying and change specs after first trading day (Rule 7.2). Revisions after expiry ignored.",
+title_vs_rules_divergences=["Title 'win the U.S. Senate in 2026' but payout is party of President pro tempore on Feb 1, 2027 (or media consensus early)","Early-resolution trigger is media calls of control, a different variable from pro tempore identity; rules_secondary says 'see full rules'","Terms mention Order Size in multiples of 5,000 contracts, not reflected in API","Terms are a generic House/Senate template"],
+public_feeds_for_settlement_variable=feeds(("congress.gov members","https://www.congress.gov/members","daily","free"),("AP Elections","https://apnews.com/hub/election-results","minutes on election night","free"),("Decision Desk HQ","https://decisiondeskhq.com/","minutes","free/paid"),("Senate.gov","https://www.senate.gov/","daily","free")),
+observability_before_settlement="partial",
+toxicity_flags=["election-night results public before consensus calls trigger early close","early settlement via media consensus depends on discretionary source set","Kalshi may change Source Agency/Underlying after trading starts","extensive insider prohibitions (decision desks, pollsters, election officials)","order-size multiple of 5,000 may be stale or unenforced - unknown"],
+notes="As of 2026-11-02, one day before the midterm: highest event risk. Expect volume spike and repricing Nov 3-4; avoid adverse selection around poll closes and race calls.")
+C["KXDSENATESEATS"]=dict(series="KXDSENATESEATS",settlement_source="United States Congress (per SEATSCONGRESS.pdf; congress.gov in API)",
+settlement_variable="Number of Senate seats held by Democratic Party on Feb 1, 2027 (independents caucusing with Dems counted as Dem), 120th Congress",
+timezone="ET (10:00 AM ET Feb 1, 2027)",
+tie_handling="Bracket markets: 'between' inclusive of both endpoints; exact-count single-value strikes; 'above N' uses floor_strike N+1. No tie issue.",
+rounding="integer seat count; min tick $0.01",
+trading_close_vs_settlement="close_time=expiration_time=2027-02-01T15:00Z; can_close_early=1; timer 300s.",
+early_close_or_void_clauses="Expiration moves to next date data is available if Feb 1 data is not. Market Outcome Review at Kalshi sole discretion (Rule 6.3(c)). Revisions after expiry ignored. No explicit media-call early resolution in terms, but can_close_early=1 in API - unknown how used.",
+title_vs_rules_divergences=["Title 'hold 52 seats in the 120th Congress' vs rule 'exactly 52 Senate seats on Feb 1, 2027' - point-in-time snapshot, not term-long","Title 'more than 52' maps to floor_strike 53 / cap 100","Caucusing independents counted with party, not stated in title","Vacancy/appointment treatment on Feb 1 unknown"],
+public_feeds_for_settlement_variable=feeds(("Senate.gov senators","https://www.senate.gov/senators/","daily","free"),("congress.gov members","https://www.congress.gov/members","daily","free"),("AP Elections","https://apnews.com/hub/election-results","minutes","free"),("Decision Desk HQ","https://decisiondeskhq.com/","minutes","free/paid")),
+observability_before_settlement="partial",
+toxicity_flags=["election-night race calls and vote counts public before settlement; informed flow likely Nov 3-5","adjacent brackets reprice together; cross-strike arb is info-driven","runoffs and late-called races can keep seat count open to Dec/Jan","vacancy/appointment/party-switch uncertainty up to Feb 1","extensive insider prohibitions"],
+notes="Bracket family must sum to 1 across the event; useful consistency check. Final count mostly known by mid-Dec except runoffs/certification disputes.")
+C["KXPRESNOMD"]=dict(series="KXPRESNOMD",settlement_source="The relevant political party (democrats.org) per PRESNOM.pdf; practically DNC convention outcome",
+settlement_variable="Identity of first person nominated by and accepting the Democratic Party nomination for President in 2028",
+timezone="ET (10:00 AM ET following the qualifying event or November popular-vote day)",
+tie_handling="unknown - none stated",
+rounding="n/a binary $1; min tick $0.001",
+trading_close_vs_settlement="API close_time=expiration_time=2028-11-07T15:00Z (cap); actual expiration is sooner of first 10:00 AM ET after the nomination event or the Nov 2028 popular vote day. can_close_early=1; API timer 14s.",
+early_close_or_void_clauses="Market Outcome Review at Kalshi discretion (Rule 6.3(c)). No explicit clause for withdrawal/decline after winning, brokered conventions, or no nominee by election day: unknown.",
+title_vs_rules_divergences=["Titles vary between 'be the nominee for the Presidency' and 'be the Democratic Presidential nominee'; rules require wins AND accepts nomination","Series title 'Democratic Primary winner' but settlement is nomination/acceptance, not primary results","rules_secondary empty in samples","Source agency is the party itself with no specific page; API lists both GOP and DNC sites for a Democratic-only series"],
+public_feeds_for_settlement_variable=feeds(("Democratic Party","https://democrats.org/","event-driven","free"),("AP DNC coverage","https://apnews.com/hub/democratic-national-convention","minutes","free"),("FEC presidential candidates","https://www.fec.gov/data/candidates/president/","days","free")),
+observability_before_settlement="none",
+toxicity_flags=["very long-dated (to 2028); capital lock-up and longshot pricing dominate","longshots at 1-3c where spreads are wide relative to price","news-driven jumps with thin books in some names","no clear handling of withdrawal/decline/brokered convention"],
+notes="Observability is none: variable does not exist until 2028 primaries/convention. Unsuitable for short-horizon information strategies. 53 open markets; Yes should sum to ~1.")
+for k,v in C.items():
+    json.dump(v,open(f"data/rules-cards/{k}.json","w"),indent=1)
