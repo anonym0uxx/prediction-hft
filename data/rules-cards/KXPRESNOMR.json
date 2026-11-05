@@ -1,0 +1,43 @@
+{
+ "series": "KXPRESNOMR",
+ "settlement_source": "Source Agency = the political party (Republican Party per settlement_sources gop.com); no specific document named",
+ "settlement_variable": "Identity of the person nominated by and who accepted the nomination of the Republican Party for President in 2028 (first person nominated and to have accepted)",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "unknown",
+ "rounding": "n/a (categorical outcome; $1.00 settlement value, min tick per contract terms)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time; settlement no later than next day unless under review; close_time 2028-11-07",
+ "early_close_or_void_clauses": "No accelerated media clause. Contingencies: Kalshi may open Market Outcome Review at sole discretion; no explicit void/no-nominee clause found (unknown).",
+ "title_vs_rules_divergences": [
+  "Title 'Will X be the nominee' vs rules 'wins and accepts the nomination' - acceptance required; no definition of when nomination occurs (convention vote vs presumptive)",
+  "Series title 'Republican Primary winner' but settles on nomination + acceptance, not primary results",
+  "rules_secondary empty; no accelerated-determination clause in PRESNOM terms"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Republican National Committee / gop.com",
+   "url": "https://gop.com/",
+   "latency": "convention-time (2028)",
+   "cost": "free"
+  },
+  {
+   "name": "AP delegate tracker / race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "real-time during primaries",
+   "cost": "free"
+  },
+  {
+   "name": "270toWin / Ballotpedia delegate counts",
+   "url": "https://www.270towin.com/",
+   "latency": "hours",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Multi-year horizon (to Nov 2028): extreme capital lock, thin long-dated books, tick 0.001",
+  "Ambiguous nomination/acceptance trigger; Exchange discretionary Market Outcome Review (Rule 6.3)",
+  "Candidate withdrawal/death/non-acceptance handling not specified -> unknown payout path",
+  "Expiration is sooner of first 10:00 AM ET after the event or the Nov 2028 popular vote day: if nobody nominated by then, resolution unspecified"
+ ],
+ "notes": "Many candidate-strike markets (46 open); sum of YES prices should be ~1. Observability partial: primary results/delegates public well ahead of formal nomination."
+}

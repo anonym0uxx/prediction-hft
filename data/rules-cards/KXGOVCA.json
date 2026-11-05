@@ -1,0 +1,49 @@
+{
+ "series": "KXGOVCA",
+ "settlement_source": "Contract terms: Source Agencies = State of California plus 16 media orgs (NYT, AP, Bloomberg, Reuters, Axios, Politico, Semafor, The Information, WaPo, WSJ, ABC, CBS, CNN, Fox, MSNBC, NBC); payout says official election results produced by the state determine the winner",
+ "settlement_variable": "Identity of the person elected governor of California in the 2026 election; YES if named candidate is that person",
+ "timezone": "ET (expiration 10:00 AM ET); election night in PT",
+ "tie_handling": "unknown (not specified in terms; recount/tie not addressed)",
+ "rounding": "n/a (categorical outcome; $1.00 settlement value, min tick per contract terms)",
+ "trading_close_vs_settlement": "Last trading time = expiration time (10:00 AM ET on Expiration Date); Expiration Date at latest 1 year after election, sooner on payout event/accelerated determination; settle no later than next day unless under review",
+ "early_close_or_void_clauses": "Accelerated resolution when >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) call a winner with none contradicting; 'unambiguous statement in a news article' counts; affiliate call can represent network; Exchange may replace a source at its sole discretion. Contingencies: Kalshi may open Market Outcome Review at sole discretion; if expiration value cannot be determined Kalshi may set payouts per Rule 6.3(b).",
+ "title_vs_rules_divergences": [
+  "Title 'Who will win the governorship' vs rules 'is elected ... pursuant to the election in 2026' - OK, but accelerated clause lets media calls decide before official CA SoS certification",
+  "Settlement sources listed on API are media outlets; contract text says official state results determine winner - dual standard",
+  "California top-two primary system: general election may feature same-party or non-major candidates"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "CA Secretary of State election results",
+   "url": "https://electionresults.sos.ca.gov/",
+   "latency": "near real-time unofficial; certification weeks later",
+   "cost": "free"
+  },
+  {
+   "name": "AP Elections / race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "NYT results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Accelerated determination keyed to media calls: resolution can occur before official results/certification; a miscall or premature article could trigger it",
+  "Exchange discretionary Market Outcome Review (Rule 6.3) before settlement",
+  "Insider-information risk class: campaign/vote-tally/decision-desk staff prohibited, implying informed flow near calls",
+  "Long lag between call and official certification (CA counts slowly) widens window for contradictory calls"
+ ],
+ "notes": "KXGOVCA-26-XBEC quoted 0.972/0.973 on 2026-11-05 consistent with a call. Market data shows close_time/expiration_time 2027-11-03 and live prices away from 0/1 on 2026-11-05, two days after the Nov 3 2026 election date; whether results were already called was not verified from a feed in this run."
+}

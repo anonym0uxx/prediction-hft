@@ -1,0 +1,49 @@
+{
+ "series": "GOVPARTYOH",
+ "settlement_source": "Source Agency = State of Ohio (settlement_sources lists usa.gov/state-governments)",
+ "settlement_variable": "Political party of person sworn in as governor of Ohio pursuant to the 2026 election (vacancy: party of first replacement sworn in; party-switch between election and swearing-in: party on election day)",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "unknown",
+ "rounding": "n/a (categorical outcome; $1.00 settlement value, min tick per contract terms)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time; settlement no later than day after expiration unless under review; settlement_timer_seconds=14 in market data",
+ "early_close_or_void_clauses": "Accelerated resolution when >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) call a winner with none contradicting; 'unambiguous statement in a news article' counts; affiliate call can represent network; Exchange may replace a source at its sole discretion. Kalshi may initiate Market Outcome Review at sole discretion; vacancy -> replacement's party counts.",
+ "title_vs_rules_divergences": [
+  "Title 'win the governorship' vs rules 'is inaugurated/sworn in' - settlement keyed to inauguration (Jan 2027) unless accelerated by media calls",
+  "yes_sub_title names a candidate (Ramaswamy/Acton) but contract resolves on party, not person",
+  "Source listed is generic usa.gov state-governments page, not an election results site"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Ohio Secretary of State election results",
+   "url": "https://www.ohiosos.gov/elections/election-results-and-data/",
+   "latency": "election-night unofficial, official canvass weeks later",
+   "cost": "free"
+  },
+  {
+   "name": "AP Elections / race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "NYT results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Accelerated determination keyed to media calls: resolution can occur before official results/certification; a miscall or premature article could trigger it",
+  "Exchange discretionary Market Outcome Review (Rule 6.3) before settlement",
+  "Insider-information risk class: campaign/vote-tally/decision-desk staff prohibited, implying informed flow near calls",
+  "Quoted 0.17/0.83 two days after election date; verify whether already called before any inference"
+ ],
+ "notes": "Expiration = sooner of first 10:00 AM ET after swearing-in or 1 year after popular vote. Market data shows close_time/expiration_time 2027-11-03 and live prices away from 0/1 on 2026-11-05, two days after the Nov 3 2026 election date; whether results were already called was not verified from a feed in this run."
+}

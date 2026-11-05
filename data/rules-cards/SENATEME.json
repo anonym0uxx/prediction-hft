@@ -1,0 +1,56 @@
+{
+ "series": "SENATEME",
+ "settlement_source": "Source Agency = United States Congress (swearing-in/certificate of election presented to Senate)",
+ "settlement_variable": "Party of the first candidate who presents a certificate of election and is sworn into the U.S. Senate for Maine seat, term beginning 2027",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "unknown",
+ "rounding": "n/a (categorical outcome; $1.00 settlement value, min tick per contract terms)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time; Expiration = sooner of first 10:00 AM ET after swearing-in or 1 year after popular vote; settlement within a day unless under review",
+ "early_close_or_void_clauses": "Accelerated resolution when >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) call a winner with none contradicting; 'unambiguous statement in a news article' counts; affiliate call can represent network; Exchange may replace a source at its sole discretion. Vacancy -> party of first replacement sworn in. Kalshi Market Outcome Review at sole discretion.",
+ "title_vs_rules_divergences": [
+  "Title 'win the Senate race in Maine' vs rules 'sworn in' for term beginning 2027 - settlement formally Jan 2027 unless accelerated",
+  "Maine uses ranked-choice voting for federal general elections: winner may not be known until RCV tabulation, delaying calls (not stated in rules)",
+  "Independent caucusing with a party: contract treats 'Independent' as a separate value; party on election day",
+  "yes_sub_title names candidates (Collins/Jackson) but resolves on party"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Maine Dept of Secretary of State election results",
+   "url": "https://www.maine.gov/sos/cec/elec/results/index.html",
+   "latency": "unofficial election night; RCV rounds may take days",
+   "cost": "free"
+  },
+  {
+   "name": "Congress.gov / Senate.gov membership",
+   "url": "https://www.congress.gov/",
+   "latency": "only at swearing-in (Jan 2027)",
+   "cost": "free"
+  },
+  {
+   "name": "AP Elections / race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "NYT results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "minutes after poll close; real-time on election night",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Accelerated determination keyed to media calls: resolution can occur before official results/certification; a miscall or premature article could trigger it",
+  "Exchange discretionary Market Outcome Review (Rule 6.3) before settlement",
+  "Insider-information risk class: campaign/vote-tally/decision-desk staff prohibited, implying informed flow near calls",
+  "RCV tabulation delay increases risk of contradictory media calls vs. accelerated clause"
+ ],
+ "notes": "Observability partial: official source (Congress) is post-event, but media calls/state results are public before. Market data shows close_time/expiration_time 2027-11-03 and live prices away from 0/1 on 2026-11-05, two days after the Nov 3 2026 election date; whether results were already called was not verified from a feed in this run."
+}
