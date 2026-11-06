@@ -1,0 +1,55 @@
+{
+ "series": "KXSB",
+ "settlement_source": "First official final result of the title event as reported by Source Agencies: governing league (NFL), AP, ESPN, WSJ, Fox Sports",
+ "settlement_variable": "Team reported as holder of the 2027 Pro Football Championship (Super Bowl) per first official final result",
+ "timezone": "America/New_York (expiration 10:00 AM ET)",
+ "tie_handling": "Multiple declared title holders: Yes pays $1/N rounded down to cent, No pays remainder",
+ "rounding": "Tie/cancel payouts rounded DOWN to nearest cent; min tick $0.01",
+ "trading_close_vs_settlement": "API close_time/expiration 2029-02-13T23:30Z is a placeholder outer bound; real expiration = day after official final result at 10:00 AM ET. Last trading time = expiration time. Settlement <= day after expiration. settlement_timer 300s; can_close_early=1.",
+ "early_close_or_void_clauses": [
+  "Postponed/suspended: stays open until winner reported or 2 years after original date",
+  "Cancelled/no contest: eligible teams split $1/N rounded down",
+  "Forfeit -> No for forfeiting team",
+  "Disqualified before expiry -> No; next declared holder wins",
+  "Eliminated (per Source Agency) -> resolves No early",
+  "Ended early but governing body declares winner -> follows that",
+  "Post-expiration revisions/stripped titles ignored",
+  "Kalshi discretionary Market Outcome Review (Rule 6.3(d)); Rule 6.3(b) if value undeterminable"
+ ],
+ "title_vs_rules_divergences": [
+  "Title says 'Pro Football Championship' vs series 'Super Bowl'; terms are generic TITLE.pdf covering NFL/NHL/NBA/NCAA",
+  "API close_time 2029 vs event ~Feb 2027 (placeholder)",
+  "Series prohibitions say current staff; terms Appendix B says current AND former players/coaches/staff",
+  "rules_secondary refers to 'Governing League' placeholder"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPN NFL scoreboard",
+   "url": "https://www.espn.com/nfl/scoreboard",
+   "latency": "seconds (live)",
+   "cost": "free"
+  },
+  {
+   "name": "NFL.com scores",
+   "url": "https://www.nfl.com/scores/",
+   "latency": "seconds",
+   "cost": "free"
+  },
+  {
+   "name": "AP NFL",
+   "url": "https://apnews.com/hub/nfl",
+   "latency": "minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Futures series (32 teams): long shots at 0.01-0.02, tick-size dominated",
+  "Elimination resolves No early via Source Agency report: discrete jump events",
+  "Insider prohibitions (players, coaches, owners, league staff)",
+  "Discretionary outcome review",
+  "Outcome observable live during game before official result; early close possible",
+  "Capital lockup until Feb 2027+"
+ ],
+ "notes": "Pure forecast until game day, then live-observable. Reviewed from TITLE.pdf."
+}

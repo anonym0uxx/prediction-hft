@@ -1,0 +1,46 @@
+{
+ "series": "KXPRESPERSON",
+ "settlement_source": "Office of the President of the United States (inauguration); accelerated path via 4-of-8 Designated Media Sources",
+ "settlement_variable": "Identity of first person inaugurated as President (non-acting) for term beginning Jan 20, 2029",
+ "timezone": "America/New_York (10:00 AM ET)",
+ "tie_handling": "unknown (not addressed)",
+ "rounding": "min tick $0.001; binary $1.00",
+ "trading_close_vs_settlement": "API close 2029-11-07T15:00Z outer bound; expiration = sooner of first 10:00 AM ET after qualifying inauguration or 1 year after Nov popular vote; accelerated resolution possible. settlement_timer 300s.",
+ "early_close_or_void_clauses": [
+  "Accelerated determination: >=4 of 8 media desks declare winner, no contradiction",
+  "Candidate death while listed: market resolves at last traded price (Exchange determines; Outcome Review Committee if no valid price or unfair)",
+  "Acting-president inauguration does not count",
+  "Not inaugurated for any reason incl. succession -> No",
+  "Kalshi discretionary outcome review (Rule 6.3(c))"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'Who will win the next presidential election?' but rules pay on INAUGURATION (succession/contested outcomes diverge)",
+  "Death clause pays at last traded price, not $0/$1",
+  "Candidates include 'potential candidates' sourced from news at Kalshi discretion",
+  "rules_secondary empty in API"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls",
+   "url": "https://apnews.com/hub/elections",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov (electoral count)",
+   "url": "https://www.congress.gov/",
+   "latency": "official, weeks",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "none",
+ "toxicity_flags": [
+  "Event ~2 years away (Nov 2028 vote): no observable resolution data now",
+  "Death clause settles at last traded price: manipulation incentive near death news",
+  "Candidate list discretionary and growing (new strikes listed 2026-11-05)",
+  "Sub-cent ticks ($0.001) with wide spreads on long shots",
+  "Discretionary outcome review",
+  "Capital lockup ~3 years"
+ ],
+ "notes": "Prohibitions include listed candidates, electors, major pollster staff. Reviewed from PRESPERSON.pdf."
+}

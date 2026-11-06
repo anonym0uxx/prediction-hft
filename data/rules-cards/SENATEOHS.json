@@ -1,0 +1,51 @@
+{
+ "series": "SENATEOHS",
+ "settlement_source": "United States Congress (swearing-in record) per SENATEPARTY terms; accelerated path via 4-of-8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC)",
+ "settlement_variable": "Party of first person who presents certificate of election and is sworn into the U.S. Senate for Class III (special election) seat of Ohio held Nov 3 2026",
+ "timezone": "America/New_York (expiration 10:00 AM ET)",
+ "tie_handling": "unknown (not addressed in terms; Exchange review applies)",
+ "rounding": "n/a (binary $1.00 settlement; min tick $0.01)",
+ "trading_close_vs_settlement": "Last trading time = expiration time; expiration = sooner of first 10:00 AM ET after swearing-in or 1 year after popular vote. API close_time 2027-11-03T15:00Z is the outer bound; markets can close earlier on accelerated determination (can_close_early=1). settlement_timer 1800s. Settlement no later than day after expiration unless under review.",
+ "early_close_or_void_clauses": [
+  "Accelerated determination: >=4 of 8 Designated Media Sources declare winner and none contradict",
+  "Party switch between election and swearing-in: resolves on party on election day",
+  "Vacancy after election (Senator-elect resigns before seating): party of first person sworn in as replacement counts",
+  "Kalshi may start Market Outcome Review at sole discretion",
+  "Revisions after Expiration ignored"
+ ],
+ "title_vs_rules_divergences": [
+  "Title says 'win the Senate race' but rules pay on who is SWORN IN (recount/litigation/vacancy/appointment can diverge)",
+  "yes_sub_title is a candidate name but rules key on party only",
+  "Market rule text gives no term year (generic terms reference 'term starting in <year>')"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections / race calls",
+   "url": "https://apnews.com/hub/elections",
+   "latency": "minutes after poll close",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "Ohio SoS results",
+   "url": "https://www.ohiosos.gov/elections/election-results-and-data/",
+   "latency": "live election night",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Accelerated resolution once 4 of 8 media desks call race with no contradiction -> price converges to 0/1 on call; information race vs call feeds",
+  "Exchange discretionary Market Outcome Review (Rule 6.3(c))",
+  "Designated Media Source list replaceable at Exchange sole discretion",
+  "Insider-class prohibitions (vote tallers, decision desk staff, campaign staff) imply informed flow around election night",
+  "Settlement keyed to swearing-in, not election; vacancy/replacement party counts",
+  "Nominal expiration 2027 vs election 2026-11-03: stale-looking close_time"
+ ],
+ "notes": "Election was 2026-11-03; as of 2026-11-06 market still trading, so accelerated determination not yet triggered or Exchange awaiting. Reviewed from SENATEPARTY.pdf. Quotes seen: D 0.71/0.72, R 0.29/0.30."
+}
