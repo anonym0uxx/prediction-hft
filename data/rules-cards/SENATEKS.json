@@ -1,0 +1,38 @@
+{
+ "series": "SENATEKS",
+ "settlement_source": "United States Congress (SENATEPARTY.pdf); in practice swearing-in records, plus Designated Media Sources for accelerated determination",
+ "settlement_variable": "Party of the first candidate who presents certificate of election and is sworn in to the Kansas Senate seat for the term beginning 2027. Market SENATEKS-26-R: Republican.",
+ "trading_close_vs_settlement": "Market shows close/expiration 2027-11-03T15:00Z (= fallback 'a year after the popular vote'); actual expiration is the sooner of first 10:00 AM ET after swearing-in (Jan 2027) or 1 yr after popular vote. Accelerated resolution once >=4 of 8 Designated Media Sources call it with no contradiction; settlement timer 1800s.",
+ "early_close_or_void_clauses": "Accelerated determination (4 of 8: NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC; no contradiction); Exchange may replace a source at sole discretion; Market Outcome Review (Rule 6.3(c)); can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Title 'win the Senate race' vs rule 'sworn in' - resolves on swearing-in or media consensus call, not vote count/certification",
+  "yes_sub_title names Roger Marshall but rules are party-based: any Republican sworn in resolves Yes",
+  "Displayed close date 2027-11-03 is far later than election/swearing-in; real resolution can be at election-night media consensus"
+ ],
+ "notes": "SENATEPARTY.pdf read in full. Run date is Nov 7 2026 (after the Nov 3 2026 election) yet R quotes 0.38/0.39 - implies race not yet called by 4/8 sources or stale/inconsistent data; verify current race status before relying. Race-call status not verified in this run.",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "Not addressed; party of the first person sworn in decides. If winner changes party between election and swearing-in, party on election day governs. Vacancy before seating: party of first person sworn in as temporary or permanent replacement.",
+ "rounding": "n/a",
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections / Decision Desk HQ / NYT / network calls",
+   "url": "https://apnews.com/hub/elections",
+   "latency": "minutes after poll close",
+   "cost": "free (web); API paid"
+  },
+  {
+   "name": "State Secretary of State results pages (CA: electionresults.sos.ca.gov; KS: sos.ks.gov)",
+   "url": "https://www.usa.gov/state-governments",
+   "latency": "election night to weeks (certification)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Insider-information prohibitions (campaign staff, vote-tallers, decision-desk staff) imply informed flow around election night and calls",
+  "Accelerated determination: 4 of 8 media sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) with no contradiction can settle early; race-call latency/informed flow",
+  "Exchange may replace a Designated Media Source at sole discretion",
+  "Market Outcome Review (Rule 6.3(c)) at Kalshi sole discretion before settlement",
+  "can_close_early=1 on markets: trading may halt abruptly upon call"
+ ]
+}

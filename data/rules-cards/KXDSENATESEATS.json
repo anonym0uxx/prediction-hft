@@ -1,0 +1,43 @@
+{
+ "series": "KXDSENATESEATS",
+ "settlement_source": "United States Congress (Source Agency per SEATSCONGRESS); congress.gov / senate.gov membership",
+ "settlement_variable": "Number of U.S. Senate seats held by Democratic Party (including independents caucusing with Democrats) on Feb 1, 2027 at 10:00 AM ET (start of 120th Congress). Market = exactly N seats.",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "n/a (bucketed integer outcomes). Treatment of vacant seats unspecified: unknown.",
+ "rounding": "Integer seat count; no rounding",
+ "trading_close_vs_settlement": "Last trading time = expiration time (Feb 1 2027 10:00 ET; markets show close 2027-02-01T15:00Z). Settlement no later than day after expiration unless under review. If Feb 1 data unavailable, next date data is available.",
+ "early_close_or_void_clauses": "can_close_early=1 flag; contract text has NO accelerated-determination clause (unlike SENATEPARTY/GOVPARTY). Market Outcome Review (Rule 6.3(c)) at Kalshi sole discretion. Revisions after expiration not counted.",
+ "title_vs_rules_divergences": [
+  "Title 'hold 48 seats in the 120th Congress' vs rules: measured at a single instant (Feb 1 2027 10:00 ET), not throughout the Congress",
+  "Independents caucusing with Democrats count as Democrats (secondary rule), not obvious from title",
+  "Underlying text says composition of House and Senate; this series' markets are Senate only"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Senate.gov Senators by party",
+   "url": "https://www.senate.gov/senators/index.htm",
+   "latency": "updates at swearing-in",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov members",
+   "url": "https://www.congress.gov/members",
+   "latency": "hours-days",
+   "cost": "free"
+  },
+  {
+   "name": "AP/DDHQ/NYT election results (Nov 2026 Senate races)",
+   "url": "https://apnews.com/hub/elections",
+   "latency": "minutes after calls",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Insider prohibitions (vote tallies, campaign staff, decision desks, Congress staff) imply informed flow around election results",
+  "Outcome largely determined by Nov 2026 election results public months before Feb 1 2027 close; residual risk from recounts, vacancies, appointments, party switches (thin tails at 0.002-0.003)",
+  "Market Outcome Review discretion",
+  "Tail buckets bid/ask 0.002/0.003 - tick-size dominated"
+ ],
+ "notes": "SEATSCONGRESS.pdf read in full. Sample: 48-seat bucket bid 0.002 ask 0.003, 24 open markets, 24h volume ~1.86M. Vacancies/appointments between election and Feb 1 unspecified (unknown)."
+}

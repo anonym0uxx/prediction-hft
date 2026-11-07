@@ -1,0 +1,39 @@
+{
+ "series": "GOVPARTYCA",
+ "settlement_source": "Contract lists Source Agency as the state (California; listed as US State Governments usa.gov); in practice CA Secretary of State and inauguration, plus Designated Media Sources for accelerated determination",
+ "settlement_variable": "Party of the person sworn in as Governor of California pursuant to the 2026 election. Market GOVPARTYCA-26-R: Republican (Steve Hilton).",
+ "trading_close_vs_settlement": "Market shows close 2027-11-03T15:00Z (fallback 1 yr after popular vote); expiration is sooner of first 10:00 AM ET after swearing-in or 1 yr after vote. Accelerated resolution on 4-of-8 media consensus with no contradiction. settlement_timer_seconds shows 14 (vs 1800 elsewhere) - anomalous.",
+ "early_close_or_void_clauses": "Accelerated determination (4 of 8 media sources); Exchange may replace sources at sole discretion; Market Outcome Review (Rule 6.3(c)); can_close_early=1.",
+ "title_vs_rules_divergences": [
+  "Market rules_primary says 'inaugurated as governor' while contract says 'sworn in' (usually same day, not always)",
+  "Title 'win the governorship' vs resolution on swearing-in or media consensus call, not vote count",
+  "yes_sub_title names Steve Hilton but rules are party-based",
+  "California top-two: handling of a no-party-preference/independent winner not addressed (unknown)"
+ ],
+ "notes": "GOVPARTY.pdf read in full. CA inauguration is early January 2027. R quote 0.025/0.029, 24h volume ~1.35M. Race-call status not verified in this run.",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "Not addressed; party of the first person sworn in decides. If winner changes party between election and swearing-in, party on election day governs. Vacancy before seating: party of first person sworn in as temporary or permanent replacement.",
+ "rounding": "n/a",
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections / Decision Desk HQ / NYT / network calls",
+   "url": "https://apnews.com/hub/elections",
+   "latency": "minutes after poll close",
+   "cost": "free (web); API paid"
+  },
+  {
+   "name": "State Secretary of State results pages (CA: electionresults.sos.ca.gov; KS: sos.ks.gov)",
+   "url": "https://www.usa.gov/state-governments",
+   "latency": "election night to weeks (certification)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Insider-information prohibitions (campaign staff, vote-tallers, decision-desk staff) imply informed flow around election night and calls",
+  "Accelerated determination: 4 of 8 media sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) with no contradiction can settle early; race-call latency/informed flow",
+  "Exchange may replace a Designated Media Source at sole discretion",
+  "Market Outcome Review (Rule 6.3(c)) at Kalshi sole discretion before settlement",
+  "can_close_early=1 on markets: trading may halt abruptly upon call"
+ ]
+}

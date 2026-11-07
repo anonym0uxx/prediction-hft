@@ -1,0 +1,38 @@
+{
+ "series": "KXTRUMPADMINLEAVE",
+ "settlement_source": "Hierarchical Source Agencies (contract EFFECTIVELEAVE): the body/agency where role is held, the named person, official government records, White House, then NYT/AP/Bloomberg/Reuters/WaPo/WSJ/FT/CNN/Fox/etc.",
+ "settlement_variable": "Whether named person has ceased to hold named role (actual departure date / vacating the role) within the time period (e.g. before 2027). Default criterion if unspecified = effective date; sampled markets specify 'actual departure date'.",
+ "timezone": "ET (expiration 10:00 AM ET; last trading time 11:59 PM ET on last trading date unless specified). Sample markets close 2027-01-01T14:59Z or earlier.",
+ "tie_handling": "n/a (binary). Re-occupying after vacating: settles on the initial vacation. Inclusive endpoints for 'within'/'between'; 'before' excludes the date.",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Last Trading Date = end of time period (or Expiration Date); latest expiration one week after period end; settlement no later than the day after expiration unless under review. Expiration moves earlier if the payout event occurs (Rule 7.2). Observed: sample market SWIL shows close_time 2026-11-07T05:00:01Z, earlier than siblings - inconsistent close times within series.",
+ "early_close_or_void_clauses": "Event occurrence triggers early expiration (Rule 7.2). Death while holding role: contracts may resolve to last fair price at Exchange sole discretion (not a clean Yes/No). Temporary leave/suspension/recusal does not count. Market Outcome Review (Rule 7.1) at Kalshi discretion; if Expiration Value cannot be determined Kalshi decides payouts.",
+ "title_vs_rules_divergences": [
+  "Title 'leaves X in before 2027' is garbled; rules require ACTUAL departure (vacating), not announcement - an announced future resignation does not resolve Yes",
+  "'Leave' includes removal, term expiry, recall - broader than 'resign'; death resolves to last fair price, not Yes",
+  "Series-level template placeholders (<person>,<role>,<time period>) mean per-market secondary text governs; settlement_sources includes literal placeholder 'person' (kalshi.com)"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "White House / official agency pages and Federal Register",
+   "url": "https://www.whitehouse.gov/",
+   "latency": "minutes-hours after departure",
+   "cost": "free"
+  },
+  {
+   "name": "Wire/news: Reuters, AP, Bloomberg, WSJ, Politico",
+   "url": "https://apnews.com/",
+   "latency": "seconds-minutes for breaking news",
+   "cost": "free/paywalled"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Insider prohibition for source-agency employees and MNPI holders: departures decided by few people; informed flow likely and jump risk (discrete announcements)",
+  "Death clause settles at discretionary last fair price",
+  "Actual-departure vs announcement ambiguity creates dispute/review risk (Rule 7.1 discretion)",
+  "Inconsistent close times across sibling markets in the series",
+  "Event-triggered early expiration: positions can be resolved abruptly on news"
+ ],
+ "notes": "Rules read from EFFECTIVELEAVE.pdf; middle section (ARE / ARE NOT encompassed lists) was truncated in extraction and not read - inclusion lists unknown. Variable is observable only after the event is public; before that it is a latent decision. Sampled markets: Wiles (Chief of Staff), Miller, Hegseth."
+}
