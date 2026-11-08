@@ -1,0 +1,60 @@
+{
+ "settlement_source": "United States Congress (Source Agency); accelerated resolution when >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) call and none contradict",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "unknown (no tie clause in SENATEPARTY terms; party of first person sworn in after presenting certificate governs; vacancy -> party of first temporary/permanent replacement sworn in)",
+ "rounding": "n/a (binary $1.00 settlement; tick $0.01)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration Time; expiration = sooner of first 10:00 AM ET after swearing-in or 1 year after popular vote; may resolve earlier via accelerated determination; settlement no later than day after expiration unless under Rule 7.1 review. Listed close_time 2027-11-03T15:00Z is outer bound; can_close_early=1, settlement_timer 1800s.",
+ "early_close_or_void_clauses": [
+  "Accelerated determination when >=4 of 8 Designated Media Sources call and none contradict",
+  "Kalshi may initiate Market Outcome Review (Rule 6.3(c)/7.1) at sole discretion before settlement",
+  "Exchange may replace a Designated Media Source at sole discretion",
+  "Party change between election and swearing-in: resolves on election-day party; pre-seating vacancy -> party of first sworn-in replacement"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections results",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes after polls close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "State election authority unofficial returns",
+   "url": "state Secretary of State / election site",
+   "latency": "live on election night",
+   "cost": "free"
+  },
+  {
+   "name": "NYT/CNN/Fox/NBC/CBS/ABC live results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "congress.gov / senate.gov swearing-in records",
+   "url": "https://www.congress.gov/",
+   "latency": "days-weeks (swearing-in Jan 2027)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Results publicly observable before Kalshi settles; stale quotes can be picked off by fast media-call readers",
+  "Accelerated resolution on media-call consensus -> abrupt jump to 0/1",
+  "Insider prohibitions (vote-tallying staff, decision-desk employees) imply info-asymmetry risk",
+  "Exchange discretion (outcome review, replacing media sources)",
+  "Recount/contest could delay calls; long-dated until swearing-in"
+ ],
+ "series": "SENATEIA",
+ "settlement_variable": "Party (R/D) of first person sworn into Iowa Senate seat for term beginning 2027. Quotes R 0.50/0.51, D 0.49/0.50",
+ "title_vs_rules_divergences": [
+  "Title 'Will Republicans win the Senate race in Iowa?' vs rules: party of person SWORN IN for term beginning 2027",
+  "yes_sub_title names a candidate (Ashley Hinson R / Josh Turek D) but payout is party-based"
+ ],
+ "notes": "Snapshot 2026-11-08: Nov 3 2026 election has occurred but market still open with non-degenerate quotes; actual race outcome / call status NOT verified (unknown), so whether already effectively decided is unknown. Terms shared across Senate series (SENATEPARTY.pdf). Series also lists -28- markets (term beginning 2029)."
+}

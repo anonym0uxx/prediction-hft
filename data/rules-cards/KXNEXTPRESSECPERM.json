@@ -1,0 +1,46 @@
+{
+ "series": "KXNEXTPRESSECPERM",
+ "settlement_source": "Hierarchical Source Agencies: body where position is held (White House), official government records, announced holder, then NYT, AP, Bloomberg, Reuters, WaPo, WSJ, FT, CNN, Fox, MSNBC, NBC, ABC, CBS, CNBC, Politico, ABC News Australia, DW, BBC",
+ "settlement_variable": "Identity of first person after Issuance (excluding incumbent at Issuance) to formally hold White House Press Secretary in a permanent, non-acting capacity before Jan 20, 2029; 'No new person' strike Yes only if nobody does",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "n/a; first qualifying holder wins; simultaneous assumption: unknown",
+ "rounding": "n/a (binary $1.00)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration time (10:00 AM ET); latest expiration one week after <date> (listed close 2029-01-27T15:00Z); early expiration when Payout Criterion event occurs (Rule 7.2); settlement no later than day after expiration unless Rule 7.1 review",
+ "early_close_or_void_clauses": [
+  "Early expiration when first qualifying permanent holder takes office",
+  "Death/violence clause: Kalshi may settle at last traded price before the death/act and halt trading; determinations final",
+  "If position abolished/restructured, Exchange may resolve at discretion (Rule 7.1)",
+  "Market Outcome Review at Kalshi sole discretion; if value undeterminable Kalshi determines payouts",
+  "If first qualifying permanent holder is not named in the event, every market resolves No"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'next White House Press Secretary' omits that acting/interim holders do not count (permanent only) and are not a No trigger",
+  "Title omits exclusion of incumbent at Issuance",
+  "Duplicate name-variant strikes (Dana White vs Dana W. White) are separate markets; name-matching ambiguity",
+  "Announced/nominated but not yet assumed does not count"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "White House website / briefings",
+   "url": "https://www.whitehouse.gov/",
+   "latency": "at announcement",
+   "cost": "free"
+  },
+  {
+   "name": "NYT/AP/Politico/Reuters reporting",
+   "url": "https://www.nytimes.com",
+   "latency": "minutes-hours; often leaks precede",
+   "cost": "free/paywall"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Insider prohibition (Source Agency employees, MNPI holders): personnel decisions leak before public",
+  "Announcement vs formal assumption lag; jumps on leaks",
+  "Acting vs permanent designation interpretation discretion",
+  "Death/violence last-traded-price settlement and discretionary outcome review",
+  "Thin duplicate-name strikes (Dana W. White ~0.00/0.01)",
+  "Very long-dated (2029), one_off, strikes added continually"
+ ],
+ "notes": "NEXTROLE.pdf default capacity is 'Included' but this series' rules_secondary specifies permanent-only. Quotes 2026-11-08: Dana White 0.05/0.06, ~$2.2M 24h vol. Identity of incumbent at Issuance: unknown (not verified)."
+}
