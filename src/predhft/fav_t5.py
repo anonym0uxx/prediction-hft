@@ -17,7 +17,11 @@ from .fees import kalshi_taker_fee
 
 API = "https://api.elections.kalshi.com/trade-api/v2"
 ROOT = pathlib.Path("data/fav-t5")
-SERIES = ["KXSOL15M", "KXBTC15M", "KXETH15M"]
+# 2026-11-08 (Alon): BTC + ETH only, paper and any future live arm. SOL dropped: its one loss (11-03, -$296.75)
+# erased ~all SOL profit (+$72.77 over 79 trades vs BTC +$323.90 / ETH +$411.22 with zero losses). History stays in fills.jsonl.
+# BINDING for live: any live FavT5 arm must import this SERIES (never its own list) so SOL cannot slip back in.
+SERIES = ["KXBTC15M", "KXETH15M"]
+assert "KXSOL15M" not in SERIES, "FavT5 is BTC/ETH-only by owner decision 2026-11-08"
 CFG = {"secs_before_close": 300, "window_s": 20, "fav_min_mid": 0.97, "max_px": 0.99, "lot": 300, "poll_s": 5, "settle_after_s": 120}
 UA = {"User-Agent": "predhft-fav-t5/1 (paper)"}
 
@@ -80,7 +84,7 @@ def run(cfg: dict = CFG) -> None:
             r = json.loads(l); done.add(r["ticker"])
             if r["kind"] == "entry" and r.get("qty", 0) > 0: open_pos[r["ticker"]] = r
             if r["kind"] == "settle": open_pos.pop(r["ticker"], None)
-    _append(ROOT / "log.jsonl", {"t": time.time(), "msg": f"start cfg={json.dumps(cfg)}"})
+    _append(ROOT / "log.jsonl", {"t": time.time(), "msg": f"start cfg={json.dumps(cfg)} series={SERIES}"})
     while True:
         now = time.time()
         try:
