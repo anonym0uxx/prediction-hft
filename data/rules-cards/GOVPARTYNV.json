@@ -1,0 +1,51 @@
+{
+ "series": "GOVPARTYNV",
+ "settlement_source": "State government of Nevada (usa.gov listing; actual: state inauguration record); accelerated path uses 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC)",
+ "settlement_variable": "Party of the person sworn in as Nevada governor pursuant to the 2026 election; replacement's party if vacancy before seating",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "unknown (not stated in contract terms; resolution follows whoever is sworn in)",
+ "rounding": "not applicable (binary; $1.00 settlement value, $0.01 tick)",
+ "trading_close_vs_settlement": "Listed close/expiration_time 2027-11-03T15:00Z is a placeholder maximum. Contract can close early (can_close_early=1): accelerated determination when >=4 of 8 Designated Media Sources declare a winner and none contradict; otherwise expiration = sooner of first 10:00 AM ET after swearing-in or one year after the popular vote. Settlement no later than the day after expiration unless under review. API settlement_timer_seconds=14.",
+ "early_close_or_void_clauses": "Accelerated determination on 4/8 media consensus with no contradictory call (incl. 'unambiguous statement in a news article' counts; affiliate calls can stand for network; national desk supersedes). Exchange may replace a media source at sole discretion. Kalshi may start Market Outcome Review (Rule 6.3(c)/7.1) at sole discretion before settlement, delaying payout. Party switch between election and swearing-in: resolves on party on election day. Revisions after expiration ignored.",
+ "title_vs_rules_divergences": [
+  "Title says 'win the race/governorship' but rules resolve on swearing-in/inauguration, with accelerated early resolution by media calls; formal basis differs from the call-based practical resolution.",
+  "Source Agency lists a generic body (usa.gov state-governments directory) that publishes no real-time result; real determinant in practice is media consensus.",
+  "Expiration date shown (2027-11-03) is not the real settlement date.",
+  "Markets name candidates (Lombardo/Ford) in yes_sub_title but rules resolve on party of whoever is inaugurated."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections API / apnews.com race calls",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "seconds-minutes after call",
+   "cost": "API paid; web free"
+  },
+  {
+   "name": "Decision Desk HQ results",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free web"
+  },
+  {
+   "name": "State Secretary of State results/certification",
+   "url": "https://www.usa.gov/election-results",
+   "latency": "minutes-hours; certification days-weeks",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Settlement is event-driven by public media calls; counts and calls are public and widely watched -> informed flow/latency race at call time.",
+  "Accelerated early close can end trading abruptly once 4/8 sources call; stale quotes at close are adverse-selection risk.",
+  "Discretionary Market Outcome Review and media-source substitution at Exchange's sole discretion.",
+  "Insider-restriction list (vote tallers, campaign staff, decision-desk employees) implies exchange recognizes informational asymmetry near counts.",
+  "Prices (Nevada) are not yet at 0/1 despite election day Nov 3 2026 having passed: outcome likely uncalled/contested; resolution timing uncertain."
+ ],
+ "notes": "Incumbent R governor Lombardo; rules key on 2026 election. Card derived from Kalshi contract_terms PDF GOVPARTY and sample market rules; series-level data from universe.db as of 2026-11-09. No external source pages beyond the PDF were verified individually (media feed URLs are standard result pages, not tested)."
+}
