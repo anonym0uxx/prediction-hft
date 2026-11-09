@@ -30,7 +30,7 @@ ROOT = pathlib.Path("data/fav-t5")
 # BINDING for live: any live FavT5 arm must import this SERIES (never its own list) so SOL cannot slip back in.
 SERIES = ["KXBTC15M", "KXETH15M"]
 assert "KXSOL15M" not in SERIES, "FavT5 is BTC/ETH-only by owner decision 2026-11-08"
-CFG = {"secs_before_close": 300, "window_s": 20, "fav_min_mid": 0.97, "max_px": 0.99, "bankroll": 100.0, "stake_frac": 0.40, "poll_s": 5, "settle_after_s": 120}
+CFG = {"secs_before_close": 300, "window_s": 20, "fav_min_mid": 0.97, "max_px": 0.99, "bankroll": 100.0, "stake_frac": 0.40, "fill_check_s": 60, "poll_s": 5, "settle_after_s": 120}
 UA = {"User-Agent": "predhft-fav-t5/1 (paper)"}
 
 
@@ -138,6 +138,17 @@ def run(cfg: dict = CFG) -> None:
                     _append(fills, rec)
                     if d and d.get("qty", 0) > 0: open_pos[tk] = rec; held += rec["cost"]
             for tk, r in list(open_pos.items()):
+                # Fill-realism probe: re-walk the same side/budget fill_check_s after entry. If the asks the paper
+                # trade assumed are gone by then, paper is optimistic vs live execution. kind=fill_check rows
+                # quantify that BEFORE any live arm exists (owner directive: zero profit deviation paper->live).
+                if not r.get("_fc") and now >= r["t"] + cfg["fill_check_s"] and now < r["close_ts"]:
+                    ob = _get(f"/markets/{tk}/orderbook")
+                    ya, na = book_sides(ob); asks = ya if r["side"] == "yes" else na
+                    qn, cn = size_trade(asks, r.get("budget") or r["cost"], cfg["max_px"])
+                    _append(fills, {"kind": "fill_check", "t": now, "ticker": tk, "side": r["side"],
+                                    "qty_entry": r["qty"], "cost_entry": r["cost"],
+                                    "qty_now": qn, "cost_now": round(cn, 4), "delta_qty": qn - r["qty"]})
+                    r["_fc"] = True
                 if now < r["close_ts"] + cfg["settle_after_s"]: continue
                 mk = _get(f"/markets/{tk}").get("market", {}); res = mk.get("result")
                 if res not in ("yes", "no"): continue
