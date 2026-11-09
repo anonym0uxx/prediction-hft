@@ -49,9 +49,10 @@ def _append(rec: dict) -> None:
 
 
 def _req(method: str, path: str, body: dict | None = None, timeout: int = 15) -> tuple[int, dict | str]:
-    """Signed request. Signs path WITHOUT query (Kalshi spec); query rides in the URL only."""
+    """Signed request. Kalshi signs the FULL request path (incl. /trade-api/v2) without query;
+    the query rides in the URL only."""
     url = API + path
-    h = kalshi_auth.headers(method, path.split("?")[0])
+    h = kalshi_auth.headers(method, "/trade-api/v2" + path.split("?")[0])
     h["Content-Type"] = "application/json"
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, headers=h, method=method)
