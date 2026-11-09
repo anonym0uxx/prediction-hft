@@ -35,9 +35,9 @@ def test_decide_no_favourite():
     d = decide({}, ob([(0.01, 70)], [(0.975, 10)]), budget=1000)
     assert d["side"] == "no" and d["qty"] == 70 and abs(d["avg_px"] - 0.99) < 1e-9
 
-def test_sizing_policy_is_40pct_of_100_bankroll():
-    assert CFG["bankroll"] == 100.0 and CFG["stake_frac"] == 0.40
-    assert abs(CFG["bankroll"] * CFG["stake_frac"] - 40.0) < 1e-9
+def test_sizing_policy_is_40pct_of_105_bankroll():
+    assert CFG["bankroll"] == 105.0 and CFG["stake_frac"] == 0.40
+    assert abs(CFG["bankroll"] * CFG["stake_frac"] - 42.0) < 1e-9
 
 def test_equity_at_epoch_accounting():
     epoch = 1000.0

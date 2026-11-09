@@ -30,7 +30,9 @@ ROOT = pathlib.Path("data/fav-t5")
 # BINDING for live: any live FavT5 arm must import this SERIES (never its own list) so SOL cannot slip back in.
 SERIES = ["KXBTC15M", "KXETH15M"]
 assert "KXSOL15M" not in SERIES, "FavT5 is BTC/ETH-only by owner decision 2026-11-08"
-CFG = {"secs_before_close": 300, "window_s": 20, "fav_min_mid": 0.97, "max_px": 0.99, "bankroll": 100.0, "stake_frac": 0.40, "fill_check_s": 60, "poll_s": 5, "settle_after_s": 120}
+CFG = {"secs_before_close": 300, "window_s": 20, "fav_min_mid": 0.97, "max_px": 0.99, "bankroll": 105.0, "stake_frac": 0.40, "fill_check_s": 60, "poll_s": 5, "settle_after_s": 120}
+# bankroll 105 mirrors the funded live account (2026-11-08) so paper and live stakes are identical; poll sleeps
+# to the wall-clock 5 s grid so both arms observe each market at the same instant (parity requirement).
 UA = {"User-Agent": "predhft-fav-t5/1 (paper)"}
 
 
@@ -158,7 +160,8 @@ def run(cfg: dict = CFG) -> None:
                 if r["t"] >= epoch: eq += pnl; held -= r["cost"]
         except Exception as e:
             _append(ROOT / "log.jsonl", {"t": time.time(), "msg": f"error {type(e).__name__}: {e}"})
-        time.sleep(cfg["poll_s"])
+        tgt = (int(now // cfg["poll_s"]) + 1) * cfg["poll_s"]          # wall-clock grid: live arm aligns to the same ticks
+        time.sleep(max(0.05, tgt - time.time()))
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ from __future__ import annotations
 import json, os, pathlib, time, urllib.error, urllib.request, uuid
 from datetime import datetime, timezone
 from . import kalshi_auth
-from .fav_t5 import SERIES, CFG, _ts, book_sides, decide, equity_at, kalshi_taker_fee   # strategy: single source of truth
+from .fav_t5 import SERIES, CFG, _get, _ts, book_sides, decide, equity_at, kalshi_taker_fee   # strategy + public reads: single source of truth
 
 assert "KXSOL15M" not in SERIES, "FavT5 is BTC/ETH-only by owner decision 2026-11-08"
 MODE = os.environ.get("PREDHFT_MODE", "paper")
@@ -70,11 +70,7 @@ def _req(method: str, path: str, body: dict | None = None, timeout: int = 15) ->
 
 
 def _get_public(path: str) -> dict:
-    try:
-        with urllib.request.urlopen(urllib.request.Request(API + path, headers={"User-Agent": "predhft-fav-t5-live/1"}), timeout=20) as r:
-            return json.load(r)
-    except Exception:
-        return {}
+    return _get(path)   # same public reader + retry semantics as the paper arm (parity requirement)
 
 
 def balance_usd() -> float | None:
@@ -123,6 +119,24 @@ def paper_counterpart(ticker: str, path: str = "data/fav-t5/fills.jsonl") -> dic
     return None
 
 
+def _parity_row(ticker: str, live_rec: dict) -> None:
+    """Join this live trade against the paper arm's same-ticker entry (written at entry AND settle:
+    the paper write can land seconds after ours, so the settle-time retry fills in any missing baseline)."""
+    existing = ROOT / "fills.jsonl"
+    if existing.exists() and f'"kind":"parity","t":' in existing.read_text(encoding="utf-8"):
+        for l in existing.read_text(encoding="utf-8").splitlines():
+            try: r = json.loads(l)
+            except Exception: continue
+            if r.get("kind") == "parity" and r.get("ticker") == ticker: return
+    pp = paper_counterpart(ticker)
+    if not pp: return
+    _append({"kind": "parity", "t": time.time(), "ticker": ticker,
+             "paper_qty": pp["qty"], "live_qty": live_rec["qty"],
+             "paper_avg_px": pp["avg_px"], "live_avg_px": live_rec["avg_px"],
+             "paper_cost": pp["cost"], "live_cost": live_rec["cost"],
+             "delta_qty": live_rec["qty"] - pp["qty"], "delta_cost": round(live_rec["cost"] - pp["cost"], 4)})
+
+
 def halted_loss_count(rows: list) -> int:
     return sum(1 for r in rows if r.get("kind") == "settle" and not r.get("win"))
 
@@ -151,12 +165,12 @@ def run(cfg: dict = CFG_LIVE) -> None:
         try:
             if not STOP.exists() and not halt:
                 for ser in SERIES:
-                    ms = _get_public(f"/markets?series_ticker={ser}&status=open&limit=20").get("markets", [])
+                    ms = _get(f"/markets?series_ticker={ser}&status=open&limit=20").get("markets", [])
                     for m in ms:
                         tk = m["ticker"]; c = _ts(m["close_time"]); left = c - now
                         if tk in done or not (cfg["secs_before_close"] - cfg["window_s"] < left <= cfg["secs_before_close"]): continue
                         budget = min(cfg["stake_frac"] * eq, eq - held)
-                        d = decide(m, _get_public(f"/markets/{tk}/orderbook"), cfg, budget); done.add(tk)
+                        d = decide(m, _get(f"/markets/{tk}/orderbook"), cfg, budget); done.add(tk)
                         if not (d and d.get("qty", 0) > 0):
                             _append({"kind": "entry", "t": time.time(), "ticker": tk, "series": ser, "close_ts": c,
                                      "secs_left": round(left, 1), "qty": 0, "reason": d.get("reason") if d else "no book"})
@@ -174,13 +188,7 @@ def run(cfg: dict = CFG_LIVE) -> None:
                         _append(rec)
                         if fq > 0:
                             open_pos[tk] = rec; held += rec["cost"]
-                            pp = paper_counterpart(tk)
-                            if pp:
-                                _append({"kind": "parity", "t": time.time(), "ticker": tk,
-                                         "paper_qty": pp["qty"], "live_qty": fq,
-                                         "paper_avg_px": pp["avg_px"], "live_avg_px": rec["avg_px"],
-                                         "paper_cost": pp["cost"], "live_cost": rec["cost"],
-                                         "delta_qty": fq - pp["qty"], "delta_cost": round(rec["cost"] - pp["cost"], 4)})
+                            _parity_row(tk, rec)
                         if x.get("error"):
                             _append({"kind": "alert", "t": time.time(), "msg": f"order rejected {tk}: {x['error']}"})
             for tk, r in list(open_pos.items()):
@@ -191,6 +199,7 @@ def run(cfg: dict = CFG_LIVE) -> None:
                 _append({"kind": "settle", "t": time.time(), "ticker": tk, "side": r["side"], "qty": r["qty"],
                          "result": res, "win": win, "pnl": pnl})
                 open_pos.pop(tk, None); eq += pnl; held -= r["cost"]
+                _parity_row(tk, r)      # fill in any parity baseline the entry-time join missed
                 if not win:
                     losses_24h.append(now)
                     if len([t for t in losses_24h if now - t < 86400]) >= 3 and not halt:
@@ -202,7 +211,8 @@ def run(cfg: dict = CFG_LIVE) -> None:
                     _append({"kind": "alert", "t": now, "msg": f"balance reconciliation off: computed {eq - held:.2f} vs actual {b:.2f}"})
         except Exception as e:
             _append({"kind": "alert", "t": time.time(), "msg": f"error {type(e).__name__}: {e}"})
-        time.sleep(cfg["poll_s"])
+        tgt = (int(now // cfg["poll_s"]) + 1) * cfg["poll_s"]          # wall-clock grid, same ticks as the paper arm
+        time.sleep(max(0.05, tgt - time.time()))
 
 
 if __name__ == "__main__":
