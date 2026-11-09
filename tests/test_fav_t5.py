@@ -48,9 +48,9 @@ def test_paper_epoch_syncs_bankroll_to_live_equity(tmp_path):
                     + json.dumps({"kind": "settle", "pnl": 0.567}) + "\n", encoding="utf-8")
     orig = ft.ROOT
     try:
-        ft.ROOT = tmp_path
+        ft.ROOT = tmp_path / "fav-t5"                # ROOT.parent -> tmp_path, where the live ledger lives
         assert abs((ft._live_equity() or 0) - 105.567) < 1e-6
-        ft.ROOT = tmp_path / "fav-t5-live"          # no live ledger under this root -> fallback None
+        ft.ROOT = tmp_path / "sub" / "fav-t5"       # parent dir has no live ledger -> fallback None
         assert ft._live_equity() is None
     finally:
         ft.ROOT = orig
