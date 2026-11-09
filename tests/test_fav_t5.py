@@ -1,4 +1,6 @@
+import json
 from predhft.fees import kalshi_taker_fee
+from predhft import fav_t5 as ft
 from predhft.fav_t5 import book_sides, walk, size_trade, equity_at, decide, CFG
 
 def ob(yes, no):
@@ -38,6 +40,21 @@ def test_decide_no_favourite():
 def test_sizing_policy_is_40pct_of_105_bankroll():
     assert CFG["bankroll"] == 105.0 and CFG["stake_frac"] == 0.40
     assert abs(CFG["bankroll"] * CFG["stake_frac"] - 42.0) < 1e-9
+
+def test_paper_epoch_syncs_bankroll_to_live_equity(tmp_path):
+    live = tmp_path / "fav-t5-live" / "fills.jsonl"
+    live.parent.mkdir()
+    live.write_text(json.dumps({"kind": "start", "bankroll": 105.0}) + "\n"
+                    + json.dumps({"kind": "settle", "pnl": 0.567}) + "\n", encoding="utf-8")
+    orig = ft.ROOT
+    try:
+        ft.ROOT = tmp_path
+        assert abs((ft._live_equity() or 0) - 105.567) < 1e-6
+        ft.ROOT = tmp_path / "fav-t5-live"          # no live ledger under this root -> fallback None
+        assert ft._live_equity() is None
+    finally:
+        ft.ROOT = orig
+
 
 def test_equity_at_epoch_accounting():
     epoch = 1000.0

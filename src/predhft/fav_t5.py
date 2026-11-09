@@ -114,6 +114,29 @@ def decide(m: dict, ob: dict, cfg: dict = CFG, budget: float | None = None) -> d
     return {"side": side, "qty": q, "avg_px": round(avg, 5), "fee": fee, "cost": round(q * avg + fee, 4), "mid": round(mid, 4), "best_ask": asks[0][0], "budget": round(budget, 2)}
 
 
+def _live_equity() -> float | None:
+    """Live arm's actual equity (its start bankroll + settled P&L). The paper epoch syncs its starting
+    capital to this so both arms stake identically — parity requirement after any event where live
+    missed a trade (order rejection, downtime). Falls back to cfg bankroll if the live ledger is absent."""
+    p = ROOT.parent / "fav-t5-live" / "fills.jsonl"
+    if not p.exists():
+        return None
+    bank = None; pnl = 0.0
+    for l in p.read_text(encoding="utf-8").splitlines():
+        try:
+            r = json.loads(l)
+        except Exception:
+            continue
+        if r.get("kind") == "start":
+            bank = float(r.get("bankroll") or 0)
+        elif r.get("kind") == "settle":
+            pnl += float(r.get("pnl") or 0)
+    if bank is None:
+        return None
+    eq = bank + pnl
+    return eq if eq > 0 else None
+
+
 def run(cfg: dict = CFG) -> None:
     if os.environ.get("PREDHFT_MODE") == "live":
         raise RuntimeError("fav_t5 is the PAPER arm (no order code); a live arm must be its own module importing SERIES")
@@ -124,7 +147,7 @@ def run(cfg: dict = CFG) -> None:
             r = json.loads(l); done.add(r["ticker"])
             if r["kind"] == "entry" and r.get("qty", 0) > 0: open_pos[r["ticker"]] = r
             if r["kind"] == "settle": open_pos.pop(r["ticker"], None)
-    epoch = time.time(); eq = cfg["bankroll"]; held = 0.0   # fresh sizing epoch: pre-epoch positions settle to the ledger, not this account
+    epoch = time.time(); eq = _live_equity() or cfg["bankroll"]; held = 0.0   # fresh sizing epoch; capital synced to the live arm's actual equity (parity)
     _append(ROOT / "log.jsonl", {"t": epoch, "msg": f"start cfg={json.dumps(cfg)} series={SERIES}"})
     while True:
         now = time.time()
