@@ -149,14 +149,15 @@ def run(cfg: dict = CFG_LIVE) -> None:
     _append({"kind": "start", "t": time.time(), "mode": "rehearsal" if REHEARSAL else "live",
              "bankroll": bankroll, "series": SERIES, "cfg": {k: cfg[k] for k in ("bankroll", "stake_frac", "max_px", "fav_min_mid")}})
     epoch = time.time(); eq = bankroll; held = 0.0
-    done: set = set(); open_pos: dict[str, dict] = {}; losses_24h: list = []
+    done: set = set(); open_pos: dict[str, dict] = {}; losses_24h: list = []; trades_done = 0
     fills = ROOT / "fills.jsonl"
     if fills.exists():
         for l in fills.read_text(encoding="utf-8").splitlines():
             try: r = json.loads(l)
             except Exception: continue
             done.add(r.get("ticker"))
-            if r.get("kind") == "entry" and (r.get("qty") or 0) > 0: open_pos[r["ticker"]] = r
+            if r.get("kind") == "entry" and (r.get("qty") or 0) > 0:
+                open_pos[r["ticker"]] = r; trades_done += 1          # seed reconciliation tolerance on restart
             if r.get("kind") == "settle":
                 open_pos.pop(r["ticker"], None)
                 if r["t"] >= epoch - 86400 and not r.get("win"): losses_24h.append(r["t"])
@@ -188,7 +189,7 @@ def run(cfg: dict = CFG_LIVE) -> None:
                                **({"error": x["error"]} if x.get("error") else {})}
                         _append(rec)
                         if fq > 0:
-                            open_pos[tk] = rec; held += rec["cost"]
+                            open_pos[tk] = rec; held += rec["cost"]; trades_done += 1
                             _parity_row(tk, rec)
                         if x.get("error"):
                             _append({"kind": "alert", "t": time.time(), "msg": f"order rejected {tk}: {x['error']}"})
@@ -208,7 +209,10 @@ def run(cfg: dict = CFG_LIVE) -> None:
                         _append({"kind": "halt", "t": now, "msg": "3 losses in 24 h: new entries halted (P32 kill condition); remove STOP-style halt by restart after review"})
             if not REHEARSAL and int(now) % 600 < cfg["poll_s"]:
                 b = balance_usd()
-                if b is not None and abs((eq - held) - b) > 0.05 and not open_pos:
+                # Kalshi applies fees/rounding at whole cents while the ledger tracks 4dp, so drift
+                # grows ~0.3c/order. Tolerance scales with trade count; a real anomaly (missed
+                # settle ~$0.40+, duplicate order ~$42) still trips it immediately.
+                if b is not None and abs((eq - held) - b) > max(0.05, 0.01 * trades_done) and not open_pos:
                     _append({"kind": "alert", "t": now, "msg": f"balance reconciliation off: computed {eq - held:.2f} vs actual {b:.2f}"})
         except Exception as e:
             _append({"kind": "alert", "t": time.time(), "msg": f"error {type(e).__name__}: {e}"})
