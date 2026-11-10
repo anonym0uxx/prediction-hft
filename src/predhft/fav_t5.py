@@ -121,15 +121,15 @@ def _live_equity() -> float | None:
     p = ROOT.parent / "fav-t5-live" / "fills.jsonl"
     if not p.exists():
         return None
-    bank = None; pnl = 0.0
+    bank = None; start_t = 0.0; pnl = 0.0
     for l in p.read_text(encoding="utf-8").splitlines():
         try:
             r = json.loads(l)
         except Exception:
             continue
         if r.get("kind") == "start":
-            bank = float(r.get("bankroll") or 0)
-        elif r.get("kind") == "settle":
+            bank = float(r.get("bankroll") or 0); start_t = float(r.get("t") or 0); pnl = 0.0   # live bankroll already contains past wins: only settles AFTER the latest start row count
+        elif r.get("kind") == "settle" and bank is not None and r.get("t", 0) >= start_t:
             pnl += float(r.get("pnl") or 0)
     if bank is None:
         return None
