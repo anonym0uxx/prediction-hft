@@ -1,0 +1,53 @@
+{
+ "series": "KXNCAAFSPREAD",
+ "settlement_source": "League governing the game per terms; series metadata lists ESPN and 'Kalshi using information originating from the NCAA'",
+ "settlement_variable": "Point differential (team minus opponent) over entire game incl. overtime unless otherwise specified, per statistics at game's end",
+ "timezone": "ET (10:00 AM ET expiration; time periods interpreted in ET)",
+ "tie_handling": "Tie -> differential 0; 'wins by' positive margin = No; 'exactly 0' = Yes (x.5 strikes make ties moot)",
+ "rounding": "Strikes at x.5; 'above X' = wins by more than X; no rounding of scores",
+ "trading_close_vs_settlement": "Listed close_time (e.g. 2026-11-03 for an Oct 31 game) is a bound; expiration moved earlier on determination; latest expiration 15 days after game; 10:00 AM ET; settlement <= day after. can_close_early=1.",
+ "early_close_or_void_clauses": [
+  "Postponed but starts within 48h: stays open, official result",
+  "Not started within 48h: last fair price at Exchange sole discretion",
+  "Suspended/abandoned before 55 min of play and not resuming within 48h: last fair price (except already-determined markets); after 55 min or league declares final: settle on state at that point",
+  "Pre-kickoff forfeit: last fair price; post-start forfeit: league's official result",
+  "Home/away reversal or move >48h: last fair price",
+  "Post-expiration stat corrections ignored",
+  "Market Outcome Review at Kalshi sole discretion"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'wins by over 5.5 points' omits that overtime counts and that postponement window anchors to originally scheduled start",
+  "close_time is days after game, not kickoff-based",
+  "Series lists ESPN as a source though terms name only the governing league as Source Agency"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPN scoreboard API",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard",
+   "latency": "seconds (live)",
+   "cost": "free, unofficial"
+  },
+  {
+   "name": "NCAA.com scoreboard",
+   "url": "https://www.ncaa.com/scoreboard/football/fbs",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "Licensed live data (Sportradar/Genius)",
+   "url": "https://sportradar.com/",
+   "latency": "sub-second",
+   "cost": "paid"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Live score public in-game; stale quotes picked off by faster feeds",
+  "Markets may stay open after game ends until determination: resolved-outcome sniping",
+  "Latency arbitrage vs TV/stream delay",
+  "Last-fair-price discretion on suspensions/postponements",
+  "~2400 open strikes with thin per-strike books",
+  "Participant/insider prohibitions rely on self-compliance"
+ ],
+ "notes": "24h volume ~$818k across ~2429 open markets. NCAA stat-correction behavior not verified."
+}

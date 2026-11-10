@@ -1,0 +1,50 @@
+{
+ "series": "KXNFLNFCNORTH",
+ "settlement_source": "Governing League (nfl.com); NFL.pdf terms (generic ACHIEVEMENTS template) also name AP, ESPN, WSJ, Fox Sports as Source Agencies",
+ "settlement_variable": "Official final result: 2026 NFC North division winner per league tiebreakers",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "Division ties resolved by NFL official tiebreakers (league-reported). If multiple participants reported as result: Yes pays $1/N rounded down",
+ "rounding": "Shared payout rounded down to nearest cent",
+ "trading_close_vs_settlement": "Listed close 2027-01-25 is a latest bound; expiration is day after official result, moved earlier on determination (Rule 7.2); settlement <= day after expiration. can_close_early=1.",
+ "early_close_or_void_clauses": [
+  "Participant eliminated from contention (as reported by Source Agency) -> No; may be relisted if re-entered",
+  "Disqualification/withdrawal -> No",
+  "Final event postponed: open up to 2 weeks (unknown date: 2 years)",
+  "Cancelled/no official result: last traded price, else Outcome Review Committee, else equal split",
+  "Post-expiration revisions ignored",
+  "Market Outcome Review at Kalshi sole discretion"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'win the Pro Football NFC North Division' vs generic ACHIEVEMENTS template referencing 'official result'; no NFL-specific tiebreak or elimination definition stated",
+  "Series settlement_sources lists only nfl.com while terms list five Source Agencies with no precedence"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NFL standings",
+   "url": "https://www.nfl.com/standings/division/2026/REG",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN NFL standings",
+   "url": "https://www.espn.com/nfl/standings",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN scoreboard API",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+   "latency": "seconds-minutes",
+   "cost": "free, unofficial"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Division title resolves progressively via public game results; clinch scenarios computable ahead of Kalshi resolution",
+  "'Eliminated from contention' per Source Agency -> No can resolve early; mathematical vs reported elimination timing ambiguous",
+  "Injury news (QB) is informed flow in season-long market",
+  "Long capital lock to Jan 2027",
+  "Multiple Source Agencies, no precedence"
+ ],
+ "notes": "NFL tiebreaker specifics not verified. Volume concentrated in a few teams (MIN ~20c)."
+}

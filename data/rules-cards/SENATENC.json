@@ -1,0 +1,48 @@
+{
+ "series": "SENATENC",
+ "settlement_source": "United States Congress (congress.gov); swearing-in record for NC seat",
+ "settlement_variable": "Party of first candidate presenting certificate of election and sworn in to the NC Senate seat for term beginning 2027",
+ "timezone": "ET (10:00 AM ET expiration time)",
+ "tie_handling": "not applicable (party membership); Independent winners are named individually; party switch between election and swearing-in: party on election day counts",
+ "rounding": "not applicable",
+ "trading_close_vs_settlement": "Last trading time = expiration time. Listed close_time (2027-11-03) is a placeholder bound; real expiration is the sooner of first 10:00 AM ET after swearing-in or one year after the popular vote, or earlier via accelerated determination. Settlement no later than day after expiration unless under review.",
+ "early_close_or_void_clauses": [
+  "Accelerated resolution once >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) declare a winner and none contradict; declaration = decision-desk projection OR unambiguous article statement; affiliates collapse into parent network; Exchange may replace a source at sole discretion",
+  "Vacancy before seating: party of first person sworn in as replacement counts",
+  "Kalshi may open Market Outcome Review (Rule 6.3(c)) at sole discretion before settlement",
+  "Revisions after expiration ignored"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'Will Republicans win the Senate race' vs rules requiring swearing-in for term beginning 2027 (~Jan 2027) unless accelerated",
+  "yes_sub_title names a candidate (Michael Whatley) but contract pays on party"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls",
+   "url": "https://apnews.com/hub/election-2026",
+   "latency": "seconds-minutes after call",
+   "cost": "web free; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/",
+   "latency": "seconds-minutes",
+   "cost": "web free; API paid"
+  },
+  {
+   "name": "NYT/CNN/Fox/NBC/CBS/ABC results pages",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "real-time",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Outcome publicly known (media calls/vote counts) before settlement; informed flow near resolution",
+  "Accelerated-determination clause discretionary on source set and 'unambiguous article statement' wording",
+  "Insider/vote-tally-adjacent trader prohibitions unverifiable",
+  "Far-dated placeholder close_time: capital locked until call or swearing-in",
+  "Thin tails (1-3c) vs $0.01 tick and quadratic fees"
+ ],
+ "notes": "Election was Nov 3 2026; R at ~2.6-2.9c. settlement_timer_seconds=1800. Recount/contest would delay calls; expiration backstop one year after vote. Actual NC result not verified."
+}
