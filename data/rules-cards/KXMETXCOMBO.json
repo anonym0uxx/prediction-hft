@@ -1,0 +1,44 @@
+{
+ "series": "KXMETXCOMBO",
+ "settlement_source": "POLITICALECONOMICEVENTS.pdf; each component resolved per its own ruleset (Texas Senate and Maine Senate: USELECTION). Series settlement_sources list BLS/Fed URLs, which look irrelevant (template carry-over).",
+ "settlement_variable": "Conjunction: Texas Senate winner = named candidate AND Maine Senate winner = named candidate, Nov 2026 midterms, via USELECTION rules (official certified results).",
+ "timezone": "ET; expiration 10:00 AM ET",
+ "tie_handling": "Per component USELECTION rules; unknown here.",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Sample close_time 2027-11-03T14:00Z, expiration 2027-11-10T14:00Z, a year after the election; PDF says last trading time = one minute before expected release of final data (conflicts); can_close_early=1; settlement_timer 1800s.",
+ "early_close_or_void_clauses": "If ANY component resolves No or becomes impossible, whole contract resolves No immediately (early expiration, Rule 7.2). Kalshi Outcome Review at sole discretion; undeterminable value decided by Kalshi (Rule 7.1).",
+ "title_vs_rules_divergences": [
+  "Title says 'Nov 2026' but close/expiration dates are Nov 2027.",
+  "Series source agencies (BLS jobs, CPI, FOMC) irrelevant to a Senate combo.",
+  "Trading prohibition list is economic-data/Fed boilerplate, mostly irrelevant to elections."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Texas SOS election results",
+   "url": "https://results.texas-election.com/",
+   "latency": "live on election night",
+   "cost": "free"
+  },
+  {
+   "name": "Maine SOS elections",
+   "url": "https://www.maine.gov/sos/cec/elec/",
+   "latency": "election night to days",
+   "cost": "free"
+  },
+  {
+   "name": "AP Elections",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes",
+   "cost": "free web / paid API"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "combo vs single-leg markets: lagging quotes / cross-market arb",
+  "candidate withdrawal/impossibility triggers immediate No",
+  "close-date inconsistency (title Nov 2026 vs close 2027)",
+  "discretionary outcome review",
+  "election-night results public before a 2027 close: stale-quote risk"
+ ],
+ "notes": "Sample bid/ask 0.21/0.25. Check close_time per market; compare to underlying USELECTION markets."
+}

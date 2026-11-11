@@ -1,0 +1,38 @@
+{
+ "series": "KXSENATEDEMLEAD",
+ "settlement_source": "ELECTION.pdf hierarchy: (1) official electoral authority / formal proclamation; a caucus vote has no statutory authority, so effectively tertiary sources (AP, Reuters, NYT, Politico, Axios etc.). Listed source URL is just kalshi.com.",
+ "settlement_variable": "Which candidate wins the next Senate Democratic Leader election (Senate Democratic caucus vote), per official declaration/certification.",
+ "timezone": "ET; expiration time 10:00 AM ET",
+ "tie_handling": "unknown for a caucus tie; generic ELECTION text only covers seat ties in parliamentary elections.",
+ "rounding": "n/a (categorical)",
+ "trading_close_vs_settlement": "Sample close_time = expiration_time = 2028-12-31T15:00Z (far placeholder); can_close_early=1 so market closes when outcome determined; settlement_timer 1800s.",
+ "early_close_or_void_clauses": "Kalshi may open Market Outcome Review (Rule 6.3(d)); if value cannot be determined Kalshi decides payouts (Rule 6.3(b)). rules_secondary: if elections postponed beyond expiration date, markets resolve to No. Contested results resolve on final certified outcome. Accelerated resolution on Designated Media Source calls.",
+ "title_vs_rules_divergences": [
+  "Rules text is boilerplate for public elections (electoral commission, certification, exit polls, parliamentary seats) while the event is a private caucus leadership vote with no electoral authority.",
+  "Fixed expiration 2028-12-31 vs 'next' election: if no election occurs by then, 'postponed beyond expiration' => all candidates No.",
+  "Ambiguity whether an uncontested/acclaimed selection or mid-term succession counts as 'election': unknown."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Politico / AP / Axios reporting on caucus vote",
+   "url": "https://www.politico.com/",
+   "latency": "minutes after vote",
+   "cost": "free/partial paywall"
+  },
+  {
+   "name": "Senate Democrats leadership page",
+   "url": "https://www.democrats.senate.gov/",
+   "latency": "hours",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "insider info: caucus members/staff know intentions; prohibition relies on self-compliance",
+  "long-dated (to 2028) news-jump market (retirement/resignation announcements)",
+  "Kalshi sole-discretion review and payout clauses",
+  "rules/title mismatch (boilerplate election rules)",
+  "postponement beyond expiration => all No"
+ ],
+ "notes": "~586k 24h volume on Schumer leg (0.85/0.86). Mutually exclusive multi-candidate event. Not suited to short-horizon HFT."
+}

@@ -1,0 +1,44 @@
+{
+ "series": "KXNFLTD",
+ "settlement_source": "FOOTBALLENTITYSTAT.pdf: governing league (NFL) first, then ESPN, Fox Sports, NFL.com, official broadcaster; league box score / play-by-play.",
+ "settlement_variable": "Player touchdowns scored (>=1; floor_strike 0.5) in the specified NFL game, regulation + overtime, per official box score/play-by-play. Offensive fake punt/FG touchdowns not counted as special-teams TD.",
+ "timezone": "ET; expiration time 10:00 AM ET",
+ "tie_handling": "n/a (count threshold, 'at least' = >=)",
+ "rounding": "n/a (integer counts)",
+ "trading_close_vs_settlement": "Sample close/expiration is days after kickoff (e.g. game Nov 2, close 2026-11-05T01:15Z); latest expiration 15 days after game; last trading time = expiration time per PDF; settlement_timer 60s; can_close_early=1.",
+ "early_close_or_void_clauses": "Player active but never takes a snap: settles to fair market price before game start (not No). Once a snap is taken (even nullified by penalty) settles on TDs. Postponement/rescheduling handling: unknown (rules reference 'originally scheduled' game). Kalshi Outcome Review (Rule 7.1) at sole discretion.",
+ "title_vs_rules_divergences": [
+  "Title '1+ touchdowns' omits that no-snap players settle at fair price rather than No.",
+  "Title omits fake-kick offensive TD exclusion from special-teams TDs.",
+  "Rules reference game 'originally scheduled' date; market expiration is days later."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NFL.com scores / play-by-play",
+   "url": "https://www.nfl.com/scores/",
+   "latency": "seconds live",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN NFL scoreboard API (unofficial)",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+   "latency": "seconds",
+   "cost": "free"
+  },
+  {
+   "name": "TV/stream broadcast",
+   "url": "n/a",
+   "latency": "5-40s delay",
+   "cost": "n/a"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "in-game: TD already scored is public before market closes; stale quotes adverse-selected",
+  "pre-game inactive/snap news; fair-price settlement regime is discretionary",
+  "injury/lineup info asymmetry on player props",
+  "market may remain tradable after game end until close",
+  "594 open markets, thin books per player"
+ ],
+ "notes": "Some sample rows are for already-played games (stale open rows) - check close_time before using."
+}
