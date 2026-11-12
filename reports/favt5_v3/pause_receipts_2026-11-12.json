@@ -1,0 +1,145 @@
+{
+ "generated_utc": "2026-11-12T17:02:53Z",
+ "before": {
+  "checked_utc": "2026-11-12T15:33:22Z",
+  "kalshi_balance_usd": 0.0032,
+  "open_positions": 0,
+  "resting_orders": 0,
+  "arms_running": [
+   "v1_live (pids 33168/27328)",
+   "v1_paper (pids 29608/29664)",
+   "v2_paper (pids 23200/23384)"
+  ],
+  "unsettled_ledger_entries": 0,
+  "stop_file": false
+ },
+ "actions_utc": [
+  [
+   "2026-11-12T15:34:00Z",
+   "schtasks /end on PredHFT\\FavT5-Live, PredHFT-FavT5, PredHFT-FavT5-v2"
+  ],
+  [
+   "2026-11-12T15:34:03Z",
+   "killed the nine arm processes by pid"
+  ],
+  [
+   "2026-11-12T15:34:06Z",
+   "schtasks /change /disable on all three tasks (persists across reboot and logon; restart-on-failure cannot fire on a disabled task)"
+  ],
+  [
+   "2026-11-12T15:41:47Z",
+   "paused cron jobs: FavT5 live trade relay (42a27b29c360), FavT5 v2 paper hourly report (5609f17117a2)"
+  ],
+  [
+   "2026-11-12T16:49:41Z",
+   "wrote data/fav-t5-live/STOP (second, independent block on new live entries; honoured by fav_t5_live.py line 168)"
+  ]
+ ],
+ "after": {
+  "checked_utc": "2026-11-12T17:02:53Z",
+  "kalshi_balance_usd": 0.0032,
+  "open_positions": 0,
+  "resting_orders": 0,
+  "exchange_orders_total": 81,
+  "exchange_order_statuses": [
+   "canceled",
+   "executed"
+  ],
+  "newest_exchange_order_created_utc": "2026-11-12T14:40:00Z",
+  "orders_cancelled_by_this_pause": 0,
+  "why_none_cancelled": "every strategy order was immediate-or-cancel; nothing was resting",
+  "arm_processes": [],
+  "tasks_name|state|enabled": [
+   "\\PredHFT-FavT5|Disabled|False",
+   "\\PredHFT-FavT5-v2|Disabled|False",
+   "\\PredHFT-FavT5-v3-Book|Running|True",
+   "\\PredHFT\\FavT5-Live|Disabled|False"
+  ],
+  "stop_file": true,
+  "ledgers": {
+   "v1_live": {
+    "last_ledger_row_utc": "2026-11-12T15:30:00Z",
+    "last_row_kind": "alert",
+    "last_order_intent_utc": "2026-11-12T14:40:00Z",
+    "last_order_intent_ticker": "KXBTC15M-26NOV120945-45",
+    "unsettled_entries": [],
+    "ledger_file_mtime_utc": "2026-11-12T15:30:00Z",
+    "rows": 819
+   },
+   "v1_paper": {
+    "last_ledger_row_utc": "2026-11-12T15:25:00Z",
+    "last_row_kind": "entry",
+    "last_order_intent_utc": "2026-11-12T14:40:00Z",
+    "last_order_intent_ticker": "KXBTC15M-26NOV120945-45",
+    "unsettled_entries": [],
+    "ledger_file_mtime_utc": "2026-11-12T15:25:00Z",
+    "rows": 2787
+   },
+   "v2_paper": {
+    "last_ledger_row_utc": "2026-11-12T15:34:00Z",
+    "last_row_kind": "look",
+    "last_order_intent_utc": "2026-11-12T14:40:00Z",
+    "last_order_intent_ticker": "KXBTC15M-26NOV120945-45",
+    "unsettled_entries": [],
+    "ledger_file_mtime_utc": "2026-11-12T15:34:00Z",
+    "rows": 2226
+   }
+  },
+  "decision_boundaries_passed_since_pause_utc": [
+   "2026-11-12T15:40:00Z",
+   "2026-11-12T15:55:00Z",
+   "2026-11-12T16:10:00Z",
+   "2026-11-12T16:25:00Z",
+   "2026-11-12T16:40:00Z",
+   "2026-11-12T16:55:00Z"
+  ],
+  "new_order_intents_since_pause": 0,
+  "new_ledger_rows_since_pause": 0,
+  "live_arm_restarted_to_clear_alert": false
+ },
+ "untouched": {
+  "collectors_running": [
+   "\\PredHFT-CFB",
+   "\\PredHFT-Context",
+   "\\PredHFT-ExtFeeds",
+   "\\PredHFT-FavT5-v3-Book",
+   "\\PredHFT-LLM-Shadow",
+   "\\PredHFT-Perp",
+   "\\PredHFT-SOL-v1",
+   "\\PredHFT-SOL-WSBook"
+  ],
+  "source": "no edit to fav_t5.py, fav_t5_live.py (main) or fav_t5_v2.py (branch favt5-v2); ledgers append-only and intact"
+ },
+ "cash_reconciliation": {
+  "alert": "computed 118.77 vs actual 119.88",
+  "anchor": "live start row 2026-11-11T06:39:04Z bankroll 165.4938",
+  "ledger_computed": 118.7736,
+  "exchange_implied": 119.8832,
+  "difference": 1.1096,
+  "explained_by": {
+   "manual KXBTCD-26NOV1114-T74399.99 (owner, not the runner)": 1.2538,
+   "manual KXGOLD15M-26NOV111500-00 (owner, not the runner)": 0.3951,
+   "KXETH15M-26NOV111315-15 closed by hand 74 s before close (ledger assumed hold to settlement: 1.932, exchange: 1.4865)": -0.4455,
+   "whole-cent fee rounding across the other runner markets": -0.0938
+  },
+  "unexplained": 0.0,
+  "withdrawal": {
+   "amount_usd": 119.88,
+   "utc": "2026-11-12T15:31:24Z",
+   "status": "applied",
+   "note": "made by the owner before the pause; balance now 0.0032"
+  },
+  "deposits": [
+   {
+    "usd": 125.0,
+    "fee_usd": 2.5,
+    "utc": "2026-11-10T18:31:27Z"
+   },
+   {
+    "usd": 105.0,
+    "fee_usd": 0.0,
+    "utc": "2026-11-09T16:16:27Z"
+   }
+  ]
+ }
+}

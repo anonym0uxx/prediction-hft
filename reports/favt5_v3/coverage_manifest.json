@@ -1,0 +1,188 @@
+{
+ "generated_utc": "2026-11-12T17:04:14Z",
+ "span_utc": [
+  "2026-11-09T16:32:04Z",
+  "2026-11-12T15:35:00Z"
+ ],
+ "windows_expected_per_series": 284,
+ "windows_listed_by_exchange": 552,
+ "closes_with_no_market_listed": [
+  "2026-11-12T08:15:00Z",
+  "2026-11-12T08:30:00Z",
+  "2026-11-12T08:45:00Z",
+  "2026-11-12T09:00:00Z",
+  "2026-11-12T09:15:00Z",
+  "2026-11-12T09:30:00Z",
+  "2026-11-12T09:45:00Z",
+  "2026-11-12T10:00:00Z"
+ ],
+ "old_live_tickers": 68,
+ "by_series": {
+  "KXBTC15M": {
+   "index_id": "BRTI",
+   "windows": 276,
+   "old_live_tickers": 30,
+   "index_local_recording": {
+    "windows_complete": 272,
+    "windows_with_holes": 4,
+    "seconds_missing_total": 438,
+    "largest_holes": [
+     [
+      "KXBTC15M-26NOV110145-45",
+      381,
+      381
+     ],
+     [
+      "KXBTC15M-26NOV110130-30",
+      53,
+      53
+     ],
+     [
+      "KXBTC15M-26NOV100800-00",
+      2,
+      2
+     ],
+     [
+      "KXBTC15M-26NOV101115-15",
+      2,
+      2
+     ]
+    ],
+    "old_live_tickers_complete": 29
+   },
+   "index_official_history_backfill": {
+    "windows_complete": 276,
+    "windows_with_holes": 0,
+    "note": "source timestamps only; no local receive time exists for backfilled ticks"
+   },
+   "local_vs_history_value_mismatch_seconds": 0,
+   "index_reconciliation": {
+    "settlement_avg_[close-60,close)_vs_official_abs_diff": {
+     "median": 0.0025,
+     "max": 0.005,
+     "within_1c": 276,
+     "n": 276
+    },
+    "settlement_alt_(close-59..close)_abs_diff_median": 0.2531,
+    "strike_avg_[open-60,open)_vs_official_abs_diff": {
+     "median": 0.0025,
+     "max": 0.005,
+     "within_2c": 276,
+     "n": 276
+    },
+    "settlement_from_local_recording_abs_diff": {
+     "median": 0.0025,
+     "max": 0.005,
+     "n": 275
+    }
+   },
+   "local_receive_lag_ms_source_to_this_machine": {
+    "median_of_window_medians": 69.0,
+    "worst_window_p99": 723,
+    "worst_single_tick": 949
+   },
+   "t480_inputs": {
+    "index_obs_received_within_3s": 276,
+    "full_900s_vol_history_received": 275,
+    "locally_received_kalshi_quote": 123,
+    "exchange_time_candle_quote": 276
+   },
+   "kalshi_quotes": {
+    "one_minute_candles_windows": 276,
+    "trade_prints_windows_fetched": 44,
+    "trade_prints_total": 1730109,
+    "full_depth_or_deltas_windows": 0
+   },
+   "live_order_arrival_ms_after_decision_boundary": {
+    "n": 30,
+    "median": 431.0,
+    "p90": 557,
+    "max": 595,
+    "min": 274
+   }
+  },
+  "KXETH15M": {
+   "index_id": "ETHUSD_RTI",
+   "windows": 276,
+   "old_live_tickers": 38,
+   "index_local_recording": {
+    "windows_complete": 272,
+    "windows_with_holes": 4,
+    "seconds_missing_total": 438,
+    "largest_holes": [
+     [
+      "KXETH15M-26NOV110145-45",
+      381,
+      381
+     ],
+     [
+      "KXETH15M-26NOV110130-30",
+      53,
+      53
+     ],
+     [
+      "KXETH15M-26NOV100800-00",
+      2,
+      2
+     ],
+     [
+      "KXETH15M-26NOV101115-15",
+      2,
+      2
+     ]
+    ],
+    "old_live_tickers_complete": 38
+   },
+   "index_official_history_backfill": {
+    "windows_complete": 276,
+    "windows_with_holes": 0,
+    "note": "source timestamps only; no local receive time exists for backfilled ticks"
+   },
+   "local_vs_history_value_mismatch_seconds": 0,
+   "index_reconciliation": {
+    "settlement_avg_[close-60,close)_vs_official_abs_diff": {
+     "median": 0.0027,
+     "max": 0.005,
+     "within_1c": 276,
+     "n": 276
+    },
+    "settlement_alt_(close-59..close)_abs_diff_median": 0.0107,
+    "strike_avg_[open-60,open)_vs_official_abs_diff": {
+     "median": 0.0027,
+     "max": 0.005,
+     "within_2c": 276,
+     "n": 276
+    },
+    "settlement_from_local_recording_abs_diff": {
+     "median": 0.0027,
+     "max": 0.005,
+     "n": 275
+    }
+   },
+   "local_receive_lag_ms_source_to_this_machine": {
+    "median_of_window_medians": 68.0,
+    "worst_window_p99": 704,
+    "worst_single_tick": 941
+   },
+   "t480_inputs": {
+    "index_obs_received_within_3s": 276,
+    "full_900s_vol_history_received": 275,
+    "locally_received_kalshi_quote": 122,
+    "exchange_time_candle_quote": 276
+   },
+   "kalshi_quotes": {
+    "one_minute_candles_windows": 276,
+    "trade_prints_windows_fetched": 49,
+    "trade_prints_total": 197841,
+    "full_depth_or_deltas_windows": 0
+   },
+   "live_order_arrival_ms_after_decision_boundary": {
+    "n": 38,
+    "median": 711.0,
+    "p90": 932,
+    "max": 1026,
+    "min": 461
+   }
+  }
+ }
+}
