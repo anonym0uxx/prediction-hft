@@ -61,7 +61,7 @@ def open_tickers(k: KalshiPublic) -> dict[str, float]:
 
 
 async def run() -> None:
-    k = KalshiPublic(min_interval_s=0.5); tape = Tape(); backoff = 2
+    k = KalshiPublic(min_interval_s=0.5); tape = Tape(); backoff = 2; seen_types: set = set()
     while True:
         try:
             async with websockets.connect(WS, additional_headers=headers("GET", PATH), ping_interval=20, ping_timeout=20, max_size=2**24) as ws:
@@ -97,16 +97,18 @@ async def run() -> None:
                     r = time.time(); m = json.loads(raw); typ = m.get("type"); msg = m.get("msg") or {}
                     if typ == "subscribed": sids[msg.get("sid")] = msg.get("channel"); _log({"event": "subscribed", "msg": msg}); continue
                     if typ == "error": _log({"event": "error", "msg": m}); continue
-                    if typ not in ("orderbook_snapshot", "orderbook_delta", "trade"): continue
-                    tk = msg.pop("market_ticker", None); msg.pop("market_id", None)
-                    if not tk: continue
                     sid, q = m.get("sid"), m.get("seq")
-                    if typ != "trade":
-                        if not next_seq_ok(seq.get(sid), q):
-                            _log({"event": "seq_gap", "sid": sid, "expected": seq[sid] + 1, "got": q})
+                    if sids.get(sid) == "orderbook_delta" and q is not None:   # EVERY frame on the sid consumes a seq, including
+                        if not next_seq_ok(seq.get(sid), q):                    # the 'ok' reply to update_subscription
+                            _log({"event": "seq_gap", "sid": sid, "expected": seq[sid] + 1, "got": q, "type": typ})
                             for t in subs: tape.write(t, {"r": r, "y": "gap", "expected": seq[sid] + 1, "got": q})
                             raise ConnectionError("orderbook sequence gap: reconnecting for fresh snapshots")
-                        if q is not None: seq[sid] = q
+                        seq[sid] = q
+                    if typ not in ("orderbook_snapshot", "orderbook_delta", "trade"):
+                        if typ not in seen_types: seen_types.add(typ); _log({"event": "other_frame", "type": typ, "sample": json.dumps(m)[:300]})
+                        continue
+                    tk = msg.pop("market_ticker", None); msg.pop("market_id", None)
+                    if not tk: continue
                     tape.write(tk, {"r": r, "s": m.get("sending_ts_ms"), "q": q, "y": typ, "m": msg})
                     tape.flush(r)
                     if r - last_disc >= 4: await ensure()
