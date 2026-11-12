@@ -1,0 +1,2292 @@
+{
+ "generated_utc": "2026-11-12T18:47:23Z",
+ "archive": {
+  "source": "FavT5_v3_Stress_Test.zip deep/tick_panel.parquet (archived BTC quotes + BRTI, 2026-06-22..2026-10-17)",
+  "development_days": 48,
+  "confirmation_days": 27,
+  "v3": {
+   "development": {
+    "intents": 52,
+    "fills": 46,
+    "fill_rate": 0.8846,
+    "days": 48,
+    "active_days": 23,
+    "net": 109.14,
+    "net_per_fill": 2.373,
+    "net_per_day": 2.274,
+    "daily_sharpe_fixed_capital": 0.1281,
+    "wins": 14,
+    "avg_win": 30.39,
+    "losses": 32,
+    "avg_loss": -9.88,
+    "max_drawdown": 69.33,
+    "net_without_top_two_winners": 11.14,
+    "net_2s_stress": 91.92,
+    "net_5s_late": 93.76
+   },
+   "confirmation": {
+    "intents": 25,
+    "fills": 21,
+    "fill_rate": 0.84,
+    "days": 27,
+    "active_days": 13,
+    "net": 46.11,
+    "net_per_fill": 2.196,
+    "net_per_day": 1.708,
+    "daily_sharpe_fixed_capital": 0.1027,
+    "wins": 7,
+    "avg_win": 26.21,
+    "losses": 14,
+    "avg_loss": -9.81,
+    "max_drawdown": 65.48,
+    "net_without_top_two_winners": -34.01,
+    "net_2s_stress": 36.35,
+    "net_5s_late": 8.53
+   }
+  },
+  "favourite_t5": {
+   "development": {
+    "intents": 656,
+    "fills": 455,
+    "fill_rate": 0.6936,
+    "days": 48,
+    "active_days": 46,
+    "net": -20.23,
+    "net_per_fill": -0.044,
+    "net_per_day": -0.421,
+    "daily_sharpe_fixed_capital": -0.0947,
+    "wins": 445,
+    "avg_win": 0.17,
+    "losses": 10,
+    "avg_loss": -9.79,
+    "max_drawdown": 60.17,
+    "net_without_top_two_winners": -20.85,
+    "net_2s_stress": -19.42,
+    "net_5s_late": -35.93
+   },
+   "confirmation": {
+    "intents": 271,
+    "fills": 168,
+    "fill_rate": 0.6199,
+    "days": 27,
+    "active_days": 26,
+    "net": 2.55,
+    "net_per_fill": 0.015,
+    "net_per_day": 0.094,
+    "daily_sharpe_fixed_capital": 0.0287,
+    "wins": 165,
+    "avg_win": 0.19,
+    "losses": 3,
+    "avg_loss": -9.75,
+    "max_drawdown": 27.44,
+    "net_without_top_two_winners": 1.93,
+    "net_2s_stress": -0.34,
+    "net_5s_late": -13.8
+   }
+  },
+  "matches_archive": {
+   "v3": {
+    "development": {
+     "ours": 109.14,
+     "archive": 109.14,
+     "fills_ours": 46,
+     "fills_archive": 46
+    },
+    "confirmation": {
+     "ours": 46.11,
+     "archive": 46.11,
+     "fills_ours": 21,
+     "fills_archive": 21
+    }
+   },
+   "favourite_t5": {
+    "development": {
+     "ours": -20.23,
+     "archive": -20.23,
+     "fills_ours": 455,
+     "fills_archive": 455
+    },
+    "confirmation": {
+     "ours": 2.55,
+     "archive": 2.55,
+     "fills_ours": 168,
+     "fills_archive": 168
+    }
+   }
+  },
+  "paired_v3_minus_favourite": {
+   "development": {
+    "total": 129.37,
+    "per_day": 2.695,
+    "three_day_block_95": [
+     -1.884,
+     7.703
+    ],
+    "days_v3_ahead": 12,
+    "days_favourite_ahead": 34,
+    "v3_alone_per_day_three_day_block_95": [
+     -1.818,
+     6.804
+    ]
+   },
+   "confirmation": {
+    "total": 43.56,
+    "per_day": 1.613,
+    "three_day_block_95": [
+     -4.781,
+     9.409
+    ],
+    "days_v3_ahead": 6,
+    "days_favourite_ahead": 20,
+    "v3_alone_per_day_three_day_block_95": [
+     -4.003,
+     8.634
+    ]
+   }
+  },
+  "entry_band_attribution": {
+   "development": {
+    "15-29.9c": {
+     "fills": 33,
+     "wins": 9,
+     "net": 138.07,
+     "cost": 327.93
+    },
+    "30-44.9c": {
+     "fills": 5,
+     "wins": 2,
+     "net": -4.98,
+     "cost": 48.98
+    },
+    "45-60c": {
+     "fills": 8,
+     "wins": 3,
+     "net": -23.95,
+     "cost": 76.95
+    }
+   },
+   "confirmation": {
+    "15-29.9c": {
+     "fills": 11,
+     "wins": 5,
+     "net": 98.15,
+     "cost": 108.85
+    },
+    "30-44.9c": {
+     "fills": 4,
+     "wins": 1,
+     "net": -9.08,
+     "cost": 39.08
+    },
+    "45-60c": {
+     "fills": 6,
+     "wins": 1,
+     "net": -42.96,
+     "cost": 57.96
+    }
+   }
+  },
+  "confirmation_by_vol_regime": {
+   "higher": {
+    "fills": 9,
+    "wins": 3,
+    "net": 30.31
+   },
+   "lower": {
+    "fills": 12,
+    "wins": 4,
+    "net": 15.8
+   }
+  },
+  "archive_published": {
+   "paired_btc_control": {
+    "benchmark": "tick|300|favorite|0.965|0.99|None",
+    "days": 27,
+    "difference_total": 43.55999999999998,
+    "difference_per_day": 1.6133333333333326,
+    "lower_95": -5.135259259259259,
+    "upper_95": 10.69263888888889
+   },
+   "day_uncertainty": [
+    {
+     "mean_block": 1,
+     "ev_lower": -6.088035294117646,
+     "ev_upper": 9.774235000000001,
+     "per_day_lower": -4.1577870370370364,
+     "per_day_upper": 8.080379629629629,
+     "historical_30day_positive": 0.705975
+    },
+    {
+     "mean_block": 3,
+     "ev_lower": -6.223902777777779,
+     "ev_upper": 10.09907142857143,
+     "per_day_lower": -4.307777777777778,
+     "per_day_upper": 9.081851851851853,
+     "historical_30day_positive": 0.6789
+    },
+    {
+     "mean_block": 7,
+     "ev_lower": -7.986235294117647,
+     "ev_upper": 11.575000000000001,
+     "per_day_lower": -5.035925925925926,
+     "per_day_upper": 11.296296296296296,
+     "historical_30day_positive": 0.60665
+    }
+   ],
+   "selection_risk": [
+    {
+     "family": "tick",
+     "block": 1,
+     "tested": 268,
+     "largest_t": 5.4379458352328855,
+     "max_p": 0.0004999375078115235,
+     "selected_t": 0.8873652043446986,
+     "selected_adjusted_p": 1.0
+    },
+    {
+     "family": "tick",
+     "block": 3,
+     "tested": 268,
+     "largest_t": 5.4379458352328855,
+     "max_p": 0.0017497812773403325,
+     "selected_t": 0.8873652043446986,
+     "selected_adjusted_p": 1.0
+    },
+    {
+     "family": "tick",
+     "block": 7,
+     "tested": 268,
+     "largest_t": 5.4379458352328855,
+     "max_p": 0.01549806274215723,
+     "selected_t": 0.8873652043446986,
+     "selected_adjusted_p": 0.9995000624921885
+    },
+    {
+     "family": "minute",
+     "block": 1,
+     "tested": 525,
+     "largest_t": 2.099951232849775,
+     "max_p": 0.9032620922384702,
+     "selected_t": 1.6030303364712377,
+     "selected_adjusted_p": 0.9970003749531309
+    },
+    {
+     "family": "minute",
+     "block": 3,
+     "tested": 525,
+     "largest_t": 2.099951232849775,
+     "max_p": 0.7537807774028247,
+     "selected_t": 1.6030303364712377,
+     "selected_adjusted_p": 0.9692538432695913
+    },
+    {
+     "family": "minute",
+     "block": 7,
+     "tested": 525,
+     "largest_t": 2.099951232849775,
+     "max_p": 0.5221847269091363,
+     "selected_t": 1.6030303364712377,
+     "selected_adjusted_p": 0.8211473565804275
+    },
+    {
+     "family": "pair",
+     "block": 1,
+     "tested": 144,
+     "largest_t": 0.6508866964193748,
+     "max_p": 0.9982502187226596,
+     "selected_t": NaN,
+     "selected_adjusted_p": NaN
+    },
+    {
+     "family": "pair",
+     "block": 3,
+     "tested": 144,
+     "largest_t": 0.6508866964193748,
+     "max_p": 0.9940007499062617,
+     "selected_t": NaN,
+     "selected_adjusted_p": NaN
+    },
+    {
+     "family": "pair",
+     "block": 7,
+     "tested": 144,
+     "largest_t": 0.6508866964193748,
+     "max_p": 0.9681289838770154,
+     "selected_t": NaN,
+     "selected_adjusted_p": NaN
+    }
+   ]
+  }
+ },
+ "old_live_span": {
+  "btc_v3": {
+   "windows": 276,
+   "skips": {
+    "no offer between $0.15 and $0.60": 88,
+    "modeled net edge below $0.05 per contract": 185,
+    "strike could not be confirmed from the received index": 1
+   },
+   "intents": [
+    {
+     "ticker": "KXBTC15M-26NOV100845-45",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 47,
+     "limit": 0.2,
+     "cost": 9.93,
+     "won": false,
+     "modeled_probability": 0.3074110945111265,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+15s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+30s": {
+       "status": "filled",
+       "net": -9.93
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV110430-30",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 29,
+     "limit": 0.32,
+     "cost": 9.73,
+     "won": true,
+     "modeled_probability": 0.39622546012989496,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.35",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.36",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.39",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.33",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.36",
+       "net": 0.0
+      }
+     }
+    }
+   ],
+   "by_replay": {
+    "+1s": {
+     "fills": 1,
+     "net": -9.93
+    },
+    "+2s": {
+     "fills": 1,
+     "net": -9.93
+    },
+    "+5s": {
+     "fills": 1,
+     "net": -9.93
+    },
+    "+15s": {
+     "fills": 1,
+     "net": -9.93
+    },
+    "+30s": {
+     "fills": 1,
+     "net": -9.93
+    }
+   },
+   "daily_net_1s": {
+    "2026-11-09": 0,
+    "2026-11-10": -9.93,
+    "2026-11-11": 0.0,
+    "2026-11-12": 0
+   }
+  },
+  "btc_fav_t5": {
+   "windows": 276,
+   "skips": {
+    "no side offered at $0.965-$0.990 (or no index)": 228
+   },
+   "intents": [
+    {
+     "ticker": "KXBTC15M-26NOV091215-15",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.985,
+     "cost": 9.87,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.13
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.13
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091245-45",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.991,
+     "cost": 9.92,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091300-00",
+     "day": "2026-11-09",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.99,
+     "cost": 9.91,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.09
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091500-00",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.985,
+     "cost": 9.87,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.13
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091530-30",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.985,
+     "cost": 9.87,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091700-00",
+     "day": "2026-11-09",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.99,
+     "cost": 9.91,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 1.00",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091745-45",
+     "day": "2026-11-09",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.991,
+     "cost": 9.92,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.08
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091815-15",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.982,
+     "cost": 9.84,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.16
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.16
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV091930-30",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.977,
+     "cost": 9.79,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.21
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.21
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.21
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.21
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV092015-15",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.967,
+     "cost": 9.7,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.3
+      },
+      "+30s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV092030-30",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.966,
+     "cost": 9.69,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+2s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.31
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV092200-00",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.987,
+     "cost": 9.88,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.12
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.12
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.12
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV092300-00",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.984,
+     "cost": 9.86,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.14
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.14
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.14
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.14
+      },
+      "+30s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV092330-30",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.978,
+     "cost": 9.8,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+30s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV092345-45",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.978,
+     "cost": 9.8,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.2
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV100115-15",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.971,
+     "cost": 9.73,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.27
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV100230-30",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.991,
+     "cost": 9.92,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.08
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV100800-00",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.99,
+     "cost": 9.91,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.09
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV100930-30",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.988,
+     "cost": 9.89,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.11
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101015-15",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.978,
+     "cost": 9.8,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101145-45",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.971,
+     "cost": 9.73,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101245-45",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.98,
+     "cost": 9.82,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.18
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.18
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.18
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.18
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101300-00",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.978,
+     "cost": 9.8,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.2
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101530-30",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.979,
+     "cost": 9.81,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.19
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.19
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101615-15",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.988,
+     "cost": 9.89,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101730-30",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.984,
+     "cost": 9.86,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101745-45",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.988,
+     "cost": 9.89,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.11
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV101845-45",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.983,
+     "cost": 9.85,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.15
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.15
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV102045-45",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.972,
+     "cost": 9.74,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.26
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV102100-00",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.989,
+     "cost": 9.9,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.1
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.1
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.1
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV102145-45",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.971,
+     "cost": 9.73,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+2s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV102215-15",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.987,
+     "cost": 9.88,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.12
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.12
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV102330-30",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.985,
+     "cost": 9.87,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.13
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.13
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV110445-45",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.988,
+     "cost": 9.89,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.11
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV110900-00",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.988,
+     "cost": 9.89,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.11
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111030-30",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.988,
+     "cost": 9.89,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.11
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.11
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111045-45",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.986,
+     "cost": 9.87,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111315-15",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.966,
+     "cost": 9.69,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.31
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.31
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111415-15",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.99,
+     "cost": 9.91,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111600-00",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.966,
+     "cost": 9.69,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111645-45",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.967,
+     "cost": 9.7,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.97",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111800-00",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.973,
+     "cost": 9.75,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111815-15",
+     "day": "2026-11-11",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.971,
+     "cost": 9.73,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.27
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111845-45",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.97,
+     "cost": 9.73,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.27
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.27
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV111930-30",
+     "day": "2026-11-12",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.991,
+     "cost": 9.92,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+5s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.08
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.08
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV112030-30",
+     "day": "2026-11-12",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.982,
+     "cost": 9.84,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.98",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV120815-15",
+     "day": "2026-11-12",
+     "side": "NO",
+     "qty": 10,
+     "limit": 0.987,
+     "cost": 9.88,
+     "won": true,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.99",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": 0.12
+      },
+      "+30s": {
+       "status": "filled",
+       "net": 0.12
+      }
+     }
+    },
+    {
+     "ticker": "KXBTC15M-26NOV120945-45",
+     "day": "2026-11-12",
+     "side": "YES",
+     "qty": 10,
+     "limit": 0.989,
+     "cost": 9.9,
+     "won": false,
+     "modeled_probability": null,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -9.9
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -9.9
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -9.9
+      },
+      "+15s": {
+       "status": "filled",
+       "net": -9.9
+      },
+      "+30s": {
+       "status": "filled",
+       "net": -9.9
+      }
+     }
+    }
+   ],
+   "by_replay": {
+    "+1s": {
+     "fills": 26,
+     "net": -5.67
+    },
+    "+2s": {
+     "fills": 22,
+     "net": -6.62
+    },
+    "+5s": {
+     "fills": 22,
+     "net": -6.47
+    },
+    "+15s": {
+     "fills": 25,
+     "net": -6.1
+    },
+    "+30s": {
+     "fills": 21,
+     "net": -6.74
+    }
+   },
+   "daily_net_1s": {
+    "2026-11-09": 0.59,
+    "2026-11-10": 1.92,
+    "2026-11-11": 1.72,
+    "2026-11-12": -9.9
+   }
+  },
+  "eth_challenge": {
+   "windows": 276,
+   "skips": {
+    "no offer between $0.15 and $0.60": 93,
+    "modeled net edge below $0.05 per contract": 174,
+    "strike could not be confirmed from the received index": 1
+   },
+   "intents": [
+    {
+     "ticker": "KXETH15M-26NOV091345-45",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 59,
+     "limit": 0.16,
+     "cost": 10.0,
+     "won": false,
+     "modeled_probability": 0.22520921886536682,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+30s": {
+       "status": "filled",
+       "net": -10.0
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV091445-45",
+     "day": "2026-11-09",
+     "side": "NO",
+     "qty": 59,
+     "limit": 0.16,
+     "cost": 10.0,
+     "won": false,
+     "modeled_probability": 0.22338891987474507,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.18",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.17",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV092215-15",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 31,
+     "limit": 0.3,
+     "cost": 9.76,
+     "won": false,
+     "modeled_probability": 0.36721339437108924,
+     "fills": {
+      "+1s": {
+       "status": "offer moved to 0.40",
+       "net": 0.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.39",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "offer moved to 0.35",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "filled",
+       "net": -9.76
+      },
+      "+30s": {
+       "status": "offer moved to 0.38",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV092245-45",
+     "day": "2026-11-10",
+     "side": "YES",
+     "qty": 38,
+     "limit": 0.25,
+     "cost": 10.0,
+     "won": false,
+     "modeled_probability": 0.3219324418761679,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+2s": {
+       "status": "offer moved to 0.27",
+       "net": 0.0
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -10.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.28",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "filled",
+       "net": -10.0
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV101615-15",
+     "day": "2026-11-10",
+     "side": "NO",
+     "qty": 49,
+     "limit": 0.19,
+     "cost": 9.84,
+     "won": false,
+     "modeled_probability": 0.2523049339564791,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -9.84
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -9.84
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -9.84
+      },
+      "+15s": {
+       "status": "offer moved to 0.22",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.24",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV102100-00",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 47,
+     "limit": 0.2,
+     "cost": 9.93,
+     "won": false,
+     "modeled_probability": 0.26864977392335965,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+15s": {
+       "status": "filled",
+       "net": -9.93
+      },
+      "+30s": {
+       "status": "filled",
+       "net": -9.93
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV110600-00",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 28,
+     "limit": 0.34,
+     "cost": 9.96,
+     "won": false,
+     "modeled_probability": 0.4212624653653847,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -9.96
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -9.96
+      },
+      "+5s": {
+       "status": "offer moved to 0.40",
+       "net": 0.0
+      },
+      "+15s": {
+       "status": "offer moved to 0.52",
+       "net": 0.0
+      },
+      "+30s": {
+       "status": "offer moved to 0.54",
+       "net": 0.0
+      }
+     }
+    },
+    {
+     "ticker": "KXETH15M-26NOV111645-45",
+     "day": "2026-11-11",
+     "side": "YES",
+     "qty": 43,
+     "limit": 0.22,
+     "cost": 9.98,
+     "won": false,
+     "modeled_probability": 0.2993205655425884,
+     "fills": {
+      "+1s": {
+       "status": "filled",
+       "net": -9.98
+      },
+      "+2s": {
+       "status": "filled",
+       "net": -9.98
+      },
+      "+5s": {
+       "status": "filled",
+       "net": -9.98
+      },
+      "+15s": {
+       "status": "filled",
+       "net": -9.98
+      },
+      "+30s": {
+       "status": "filled",
+       "net": -9.98
+      }
+     }
+    }
+   ],
+   "by_replay": {
+    "+1s": {
+     "fills": 7,
+     "net": -69.71
+    },
+    "+2s": {
+     "fills": 6,
+     "net": -59.71
+    },
+    "+5s": {
+     "fills": 6,
+     "net": -59.75
+    },
+    "+15s": {
+     "fills": 4,
+     "net": -39.67
+    },
+    "+30s": {
+     "fills": 4,
+     "net": -39.91
+    }
+   },
+   "daily_net_1s": {
+    "2026-11-09": -20.0,
+    "2026-11-10": -19.84,
+    "2026-11-11": -29.87,
+    "2026-11-12": 0
+   }
+  },
+  "quote_source": "exchange one-minute candle close at the decision second: exchange time only, no local receipt time, so 'aged at most 3 s on receipt' is NOT tested here"
+ }
+}

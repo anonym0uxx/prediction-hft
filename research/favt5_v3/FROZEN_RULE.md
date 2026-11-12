@@ -1,10 +1,22 @@
 # FavT5 v3 — frozen BTC rule (shadow only)
 
-Status 2026-11-12: **rule NOT implemented yet.** The reference `deep/favt5_v3_index.py`, its example snapshot and the
-archived order exports live in `FavT5_v3_Stress_Test.zip`, which never reached this machine (the chat upload was rejected
-as over 20 MB). The side-probability model, the volatility estimator and the scorer's sample timestamps are defined only
-in that file, so nothing in this branch guesses them. What exists here is the isolation, the coverage evidence and the
-forward depth recorder the rule will need.
+Status 2026-11-12: **implemented, shadow only.** Reference archive `FavT5_v3_Stress_Test.zip`
+(sha256 `39e6d27c5398dac7e576c6006c543809cbadbc1dfb3eb6e7100e6bed8eb00853`, all 80 internal checksums verified), unpacked
+untracked at `data/favt5-v3/reference/`.
+
+- Scorer: `src/predhft/favt5_v3_index.py` is the archive's `deep/favt5_v3_index.py` byte for byte
+  (sha256 `c2db8eb2...0fad0`, pinned by a test). It is never edited; the shadow only feeds it and records its answer.
+- Reproduction (tests/test_favt5_v3.py): the example snapshot returns the archived intent exactly; scoring all 5,315
+  archived T-480 rows returns exactly the 77 archived orders (side, size, limit, cost).
+- Shadow runner: `src/predhft/favt5_v3_shadow.py`, task `PredHFT-FavT5-v3-Shadow`, ledger
+  `data/favt5-v3/shadow/fills.jsonl`. Arms: `btc_v3` (the rule), `btc_fav_t5` (same-budget favourite control),
+  `eth_challenge` (same scorer on the ETH contract's own index, tracked separately).
+- Offline comparisons: `research/favt5_v3/offline.py` -> `reports/favt5_v3/offline_comparisons.json`.
+
+How the live inputs map onto the scorer's snapshot (choices made here, not in the archive):
+`quoted_strike` = the exchange's `floor_strike` for the same ticker, fetched before the decision (model input);
+`official_strike` = the strike rebuilt from our own received index (mean of the 60 seconds before the open), so a strike
+we cannot confirm is rejected; quote event = exchange time of the last sequence-valid book frame for that ticker.
 
 Branch `favt5-v3`, worktree `D:/prediction-hft-v3`, forked from `main` at `8fb8a1e` (FavT5 v1 strategy files last
 changed in `9d3103c`). No live order route exists in this branch and none may be added without the owner's separate
