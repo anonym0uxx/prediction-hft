@@ -13,7 +13,7 @@ every affected file ({"y": "gap"}) and the socket is reopened to get fresh snaps
 between a gap row and the next snapshot. The system clock is not corrected; rows keep both local and exchange times.
 """
 from __future__ import annotations
-import asyncio, calendar, gzip, json, pathlib, time
+import asyncio, calendar, gzip, json, pathlib, time, zlib
 import websockets
 from .kalshi_auth import headers
 from .kalshi_public import KalshiPublic
@@ -40,7 +40,9 @@ class Tape:
         f = self.f.get(ticker)
         if f is None:
             d = ROOT / time.strftime("%Y%m%d", time.gmtime(row["r"])); d.mkdir(parents=True, exist_ok=True)
-            f = self.f[ticker] = gzip.open(d / f"{ticker}.jsonl.gz", "ab", compresslevel=5)
+            p, n = d / f"{ticker}.jsonl.gz", 1            # never append to an earlier stream: a killed process leaves a
+            while p.exists(): n += 1; p = d / f"{ticker}.p{n}.jsonl.gz"   # truncated gzip member that hides whatever follows it
+            f = self.f[ticker] = gzip.open(p, "wb", compresslevel=5)
         f.write((json.dumps(row, separators=(",", ":")) + "\n").encode())
     def flush(self, now: float) -> None:
         if now - self.last_flush < 5: return
@@ -50,6 +52,29 @@ class Tape:
         for t in list(tickers):
             f = self.f.pop(t, None)
             if f: f.close()
+
+
+def tape_rows(path):
+    """Rows of one tape file, surviving a stream cut off by a kill: everything up to the last flush is returned, then a
+    {"y": "gap"} row, then any later stream in the same file (files written before part-numbering can hold several)."""
+    data = pathlib.Path(path).read_bytes(); pos = 0; first = True
+    while 0 <= pos < len(data):
+        d = zlib.decompressobj(31); out = []; ok = True; i = pos; step = 65536
+        while i < len(data) and not d.eof:
+            keep = d.copy()
+            try: out.append(d.decompress(data[i:i + step])); i += step
+            except zlib.error:
+                if step == 64: ok = False; break
+                d = keep; step = 64                       # creep up to the cut so the last flushed rows are not lost
+        text = b"".join(out)
+        if text or ok:
+            if not first: yield {"y": "gap", "why": "recorder restarted"}
+            first = False; lines = text.split(b"\n")
+            for line in lines[:-1] if ok else lines[:-2] or []:
+                try: yield json.loads(line)
+                except Exception: pass
+        if ok and d.eof: pos = len(data) - len(d.unused_data) if d.unused_data else len(data)
+        else: pos = data.find(b"\x1f\x8b\x08", pos + 10)
 
 
 def open_tickers(k: KalshiPublic) -> dict[str, float]:
