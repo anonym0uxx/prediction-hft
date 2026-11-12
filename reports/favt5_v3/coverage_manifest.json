@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-12T17:04:14Z",
+ "generated_utc": "2026-11-12T18:11:58Z",
  "span_utc": [
   "2026-11-09T16:32:04Z",
   "2026-11-12T15:35:00Z"
@@ -89,8 +89,8 @@
    },
    "kalshi_quotes": {
     "one_minute_candles_windows": 276,
-    "trade_prints_windows_fetched": 44,
-    "trade_prints_total": 1730109,
+    "trade_prints_windows_fetched": 276,
+    "trade_prints_total": 11846681,
     "full_depth_or_deltas_windows": 0
    },
    "live_order_arrival_ms_after_decision_boundary": {
@@ -172,8 +172,8 @@
    },
    "kalshi_quotes": {
     "one_minute_candles_windows": 276,
-    "trade_prints_windows_fetched": 49,
-    "trade_prints_total": 197841,
+    "trade_prints_windows_fetched": 276,
+    "trade_prints_total": 1286745,
     "full_depth_or_deltas_windows": 0
    },
    "live_order_arrival_ms_after_decision_boundary": {
