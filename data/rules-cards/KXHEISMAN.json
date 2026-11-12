@@ -1,0 +1,38 @@
+{
+ "series": "KXHEISMAN",
+ "settlement_source": "SPORTAWARD hierarchy: league/NCAA, the award body (Heisman Trust), ESPN, AP, The Athletic, SI, Fox, CBS, NBC, etc. Series metadata lists ESPN only.",
+ "settlement_variable": "Recipient(s) of the College Football Heisman Trophy for the 2026-27 season as officially announced, documented at expiration time.",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "If 'Tie/Co-Winners' is listed it resolves Yes and all others No. Otherwise Yes pays $1/N tied participants, No pays 1 minus that. 'No Award Given' resolves Yes if listed and no award is given.",
+ "rounding": "n/a (categorical award)",
+ "trading_close_vs_settlement": "close_time 2027-01-01T15:00Z but expiration_time 2027-01-15T15:00Z. Rulebook says Last Trading Time = Expiration time, which conflicts with the earlier listed close_time (which controls in practice is unknown). settlement_timer 1800s. can_close_early=1.",
+ "early_close_or_void_clauses": "Kalshi may open Market Outcome Review (Rule 7.1) at sole discretion; if no value, Kalshi sets payouts. Ineligible, non-finalist or withdrawn participants resolve No immediately. Revocation/vacation after expiration ignored. Leaks/media insufficient without Source Agency confirmation.",
+ "title_vs_rules_divergences": [
+  "Market title 'Who will win Heisman Trophy?' has no season; rules_primary specifies 2026-2027.",
+  "close_time (2027-01-01) is 2 weeks before expiration_time (2027-01-15) while the rulebook equates last trading with expiration. The Heisman ceremony is normally in December (2026 date unverified), so the market may remain open after the real-world announcement or close before the official result is documented.",
+  "Series metadata lists ESPN only; rulebook hierarchy puts league/award body first."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Heisman Trust official site",
+   "url": "https://www.heisman.com/",
+   "latency": "real-time at ceremony",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN college football (ceremony broadcast)",
+   "url": "https://www.espn.com/college-football/",
+   "latency": "real-time",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Live-broadcast ceremony: winner can be known minutes before the book reprices; latency edge to the fastest",
+  "Finalist invitations (public, weeks ahead) zero out non-finalists via the ineligible/non-finalist clause",
+  "Tail strikes quoted 0.00/0.01",
+  "Listed close_time earlier than expiration_time; unclear halt behavior",
+  "Kalshi discretionary review clause"
+ ],
+ "notes": "Season-long; stats and finalist lists public before settlement. 49 open markets."
+}

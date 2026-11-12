@@ -1,0 +1,44 @@
+{
+ "series": "KXNVDACEO",
+ "settlement_source": "NEWROLE: NVIDIA (board, press release, SEC filing, website) plus NYT, AP, Bloomberg, Reuters, Axios, Politico, Semafor, The Information, WaPo, WSJ, TechCrunch, Wired, ABC, CBS, CNN, Fox, MSNBC, NBC, ESPN, The Athletic.",
+ "settlement_variable": "Whether the named person is officially appointed, elected, named, designated or succeeded as permanent CEO of NVIDIA after issuance and before 2029-01-01.",
+ "timezone": "ET (expiration 10:00 AM ET; Last Trading Time 11:59 PM ET the day before <date>)",
+ "tie_handling": "If several persons are simultaneously first appointed and have markets, each pays $1 / number of such persons.",
+ "rounding": "Tie payout rounded down",
+ "trading_close_vs_settlement": "close_time = expiration_time = 2029-01-01T05:00Z (midnight ET 1 Jan 2029). Rulebook: last trading day before <date>, 11:59 PM ET; latest expiration one week after <date>. can_close_early=1: on announcement expiration moves earlier (Rule 7.2). settlement_timer 1800s.",
+ "early_close_or_void_clauses": "Announcement alone suffices; later resignation/death irrelevant. Interim/acting roles, rumors and conditional appointments don't count (regulatory/shareholder approval excepted). If NVIDIA ceases to exist or CEO role is eliminated, all candidates No. Kalshi may start Market Outcome Review at sole discretion (NEWROLE cites Rule 6.3(d)/6.3(b), unlike other rulebooks citing 7.1).",
+ "title_vs_rules_divergences": [
+  "Title 'next CEO' implies succession of the current CEO; the rule is the first new CEO appointment after issuance and before 2029-01-01. If no appointment occurs, all resolve No.",
+  "rules_secondary says an official NVIDIA announcement is sufficient; the rulebook also accepts listed major media sources as Source Agencies, so reported appointments may be argued as sufficient.",
+  "Candidate list includes non-NVIDIA persons (e.g., Tim Cook)."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NVIDIA Newsroom",
+   "url": "https://nvidianews.nvidia.com/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "SEC EDGAR NVIDIA 8-K",
+   "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=8-K",
+   "latency": "up to 4 business days, usually same day",
+   "cost": "free"
+  },
+  {
+   "name": "Bloomberg / Reuters / WSJ",
+   "url": "https://www.bloomberg.com/news",
+   "latency": "often precedes official announcement",
+   "cost": "paid/partial"
+  }
+ ],
+ "observability_before_settlement": "none",
+ "toxicity_flags": [
+  "Board/executive insiders hold MNPI; only the prohibition list protects",
+  "Long-dated (~26 months): capital lock-up",
+  "Single-announcement jump risk",
+  "Media-leak resolution ambiguity",
+  "Kalshi discretionary review clause"
+ ],
+ "notes": "Only the Colette Kress sample market was read; order books not examined. One-off series."
+}

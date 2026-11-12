@@ -1,0 +1,42 @@
+{
+ "series": "KXTXSENGOVCOMBO",
+ "settlement_source": "POLITICALECONOMICEVENTS; each component per its own ruleset (GOVPARTY, SENATEPARTY; not read). Series metadata lists Texas Secretary of State election page. Rulebook Source Agencies: NYT, AP, Bloomberg, Reuters, WSJ, FT, WaPo, Politico, official statements.",
+ "settlement_variable": "Party of the winner of the Nov 2026 Texas Governor race AND party of the winner of the Texas US Senate race; Yes only if both match the strike (e.g., REPREP).",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "unknown (deferred to component rules, not read)",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "close_time = expiration_time = 2027-11-03T14:00Z, one year after the 3 Nov 2026 election. Generic rule says Last Trading Time = one minute before expected final data release; listed close is far later. settlement_timer 1800s. can_close_early=1.",
+ "early_close_or_void_clauses": "Any component No or impossible resolves the whole market No immediately; expiration moves earlier (Rule 7.2). Kalshi may open Market Outcome Review (Rule 7.1) at sole discretion and decides payouts if no expiration value is determinable. Component rules not read.",
+ "title_vs_rules_divergences": [
+  "rules_secondary says 'All conditions must be satisfied before November 3, 2027' though the election was 3 Nov 2026 (ticker -26NOV): date looks like a one-year offset, or a deliberately long window.",
+  "yes_sub_title names candidates ('Greg Abbott and Ken Paxton win') while the rule is by party; party controls per rules_primary."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP race calls",
+   "url": "https://apnews.com/hub/texas-election-results",
+   "latency": "minutes after polls close",
+   "cost": "free"
+  },
+  {
+   "name": "Texas SOS results",
+   "url": "https://results.texas-election.com/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "NPR Texas results",
+   "url": "https://www.npr.org/2026/11/03/g-s1-148215/texas-election-results-2026",
+   "latency": "minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "POSSIBLE STALE/MISPRICED: public results (NPR, CNN, Houston Public Media, found 2026-11-12) show Hinojosa (D) beat Abbott and Talarico (D) beat Paxton, both called 4 Nov 2026, i.e. DEMDEM should resolve Yes. DB snapshot shows REPREP 0.27/0.30, REPDEM 0.41/0.42, DEMDEM 0.31/0.32. Either snapshot is stale or the book disagrees with public results; verify live before any inference. Not traded.",
+  "Possible date error (2027) invites ambiguity or discretionary review",
+  "Any-component-impossible clause resolves immediately",
+  "Kalshi discretionary review clause (Rule 7.1)"
+ ],
+ "notes": "As of 2026-11-12 the outcome is public (AP calls Nov 4, 99% in). Residual risk is certification timing and the unexplained pricing. Quotes in DB may be stale."
+}

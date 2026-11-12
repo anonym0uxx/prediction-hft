@@ -1,0 +1,43 @@
+{
+ "series": "KXNFLMVP",
+ "settlement_source": "SPORTAWARD hierarchy: the league (NFL), the official voting body (AP), then ESPN, AP, The Athletic, SI, Fox, CBS, NBC, Sporting News, Bleacher Report, team sites. Series metadata lists 'the Governing League' (nfl.com) and ESPN.",
+ "settlement_variable": "Official recipient(s) of the AP NFL Regular Season MVP for the 2026-27 season, as documented by the Source Agency at expiration time. Revisions after expiration are ignored.",
+ "timezone": "ET (expiration 10:00 AM ET)",
+ "tie_handling": "If 'Tie/Co-Winners' is listed it resolves Yes and all others No. Otherwise Yes pays $1/N tied participants, No pays 1 minus that. 'No Award Given' resolves Yes if listed and no award is given.",
+ "rounding": "n/a (categorical award)",
+ "trading_close_vs_settlement": "close_time = expiration_time = 2028-02-12T15:00Z (rulebook: Last Trading Time = Expiration time). Settlement no later than next day unless under Rule 7.1 review. settlement_timer_seconds=300. can_close_early=1, so expiration moves earlier once the award is announced (Rule 7.2).",
+ "early_close_or_void_clauses": "Kalshi may at sole discretion start Market Outcome Review (Rule 7.1); if no value is determinable Kalshi decides payouts. Participant ruled ineligible, not a finalist, or withdrawn resolves No immediately. Later revocation ignored. Media reports, leaks and odds are insufficient without Source Agency confirmation.",
+ "title_vs_rules_divergences": [
+  "Series title says 'AP Pro Football Regular Season MVP' but the rulebook is the generic league-agnostic SPORTAWARD; Source Agency hierarchy puts the NFL first, AP only as the award body. Contract terms URL is NFLAWARD.pdf but its content is the generic SPORTAWARD text.",
+  "Market title 'Will X win the MVP?' omits the AP / regular-season / 2026-27 qualifiers that appear only in rules_primary."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP NFL coverage / NFL Honors announcement",
+   "url": "https://apnews.com/hub/nfl",
+   "latency": "minutes; announced once at NFL Honors (Feb 2027)",
+   "cost": "free"
+  },
+  {
+   "name": "NFL.com honors",
+   "url": "https://www.nfl.com/honors/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN NFL",
+   "url": "https://www.espn.com/nfl/",
+   "latency": "minutes",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Long-dated (~15 months): capital lock-up",
+  "Voters cast ballots before the announcement; leak risk before official announcement",
+  "Tail strikes quoted 0.01/0.02: wide relative spread",
+  "Kalshi discretionary review clause (Rule 7.1)",
+  "Price driven by injuries/performance news, not a data release"
+ ],
+ "notes": "Annual award, regular-season MVP. Voting result is not observable until announced; stats and odds are public. 49 open markets."
+}
