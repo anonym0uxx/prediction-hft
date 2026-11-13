@@ -1,0 +1,54 @@
+{
+ "series": "HOUSEMT1",
+ "settlement_source": "United States Congress (metadata: Library of Congress congress.gov); Expiration Value = Underlying as documented by Source Agency at 10:00 AM ET on Expiration Date.",
+ "settlement_variable": "Party of first candidate who presents certificate of election for MT-01 and is sworn in for the term beginning 2027.",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "Not applicable; vacancy -> party of first person sworn in as replacement. Party switch after election: party on election day.",
+ "rounding": "none",
+ "trading_close_vs_settlement": "close_time 2027-11-03T15:00Z is a placeholder; Expiration = sooner of first 10:00 AM ET after swearing-in or 1 year after popular vote. Accelerated resolution if >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) call it with no contradiction. can_close_early=1, settlement_timer 14s.",
+ "early_close_or_void_clauses": [
+  "Accelerated determination via media consensus (4 of 8, no contradiction)",
+  "Designated media sources replaceable at Exchange sole discretion",
+  "Kalshi may start Market Outcome Review (Rule 6.3(c))",
+  "Contested/recount/seating-delay: only the 1-year expiry cap; otherwise unknown"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'Will Republican win the House race' vs rules: resolves on who is SWORN IN, not who wins the election (vacancy/replacement changes outcome)",
+  "yes_sub_title names a candidate (Aaron Flint) but market is party-based",
+  "close_time year 2027 vs election Nov 2026"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Montana Secretary of State election results",
+   "url": "https://electionresults.sos.mt.gov",
+   "latency": "live on election night",
+   "cost": "free"
+  },
+  {
+   "name": "AP election results",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "seconds-minutes",
+   "cost": "free site / paid API"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com",
+   "latency": "minutes",
+   "cost": "free site / paid API"
+  },
+  {
+   "name": "Clerk of the House",
+   "url": "https://clerk.house.gov",
+   "latency": "at swearing-in",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "counts public and media calls trigger accelerated settlement (outcome known before settlement)",
+  "MNPI risk (insider prohibitions on tally/decision-desk staff)",
+  "extreme-tail quotes 0.002/0.998 thin",
+  "multi-month lock-up until swearing-in/acceleration"
+ ],
+ "notes": "Election date Nov 3, 2026 is already past; sample quotes (Dem ~0.98) suggest outcome mostly known while market awaits swearing-in/acceleration. Verify before any use."
+}

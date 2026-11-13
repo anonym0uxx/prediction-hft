@@ -1,0 +1,44 @@
+{
+ "series": "KXNCAAFTOTAL",
+ "settlement_source": "Contract terms: league governing the game (NCAA); series metadata lists ESPN and Kalshi using NCAA info. Expiration Value = Underlying as documented by Source Agency at 10:00 AM ET on Expiration Date.",
+ "settlement_variable": "Combined points of both teams in the specified period (default full game incl. overtime). Over/under half-point threshold.",
+ "timezone": "ET (10:00 AM ET expiration; date = originally scheduled date in ET)",
+ "tie_handling": "N/A with half-point strikes; behavior at exact equality for whole-number counts unspecified = unknown",
+ "rounding": "none; points are integers",
+ "trading_close_vs_settlement": "Market close_time (e.g. 2026-11-02T23:45Z) is days after game date; Last Trading Time = Expiration time per terms, but can_close_early=1 and settlement_timer 180s so markets settle shortly after outcome is determined. Latest expiration 15th day after game.",
+ "early_close_or_void_clauses": [
+  "Postponed but starts within 48h: stays open, settles on final result",
+  "Not started within 48h: resolves to fair price (Exchange sole discretion)",
+  "Suspended/abandoned <55 min play and not resuming in 48h: last fair price (Exchange discretion) except already-decided markets",
+  "55+ min played or league declares game final: settle on state at that point",
+  "Forfeit before kickoff: last fair price; after kickoff: league official result",
+  "Venue change/home-away reversal or >48h move: fair price",
+  "Kalshi may start Market Outcome Review; Rule 6.3(b) if value undeterminable"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'Full Game: Over X points' omits that overtime counts and that the 55-minute rule can end a game early at current score",
+  "Market is dated by originally scheduled ET date; rescheduled games may still count"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "ESPN scoreboard/summary (unofficial JSON)",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard",
+   "latency": "seconds-30s",
+   "cost": "free"
+  },
+  {
+   "name": "NCAA.com scoreboard",
+   "url": "https://www.ncaa.com/scoreboard/football/fbs",
+   "latency": "seconds-1min",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "running score observable live; in-game total repriced faster than quotes update (latency-adversarial)",
+  "outcome locked once Over line crossed while market stays open until close (stale quotes)",
+  "discretionary fair price on postponed/suspended games",
+  "can_close_early=1"
+ ],
+ "notes": "Terms read from FOOTBALLTOTALS.pdf. Settlement-source pages not individually fetched; feed latencies are estimates, unverified."
+}

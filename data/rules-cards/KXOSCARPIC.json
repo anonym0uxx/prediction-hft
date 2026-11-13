@@ -1,0 +1,40 @@
+{
+ "series": "KXOSCARPIC",
+ "settlement_source": "Academy of Motion Picture Arts and Sciences website (oscars.org/oscars)",
+ "settlement_variable": "Whether the nominee won Best Picture at the 99th Academy Awards per Oscars website at 10:00 AM ET Expiration.",
+ "timezone": "ET (10:00 AM ET); ceremony expected March 2027",
+ "tie_handling": "unknown (not addressed)",
+ "rounding": "none",
+ "trading_close_vs_settlement": "close_time placeholder 2027-12-31T15:00Z; Expiration = sooner of first 10:00 AM ET after winners release, or the expo_date. can_close_early=1, settlement_timer 3600s.",
+ "early_close_or_void_clauses": [
+  "If no data from Source Agency on Expiration Date: resolves No (every nominee)",
+  "Market Outcome Review (Rule 6.3(c)) discretionary",
+  "Instructions for accessing Underlying are non-binding and may be clarified anytime"
+ ],
+ "title_vs_rules_divergences": [
+  "Nominees may be listed before nominations (potential nominees sourced from trade press); a non-nominee resolves No",
+  "No-data -> No clause not in title"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "oscars.org winners page",
+   "url": "https://www.oscars.org/oscars",
+   "latency": "at/just after announcement",
+   "cost": "free"
+  },
+  {
+   "name": "Live ceremony broadcast (ABC) / AP",
+   "url": "https://apnews.com",
+   "latency": "live",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "winner revealed live on ceremony night while market stays open until next 10:00 AM ET",
+  "precursor awards (PGA/DGA/SAG/BAFTA) public and informative",
+  "no-data -> No clause",
+  "long-dated lock-up, thin tails"
+ ],
+ "notes": "Winner not observable until ceremony; then fully public before settlement. Rated partial. Ceremony date only 'expected' March 2027."
+}
