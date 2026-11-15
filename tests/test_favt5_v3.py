@@ -92,9 +92,15 @@ def test_an_invalid_book_has_no_quote():
 
 
 def test_favourite_control_matches_the_archive_definition():
-    f = sh.favourite(0.02, 0.03)                                                  # NO offered at 0.98
-    assert f == {"side": "NO", "offer": 0.98, "limit": 0.981, "qty": 10, "max_total_cost": 9.83}
+    f10 = sh.favourite(0.02, 0.03, budget=10)                                     # the archive's $10 numbers are reproducible
+    assert f10 == {"side": "NO", "offer": 0.98, "limit": 0.981, "qty": 10, "max_total_cost": 9.83}
     assert sh.favourite(0.50, 0.51) is None and sh.favourite(0.90, 0.97) is None  # nothing at 0.965-0.990; spread too wide
+
+
+def test_favourite_control_scales_to_the_shadow_budget():
+    f = sh.favourite(0.02, 0.03)                                                  # default = SHADOW_BUDGET 50
+    assert f["qty"] == 50 and abs(f["max_total_cost"] - 49.12) < 1e-9 and f["limit"] == 0.981
+    assert sh.SHADOW_BUDGET == 50
 
 
 def test_rebuilt_strike_needs_all_sixty_seconds():

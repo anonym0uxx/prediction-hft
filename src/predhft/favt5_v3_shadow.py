@@ -37,7 +37,8 @@ API = "https://api.elections.kalshi.com/trade-api/v2"; WS = "wss://api.elections
 ARMS = {"btc_v3": ("KXBTC15M", "BTC", 480), "btc_fav_t5": ("KXBTC15M", "BTC", 300), "eth_challenge": ("KXETH15M", "ETH", 480)}
 SERIES = ("KXBTC15M", "KXETH15M"); DELAYS = (1, 2, 5, 15, 30); LATE_S = 1.0
 VOL_SPLIT_VBPS = 0.4411494766632067          # archive: median main_vbps on the development days (inference.py); frozen
-FROZEN = {"taker": 0.07, "tick_in_band": 0.01, "cash_rounding": "whole cent, upward, per order", "budget": 10.0}
+SHADOW_BUDGET = Decimal("50.00")                # owner changed per-window cap $10 -> $50 (2026-11-15); paper only, never frozen back
+FROZEN = {"taker": 0.07, "tick_in_band": 0.01, "cash_rounding": "whole cent, upward, per order", "budget": 50.0, "budget_history": {"10.0": "2026-11-12 -> 2026-11-15", "50.0": "owner change 2026-11-15"}}
 OFFSET = 0.0                                  # seconds to ADD to the local clock to get network time
 RTT: collections.deque = collections.deque(maxlen=9)
 
@@ -114,13 +115,14 @@ def side_table(fair_yes: float, bid: float, ask: float) -> list[dict]:
     return out
 
 
-def favourite(bid: float, ask: float) -> dict | None:
-    """Same-budget favourite control: the dearer side priced 0.965-0.990, one adverse tick, $10 all-in (archive stress.py)."""
+def favourite(bid: float, ask: float, budget: Decimal = None) -> dict | None:
+    """Same-budget favourite control: the dearer side priced 0.965-0.990, one adverse tick, sized to the same budget as the scorer (archive stress.py)."""
+    cap = float(budget) if budget is not None else float(SHADOW_BUDGET)
     if not (0 < bid <= ask < 1 and ask - bid <= .06 + 1e-12): return None
     best = None
     for side, price in (("YES", round(ask, 4)), ("NO", round(1 - bid, 4))):
-        limit = bump(price); unit = limit + .07 * limit * (1 - limit); qty = math.floor(10 / unit + 1e-10); cost = math.ceil(unit * qty * 100 - 1e-8) / 100
-        if .965 <= price <= .99 and limit < 1 and qty > 0 and cost <= 10 and (best is None or price > best["offer"]):
+        limit = bump(price); unit = limit + .07 * limit * (1 - limit); qty = math.floor(cap / unit + 1e-10); cost = math.ceil(unit * qty * 100 - 1e-8) / 100
+        if .965 <= price <= .99 and limit < 1 and qty > 0 and cost <= cap and (best is None or price > best["offer"]):
             best = {"side": side, "offer": price, "limit": limit, "qty": int(qty), "max_total_cost": cost}
     return best
 
@@ -371,7 +373,9 @@ class Runner:
     async def run(self) -> None:
         global OFFSET
         o = sntp(); OFFSET = o if o is not None and abs(o) < 5 else 0.0
+        ref.BUDGET = SHADOW_BUDGET            # per-window cap override (10 -> 50); affects ref.signal AND side_table together
         _write({"kind": "start", "mode": "shadow", "order_route": None, "arms": list(ARMS), "clock_offset_s": round(OFFSET, 4), "keys_loaded": len(self.keys), "scorer": "favt5_v3_index (archive sha256 c2db8eb2...)"})
+        _write({"kind": "config", "budget": float(SHADOW_BUDGET), "prev_budget": 10.0, "note": "per-window cap raised $10 -> $50 (owner, 2026-11-15); intents after this row sized at the new cap, earlier settled/open intents keep their $10 sizing"})
         try: _write(await asyncio.to_thread(exchange_meta))
         except Exception as e: _write({"kind": "alert", "msg": f"exchange metadata unreadable at start: {str(e)[:160]}"})
         await asyncio.gather(self.ws_loop(), self.discover_loop(), self.clock_loop(), self.settle_loop())

@@ -37,7 +37,7 @@ authorization. Promotion is never automatic.
 | Entry band | buy an offer priced $0.15–$0.60 |
 | Edge | modeled net edge at full limit size ≥ $0.05 per contract after a $0.01 adverse tick, quadratic taker fee and conservative whole-cent cash rounding |
 | Ranking | qualifying sides ranked by expected net dollars |
-| Size | one hypothetical $10 all-in cap per expiry (comparable paper measurement; shared with ETH in any joint simulation) |
+| Size | one all-in cap per expiry, $10 until 2026-11-15 then $50 by owner order (paper only); the $50 change breaks drop-in comparability with the archive's $10 numbers — the archive replay is kept at $10 as a fixed reference |
 | Exit | hold to official settlement |
 | Intent key | deterministic, one per series and expiry, so reconnects and restarts cannot duplicate an order |
 | Fees / grid | read exchange fee and price-grid metadata at startup; flag replay divergences before comparing returns; keep the frozen replay fee assumption in the research ledger |
