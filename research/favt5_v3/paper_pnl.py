@@ -11,6 +11,10 @@ Days are Pacific (PT) calendar days by settlement time; the UTC decision day is 
 owner's precommitted UTC-day review. Arms are never mixed: btc_v3 is the paper account (start balance from
 paper_account.json); btc_fav_t5 (favourite control) and eth_challenge are shown on the same $150 for comparison only.
 
+Budget eras: the per-window cap changed $10 -> $50 on 2026-11-15 (owner). The forward account below counts ONLY the
+$50 era (decisions at/after the change); the $10 era is summarized separately under `historical` as a frozen reference
+and is never mixed back in. This keeps a clean, like-for-like P&L for the strategy as it will actually be sized.
+
 Every trade is recomputed from its fill row and the official result and checked against the runner's own
 settle row; any mismatch, missing settle, duplicate decision or orphan fill is listed under `checks`.
 
@@ -41,6 +45,12 @@ def rows(path=LEDGER):
     return out
 
 
+def budget_epoch(R):
+    """Earliest `config` row that moved the budget off $10 -> the start of the $50 era (its row time). 0 if none."""
+    cands = [r.get("t") for r in R if r.get("kind") == "config" and float(r.get("budget") or 10) > 10]
+    return min(cands) if cands else 0.0
+
+
 def pt_day(t): return datetime.fromtimestamp(t, PT).strftime("%Y-%m-%d")
 def pt_time(t): return datetime.fromtimestamp(t, PT).strftime("%Y-%m-%d %H:%M:%S")
 def utc_time(t): return datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -57,10 +67,11 @@ def book(path=LEDGER, acct=ACCT, now=None):
             dec[k] = r
         elif kind == "fill" and r.get("replay") == "measured": fills[k] = r
         elif kind == "settle": sets[k] = r
+    epoch = budget_epoch(R) or t0                     # the forward account begins at the $50 change (or launch, if never changed)
     trades, windows = [], {}
     for k, d in dec.items():
         arm = d.get("arm")
-        if arm not in ARMS or d["decision_ts"] < t0 - 1: continue
+        if arm not in ARMS or d["decision_ts"] < epoch - 1: continue
         w = windows.setdefault((arm, pt_day(d["decision_ts"])), {"windows": 0, "intents": 0, "missed": 0})
         w["windows"] += 1; w["intents"] += bool(d.get("intent")); w["missed"] += str(d.get("skip", "")).startswith("missed")
         i = d.get("intent")
@@ -105,7 +116,15 @@ def book(path=LEDGER, acct=ACCT, now=None):
                         "fees": round(sum(t["fee"] for t in st), 4), "realized_pnl": round(sum(wins + losses), 4), "equity": round(start + sum(wins + losses), 2),
                         "avg_win": round(sum(wins) / len(wins), 2) if wins else None, "avg_loss": round(sum(losses) / len(losses), 2) if losses else None,
                         "max_drawdown": round(mdd, 2), "best": round(max(wins), 2) if wins else None, "worst": round(min(losses), 2) if losses else None}
-    return {"generated_pt": pt_time(now), "start_balance": start, "start_pt": pt_time(t0), "summary": summary, "daily": daily, "trades": trades, "checks": checks}
+    hist = {}
+    for arm in ARMS:
+        hs = [s for s in sets.values() if dec.get(s["key"], {}).get("arm") == arm and dec[s["key"]].get("decision_ts", 0) < epoch]
+        hw = sum(1 for d in dec.values() if d.get("arm") == arm and d.get("decision_ts", 0) < epoch and d["decision_ts"] >= t0 - 1)
+        hist[arm] = {"windows": hw, "settled": len(hs), "realized_pnl": round(sum(s["replays"].get("measured", {}).get("net_exchange_fees", 0) for s in hs), 4)}
+        hist[arm]["filled"] = sum(1 for s in hs if (s["replays"].get("measured", {}).get("filled") or 0) > 0)
+    hist["budget"] = 10.0; hist["changed_pt"] = pt_time(epoch) if epoch > t0 else (pt_time(t0) + " (no $50 change yet)")
+    return {"generated_pt": pt_time(now), "start_balance": start, "start_pt": pt_time(epoch) if epoch > t0 else pt_time(t0), "epoch": epoch,
+            "budget": 10.0 if epoch <= t0 else 50.0, "summary": summary, "daily": daily, "trades": trades, "historical": hist, "checks": checks}
 
 
 def write(b):
@@ -116,7 +135,7 @@ def write(b):
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore"); w.writeheader(); w.writerows(b["trades"])
     with open(OUT / "daily.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(b["daily"][0]) if b["daily"] else ["arm"]); w.writeheader(); w.writerows(b["daily"])
-    (OUT / "summary.json").write_text(json.dumps({k: b[k] for k in ("generated_pt", "start_balance", "start_pt", "summary", "checks")}, indent=1))
+    (OUT / "summary.json").write_text(json.dumps({k: b[k] for k in ("generated_pt", "start_balance", "start_pt", "budget", "epoch", "summary", "historical", "checks")}, indent=1))
 
 
 if __name__ == "__main__":
