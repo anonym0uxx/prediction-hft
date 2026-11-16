@@ -1,0 +1,37 @@
+{
+ "series": "KXAAAGASMTX",
+ "settlement_source": "AAA Gas Prices, Texas (https://gasprices.aaa.com/?state=TX)",
+ "settlement_variable": "AAA average regular gas price in Texas on the specified date (e.g. Oct 31), strictly greater than strike",
+ "timezone": "ET (last trading 11:59 PM ET day before <date>; expiration 10:15 AM, 11:00 AM or 3:00 PM ET)",
+ "tie_handling": "'Above' is strictly greater; equality -> No. Exact tie improbable (AAA shows 3 decimals)",
+ "rounding": "unknown beyond AAA display precision ($x.xxx); strikes shown to 4 decimals",
+ "trading_close_vs_settlement": "Trading closes 11:59 PM ET the day BEFORE <date> (sample close 2026-10-31T03:59Z = 11:59 PM ET Oct 30); sample expiration_time 2026-11-07 (latest one month after scheduled data); can_close_early=1; settlement timer 300s",
+ "early_close_or_void_clauses": "If no data on Expiration Date at Expiration time, last available day's data is used. Market Outcome Review (Rule 6.3(d)) at Kalshi sole discretion; if no value determinable Kalshi decides under 6.3(b). Expiration moves earlier once data is released.",
+ "title_vs_rules_divergences": [
+  "Title 'this month' suggests monthly average; rules use a single calendar date value (e.g. Oct 31)",
+  "Market closes the night before the measured date, so the final day's price is not observable at close",
+  "Title says 'average gas prices'; rules_primary specifies regular grade, Texas"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AAA Gas Prices TX",
+   "url": "https://gasprices.aaa.com/?state=TX",
+   "latency": "updated daily (morning ET); shows today/yesterday/week/month ago",
+   "cost": "free"
+  },
+  {
+   "name": "EIA weekly retail gasoline",
+   "url": "https://www.eia.gov/petroleum/gasdiesel/",
+   "latency": "weekly (Mondays)",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "settlement series is slow-moving daily; day D-1 value (known at close) nearly determines outcome so near-certain strikes quote wide spreads",
+  "closes before the measured date begins",
+  "AAA page overwritten daily; must archive snapshots to audit",
+  "insider prohibition on AAA employees"
+ ],
+ "notes": "Sample markets (Oct 31 2026) already expired; series recurs monthly (daily/yearly also per terms). AAA page not fetched (JS rendered); AAA update latency assumed daily - unverified."
+}

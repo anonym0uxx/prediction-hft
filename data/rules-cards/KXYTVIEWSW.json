@@ -1,0 +1,38 @@
+{
+ "series": "KXYTVIEWSW",
+ "settlement_source": "YouTube Charts (https://charts.youtube.com/US), Global location, as displayed from a New York IP address",
+ "settlement_variable": "Artist's Global daily YouTube views on any single day in the Mon-Sun week; Yes if any day's value exceeds the threshold",
+ "timezone": "unknown (YouTube Charts day boundary not stated; expiration 10:00 AM ET)",
+ "tie_handling": "'Above' strictly greater; equality -> No",
+ "rounding": "whole number by default per terms; Charts displays abbreviated figures (e.g. 15.2M) - displayed precision unknown",
+ "trading_close_vs_settlement": "Sample week Oct 19-25: close 2026-10-27T14:00Z, expiration 2026-11-01T14:00Z (latest one week after period); can_close_early=1; settlement timer 1800s",
+ "early_close_or_void_clauses": "Early close once criterion is met (Rule 7.2). Market Outcome Review (Rule 7.1) at Kalshi sole discretion; if value cannot be determined Kalshi decides payouts. Revisions after expiration ignored.",
+ "title_vs_rules_divergences": [
+  "Series title 'Highest daily view count this week' vs market semantic 'above X at any point' (max over week)",
+  "Artist views cover all content attributed to the artist on Charts, not a single video",
+  "Values vary by location; resolution uses Global location viewed from NY IP"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "YouTube Charts top artists global daily",
+   "url": "https://charts.youtube.com/charts/TopArtists/global/daily",
+   "latency": "unknown (daily data likely posted with lag; unverified)",
+   "cost": "free"
+  },
+  {
+   "name": "Kworb YouTube artist stats",
+   "url": "https://kworb.net/youtube/",
+   "latency": "unverified",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "'at any point' max-over-week markets with early close once threshold crossed",
+  "chart publication lag lets scrapers/insiders see data first",
+  "settle value depends on NY-IP display and Charts revisions",
+  "expired weeks still show 0.99/1.00 asks (already determined markets left open)",
+  "Kalshi discretionary review"
+ ],
+ "notes": "Per-artist markets (TAY, TAT, WEE...), ~461 open markets, low volume (~$8k/day per strike). Middle of PDF (release-date/translation clauses) not read; relevant to release-based markets."
+}

@@ -1,0 +1,44 @@
+{
+ "series": "GOVPARTYIA",
+ "settlement_source": "State of Iowa (official; usa.gov/state-governments listed as source) - party of person sworn in as governor; accelerated determination via media consensus",
+ "settlement_variable": "Political party of the person sworn in as Governor of Iowa pursuant to the 2026 election",
+ "timezone": "ET (10:00 AM ET expiration)",
+ "tie_handling": "unknown (not addressed in terms; Market Outcome Review). Vacancy: party of first person sworn in as replacement counts. Party switch between election and swearing-in: party on election day.",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Listed close 2027-11-03T15:00Z (can_close_early=1). Expiration = sooner of first 10:00 AM ET after swearing-in or one year after the popular vote. Accelerated resolution when >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) declare a winner with no contradictory call. Settlement timer 14s.",
+ "early_close_or_void_clauses": "Accelerated determination (4/8 media calls, no contradiction). Kalshi may replace a Designated Media Source at sole discretion. Market Outcome Review (Rule 6.3(c)) at Kalshi sole discretion.",
+ "title_vs_rules_divergences": [
+  "Title 'win the governorship' vs rules 'inaugurated as governor pursuant to the 2026 election'",
+  "Accelerated resolution is by media projection, not state certification",
+  "yes_sub_title shows candidate names (Zach Lahn / Rob Sand) while market is party-based",
+  "Iowa election date (2026-11-03) has already passed as of refresh yet R/D priced 0.12-0.14 / 0.86-0.88: unresolved or not-yet-accelerated state; cause unknown"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP election results",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes after polls close",
+   "cost": "free web / paid API"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes",
+   "cost": "free web / paid API"
+  },
+  {
+   "name": "Iowa Secretary of State results",
+   "url": "https://sos.iowa.gov/elections/results/",
+   "latency": "hours-days; certification later",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "resolution by media consensus: results visible on many feeds before book reprices",
+  "post-election non-0/1 prices (0.12/0.86) anomalous - investigate before any use",
+  "discretionary source substitution and Market Outcome Review",
+  "insider prohibitions cover decision-desk, campaign, poll staff"
+ ],
+ "notes": "Observed bid/ask R 0.12/0.14, D 0.86/0.88 at refresh; if the race was already called the price is anomalous and we could not determine why. Tie handling unknown."
+}

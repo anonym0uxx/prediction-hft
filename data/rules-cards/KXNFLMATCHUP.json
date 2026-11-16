@@ -1,0 +1,44 @@
+{
+ "series": "KXNFLMATCHUP",
+ "settlement_source": "League governing the game (NFL); Source Agencies per TEAMINGAME terms: league, ESPN, AP, WSJ, Fox Sports, NYT, Bloomberg, Reuters, NBC Sports",
+ "settlement_variable": "Whether BOTH named teams have qualified (secured right to participate) for the specified Championship Game (Super Bowl) matchup; resolves Yes on qualification, not when the game is played",
+ "timezone": "ET (expiration time 10:00 AM ET)",
+ "tie_handling": "n/a (qualification event); unknown",
+ "rounding": "n/a",
+ "trading_close_vs_settlement": "Sample close/expiration 2027-02-21T23:30Z, can_close_early=1; settlement no later than day after expiration (settlement timer 300s); latest expiration one week after <date>",
+ "early_close_or_void_clauses": "Closes early at qualification (Rule 7.2). Qualify-then-forfeit or game cancelled still Yes. Mathematically alive or conditional qualification does NOT count. Kalshi may start Market Outcome Review (Rule 7.1) at sole discretion; if value cannot be determined Kalshi decides payouts.",
+ "title_vs_rules_divergences": [
+  "Title says 'Championship Game Matchup' but resolution is on qualification (clinching both conference berths), not on the game being played",
+  "rules_primary says 'confirmed to be the matchup'; terms say 'qualified/secured right to participate'",
+  "AND logic: Yes only once both conference title games are decided"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NFL.com standings/playoff picture",
+   "url": "https://www.nfl.com/standings/",
+   "latency": "real-time at game end",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN NFL standings",
+   "url": "https://www.espn.com/nfl/standings",
+   "latency": "seconds-minutes after final",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN public scoreboard JSON",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+   "latency": "seconds",
+   "cost": "free, unofficial"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "resolves on game final/clinch; live game outcomes visible on fast feeds before book reprices",
+  "early close at qualification (can_close_early=1)",
+  "discretionary Market Outcome Review (Rule 7.1)",
+  "insider prohibition list (players, coaches, staff, owners) implies informed-flow risk",
+  "long-dated multi-leg AND market with thin 0.00/0.01 books"
+ ],
+ "notes": "Samples KXNFLMATCHUP-27SB-*, opened 2026-07-21, close 2027-02-21. Terms PDF read in full. Before conference championships prices are pure probability; lag edge only around game finals."
+}
