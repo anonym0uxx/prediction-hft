@@ -1,0 +1,44 @@
+{
+ "series": "KXFRENCHPRES",
+ "settlement_source": "Government of France plus ~16 named media (NYT, AP, Bloomberg, Reuters, Axios, Politico, Semafor, The Information, WaPo, WSJ, ABC, CBS, CNN, Fox, MSNBC, NBC); contract terms FRENCHPRES.pdf",
+ "settlement_variable": "Identity of the first person elected President of France after Issuance (that candidate = Yes)",
+ "timezone": "Expiration 10:00 AM ET",
+ "tie_handling": "unknown (no tie clause in PDF; two-round runoff makes a tie practically moot)",
+ "rounding": "n/a (binary $1.00 settlement, tick $0.01)",
+ "trading_close_vs_settlement": "close_time 2028-05-30T14:00Z is the latest expiry (one year after next election); if the payout event occurs, expiration moves earlier per Rule 7.2. Settlement no later than the day after expiration unless under Rule 7.1 review. Last trading = expiration.",
+ "early_close_or_void_clauses": "can_close_early=1. Kalshi may start Market Outcome Review (Rule 6.3(d)) at sole discretion; if Expiration Value cannot be determined Kalshi sets payouts per Rule 6.3(b). No explicit clause for election cancellation/postponement, candidate withdrawal or death: unknown/discretionary.",
+ "title_vs_rules_divergences": [
+  "Title says 'win the 2027 French presidential election' but rules say 'first person elected President after Issuance' - an earlier snap election (resignation/vacancy) would resolve it instead of 2027.",
+  "rules_primary says 'next French presidential election'; PDF says 'first elected after Issuance'. Same unless an early election occurs.",
+  "Succession/interim president does not count unless subsequently elected.",
+  "Latest expiry ~May 2028, more than a year after the expected April 2027 vote."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "French Ministry of Interior election results",
+   "url": "https://www.resultats-elections.interieur.gouv.fr/",
+   "latency": "minutes on election night",
+   "cost": "free"
+  },
+  {
+   "name": "Conseil constitutionnel (official proclamation)",
+   "url": "https://www.conseil-constitutionnel.fr/",
+   "latency": "days after round 2",
+   "cost": "free"
+  },
+  {
+   "name": "AP election coverage",
+   "url": "https://apnews.com/",
+   "latency": "minutes",
+   "cost": "free/partial"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "result public well before latest expiry; resolves early via Rule 7.2 - post-result stale quotes",
+  "far-dated (2028) capital lock; longshot strikes",
+  "discretionary review Rule 6.3(d)/(b)",
+  "title/rules mismatch on election timing"
+ ],
+ "notes": "Long-dated multi-candidate market; election expected April 2027. rules_secondary empty. Settlement variable is a future event until round 2; no feed edge before then."
+}

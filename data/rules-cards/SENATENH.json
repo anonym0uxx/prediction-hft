@@ -1,0 +1,51 @@
+{
+ "series": "SENATENH",
+ "settlement_source": "United States Congress (congress.gov); accelerated determination via 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC)",
+ "settlement_variable": "Party of the first candidate who presents a certificate of election and is sworn into the NH Senate seat for the term beginning in the stated year (2027 for -26 markets); replacement's party if a vacancy occurs before seating",
+ "timezone": "Expiration 10:00 AM ET",
+ "tie_handling": "unknown (no tie clause)",
+ "rounding": "n/a (binary $1.00; tick $0.01)",
+ "trading_close_vs_settlement": "close/expiration 2027-11-03T15:00Z is latest. Expiry = sooner of first 10:00 AM ET after swearing-in or 1 year after the popular vote. Accelerated resolution when >=4 of 8 media sources have called and none contradicts.",
+ "early_close_or_void_clauses": "can_close_early=1. Accelerated determination by media consensus; Kalshi may replace sources at sole discretion; outcome review Rule 6.3(c); party switch between election and swearing-in resolves on election-day party (stated in the Independent clause).",
+ "title_vs_rules_divergences": [
+  "Title 'Will Republicans win the Senate race' vs rules: party of person sworn in (or media-consensus acceleration), not the vote result itself.",
+  "yes_sub_title names a candidate (John E. Sununu / Chris Pappas) but rule is party-based.",
+  "Title typo 'Democratics'.",
+  "SENATENH-26 close date 2027-11-03 is a year after the Nov 2026 election; resolution depends on media calls/swearing-in."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NH Secretary of State election results",
+   "url": "https://www.sos.nh.gov/elections",
+   "latency": "election night, unofficial",
+   "cost": "free"
+  },
+  {
+   "name": "AP election results",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes",
+   "cost": "free site / paid API"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "senate.gov senators",
+   "url": "https://www.senate.gov/senators/",
+   "latency": "after swearing-in",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "media calls precede formal settlement - prices converge before expiry",
+  "accelerated-resolution timing is discretionary (source replacement)",
+  "long capital lock if no call",
+  "wide insider prohibition list (decision-desk staff) implies leakage risk",
+  "sole-discretion review"
+ ],
+ "notes": "Prices (0.057/0.941) imply near-decided; edge, if any, is in accelerated-determination timing. The -28 markets are thin."
+}

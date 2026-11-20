@@ -1,0 +1,50 @@
+{
+ "series": "KXALIENS",
+ "settlement_source": "Executive Branch of the US government (whitehouse.gov); official releases/statements by officials in official capacity",
+ "settlement_variable": "Whether the President, any Cabinet member (extended list), any Joint Chiefs member, or any US federal agency definitively states that extraterrestrial life or technology exists after Issuance and before <date>",
+ "timezone": "Expiration 10:00 AM ET",
+ "tie_handling": "n/a",
+ "rounding": "n/a (binary $1.00; tick $0.001 sub-cent)",
+ "trading_close_vs_settlement": "Latest expiration = <date> (e.g. 2026-12-01T15:00Z); if the event occurs, expiration moves earlier (Rule 7.2). Settlement within a day after expiry.",
+ "early_close_or_void_clauses": "can_close_early=1. Review Rule 6.3(d) at sole discretion; if Expiration Value cannot be determined Kalshi sets payouts per 6.3(b). 'Definitively states' undefined - discretionary interpretation. Private-capacity statements excluded.",
+ "title_vs_rules_divergences": [
+  "Title says 'U.S. confirm that aliens exist' but rules trigger on any single cabinet-level official or agency stating 'extraterrestrial life OR technology' - broader than title.",
+  "Cabinet definition extended (EPA, CoS, DNI, OMB, CIA, USTR, UN Amb, CEA, SBA, OSTP).",
+  "Statement window starts at Issuance, not open_time; cutoff at 10:00 AM ET on <date>."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "whitehouse.gov news",
+   "url": "https://www.whitehouse.gov/news/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "NASA newsroom",
+   "url": "https://www.nasa.gov/news/",
+   "latency": "minutes",
+   "cost": "free"
+  },
+  {
+   "name": "AARO releases",
+   "url": "https://www.aaro.mil/",
+   "latency": "unknown",
+   "cost": "free"
+  },
+  {
+   "name": "Federal Register",
+   "url": "https://www.federalregister.gov/",
+   "latency": "daily",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "ambiguous 'definitively states' trigger - discretionary resolution",
+  "broad trigger vs narrower title",
+  "tail-event longshot, retail flow, sub-cent tick",
+  "government insider info risk",
+  "sole-discretion review"
+ ],
+ "notes": "Observable only after a statement is made; cannot be anticipated. Priced 1-2c for Dec 2026. No systematic edge apparent."
+}

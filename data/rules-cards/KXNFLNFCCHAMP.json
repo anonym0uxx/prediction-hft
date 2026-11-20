@@ -1,0 +1,43 @@
+{
+ "series": "KXNFLNFCCHAMP",
+ "settlement_source": "Governing league (NFL, nfl.com); NFL.pdf (ACHIEVEMENTS template) also names AP, ESPN, WSJ, Fox Sports as Source Agencies",
+ "settlement_variable": "First official final result of the NFC Championship game (winning team = Yes)",
+ "timezone": "Expiration 10:00 AM ET (day after official result)",
+ "tie_handling": "If multiple participants reported as result, Yes pays $1/N rounded down to the cent, No gets the remainder; NFL playoff ties effectively not possible (OT).",
+ "rounding": "Split payouts rounded down to the nearest cent; tick $0.01",
+ "trading_close_vs_settlement": "close_time 2027-02-22T15:00Z is a latest-expiry placeholder; expected to expire 10:00 AM ET the day after the official result (Rule 7.2). Settlement within a day after expiration.",
+ "early_close_or_void_clauses": "can_close_early=1. Final postponed: open until result or 2 weeks after scheduled date; suspended: up to 2 years; cancelled: Yes pays last traded price (or Outcome Review Committee determination / equal split $1/N) - discretionary. Withdrawal/forfeit/disqualification/elimination => No. Post-expiry revisions ignored. Rule 6.3(d) review at sole discretion.",
+ "title_vs_rules_divergences": [
+  "Title says 'Pro Football NFC Championship'; PDF is a generic 'achievement' template. Team names truncated (e.g. 'New York G', 'Los Angeles R') - cosmetic.",
+  "Elimination as reported by Source Agency resolves No early, before the final game.",
+  "Cancellation pays last traded price, not 0/1."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "NFL.com scores",
+   "url": "https://www.nfl.com/scores/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "ESPN scoreboard API (unofficial)",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+   "latency": "seconds",
+   "cost": "free"
+  },
+  {
+   "name": "The Odds API",
+   "url": "https://the-odds-api.com/",
+   "latency": "seconds",
+   "cost": "free tier/paid"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "game outcome known live; market expiry lags result",
+  "elimination-triggered early No resolution",
+  "last-traded-price cancellation payout is gameable",
+  "sole-discretion review clause"
+ ],
+ "notes": "Futures market until Feb 2027; before the playoffs the variable is a future event, during the game it is observable in real time."
+}
