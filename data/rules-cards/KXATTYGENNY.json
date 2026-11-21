@@ -1,0 +1,59 @@
+{
+ "series": "KXATTYGENNY",
+ "settlement_source": "ATTYGEN.pdf names the state (New York) as Source Agency; API lists generic kalshi.com. In practice accelerated resolution uses 4/8 media decision-desk calls.",
+ "settlement_variable": "Party of person sworn in as New York Attorney General pursuant to the 2026 election (term beginning 2027). Party switch between election and swearing-in: party on election day counts. Independent is specified by name.",
+ "timezone": "ET (Expiration time 10:00 AM ET)",
+ "tie_handling": "unknown (not specified in terms)",
+ "rounding": "n/a (binary $1.00 settlement, tick $0.01)",
+ "trading_close_vs_settlement": "Last Trading Time = Expiration time (10:00 AM ET). Latest expiration = 1 year after scheduled election; moved earlier when a new AG is sworn in (Rule 7.2). Settlement no later than day after expiry unless under review (Rule 7.1). Accelerated resolution on >=4/8 Designated Media Sources; API close_time 2027-11-03 nominal, can_close_early=1, settlement_timer_seconds=1800 (vs 14s for GOVPARTY).",
+ "early_close_or_void_clauses": "Accelerated determination by 4/8 media consensus (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC; formal projection or unambiguous article statement; affiliates fold into parent; national desk supersedes). Exchange may replace a source at sole discretion. Kalshi may start Market Outcome Review (Rule 7.1) at sole discretion; if Expiration Value cannot be determined Kalshi decides payouts per Rule 7.1. Revisions after Expiration ignored. No explicit vacancy-before-seating clause (GOVPARTY has one).",
+ "title_vs_rules_divergences": [
+  "Title 'win the Attorney General race' vs rules: payout is on person SWORN IN for the 2027 term, not election winner/certification.",
+  "Accelerated path settles on media projections, not certification.",
+  "yes_sub_title names a candidate (Komatireddy / Letitia James) but contract is party-based.",
+  "API settlement source (kalshi.com) differs from PDF Source Agency (the state).",
+  "Vacancy before swearing-in not addressed."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections (race calls/results)",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "seconds-minutes after poll close",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "seconds-minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "NYT election results",
+   "url": "https://www.nytimes.com/interactive/2026/11/03/us/elections/results.html",
+   "latency": "seconds-minutes",
+   "cost": "free (paywall may apply)"
+  },
+  {
+   "name": "CNN / Fox / NBC / CBS / ABC decision desks",
+   "url": "https://www.cnn.com/election/2026",
+   "latency": "seconds-minutes",
+   "cost": "free"
+  },
+  {
+   "name": "New York State Board of Elections",
+   "url": "https://elections.ny.gov/",
+   "latency": "real-time unofficial counts",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "accelerated-resolution-on-media-calls",
+  "public-realtime-results-feed-informed-flow",
+  "discretionary-outcome-review",
+  "exchange-may-replace-designated-media-source",
+  "election-night-adverse-selection",
+  "template-wording-errors-mayoral-state-placeholders"
+ ],
+ "notes": "Terms re-read 2026-11-21. Election was 2026-11-03 but market still trading (D 0.93/0.94, R 0.06/0.067) - with a 30-min settlement timer; accelerated trigger status unknown, verify media calls. Template has mayoral wording and unfilled '<state>' placeholders in prohibited-trader list (sloppy terms)."
+}

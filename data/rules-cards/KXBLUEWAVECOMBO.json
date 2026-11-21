@@ -1,0 +1,54 @@
+{
+ "series": "KXBLUEWAVECOMBO",
+ "settlement_source": "POLITICALECONOMICEVENTS.pdf: Source Agencies = relevant US agencies plus NYT/AP/Bloomberg/Reuters/WSJ/FT/WaPo/Politico; components resolved via SEATSCONGRESS rule. API settlement_sources list BLS/FOMC pages (template boilerplate, irrelevant to seat counts).",
+ "settlement_variable": "Combo (ALL): Democrats hold >=218 House seats AND >=49 Senate seats after the 2026 midterms; composition on 2027-02-01 (caucusing independents count with their party). Amended 2026-11-12: each seat-count leg may settle early via floor/ceiling logic from AP-declared seats plus undeclared seats with buffers; side that would have been wrong at Feb 1 composition is credited $1.00 for positions held at 7:00 AM ET 2026-11-12 (later buyers not covered).",
+ "timezone": "ET (7:00 AM ET credit cutoff; 10:00 AM ET expiration)",
+ "tie_handling": "unknown",
+ "rounding": "n/a (binary; tick $0.01)",
+ "trading_close_vs_settlement": "API close_time 2027-02-01T15:00Z, expiration_time null, can_close_early=1, settlement_timer_seconds=1800. Terms: last trading one minute before expected final data release; settlement <= day after expiry unless under review. Early settlement checked each morning per 11/12/26 amendment. Any component No/impossible -> immediate No.",
+ "early_close_or_void_clauses": "Any component No or impossible -> whole contract No immediately. Daily floor/ceiling early determination per 11/12/26 clarification. Kalshi may open Market Outcome Review at sole discretion; if value undeterminable Kalshi decides payouts (Rule 7.1). Retroactive $1.00 credit for early-settled markets contradicted by Feb 1 composition is exchange-discretionary remediation.",
+ "title_vs_rules_divergences": [
+  "Title 'Will there be a blue wave?' vs actual test: House>=218 AND Senate>=49 (low Senate bar; 'wave' is only a label).",
+  "Title says 'after the 2026 midterms' but composition date is 2027-02-01 and may settle early on AP-declared seats floor/ceiling.",
+  "Rules boilerplate about economic data first-release is irrelevant; API settlement sources BLS/FOMC unrelated.",
+  "11/12/26 amendment changed settlement mechanics mid-life; buyers after 7:00 AM ET 11/12 not covered by credit.",
+  "Independents who caucus with Democrats count as Democrats."
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP Elections House/Senate seat tallies",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Decision Desk HQ results",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "minutes",
+   "cost": "free web; API paid"
+  },
+  {
+   "name": "Clerk of the House member list",
+   "url": "https://clerk.house.gov/Members",
+   "latency": "updates on swearing-in / vacancy",
+   "cost": "free"
+  },
+  {
+   "name": "Senate.gov senators list",
+   "url": "https://www.senate.gov/senators/",
+   "latency": "updates on seating",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "early-settlement-on-AP-declared-seat-floor-ceiling",
+  "amended-rules-mid-life-11/12/26",
+  "public-realtime-seat-tally-informed-flow",
+  "discretionary-outcome-review",
+  "retroactive-credit-only-for-pre-cutoff-holders",
+  "low-liquidity-combo-wide-spread-risk",
+  "vacancy-or-party-switch-before-2027-02-01"
+ ],
+ "notes": "Terms re-read 2026-11-21 from POLITICALECONOMICEVENTS.pdf and rules_secondary (Clarification paragraph partly read). House/Senate outcomes largely known from AP counts; residual risk is undeclared seats, vacancies, exchange discretion. Quotes not recorded."
+}
