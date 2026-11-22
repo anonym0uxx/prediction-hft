@@ -1,0 +1,95 @@
+{
+ "generated_pt": "2026-11-21 21:05:38",
+ "start_balance": 150.0,
+ "start_pt": "2026-11-15 15:49:25",
+ "budget": 50.0,
+ "epoch": 1794786565.3037755,
+ "summary": {
+  "btc_v3": {
+   "label": "BTC v3 (paper account)",
+   "start_balance": 150.0,
+   "start_pt": "2026-11-12 10:44:31",
+   "windows": 589,
+   "intents": 5,
+   "executed": 5,
+   "settled": 5,
+   "open": 0,
+   "open_cost_at_risk": 0,
+   "wins": 3,
+   "losses": 2,
+   "fees": 9.0848,
+   "realized_pnl": 174.9452,
+   "equity": 324.95,
+   "avg_win": 90.9,
+   "avg_loss": -48.88,
+   "max_drawdown": 13.23,
+   "best": 167.35,
+   "worst": -49.16
+  },
+  "btc_fav_t5": {
+   "label": "Favourite control (comparison)",
+   "start_balance": 150.0,
+   "start_pt": "2026-11-12 10:44:31",
+   "windows": 589,
+   "intents": 87,
+   "executed": 79,
+   "settled": 79,
+   "open": 0,
+   "open_cost_at_risk": 0,
+   "wins": 77,
+   "losses": 2,
+   "fees": 5.5154,
+   "realized_pnl": -25.9424,
+   "equity": 124.06,
+   "avg_win": 0.95,
+   "avg_loss": -49.39,
+   "max_drawdown": 52.86,
+   "best": 1.71,
+   "worst": -49.53
+  },
+  "eth_challenge": {
+   "label": "ETH challenge (separate)",
+   "start_balance": 150.0,
+   "start_pt": "2026-11-12 10:44:31",
+   "windows": 589,
+   "intents": 22,
+   "executed": 22,
+   "settled": 22,
+   "open": 0,
+   "open_cost_at_risk": 0,
+   "wins": 8,
+   "losses": 14,
+   "fees": 55.1023,
+   "realized_pnl": 627.3477,
+   "equity": 777.35,
+   "avg_win": 161.51,
+   "avg_loss": -47.48,
+   "max_drawdown": 189.68,
+   "best": 214.87,
+   "worst": -49.19
+  }
+ },
+ "historical": {
+  "btc_v3": {
+   "windows": 308,
+   "settled": 4,
+   "realized_pnl": 24.5145,
+   "filled": 4
+  },
+  "btc_fav_t5": {
+   "windows": 308,
+   "settled": 64,
+   "realized_pnl": 0.7297,
+   "filled": 56
+  },
+  "eth_challenge": {
+   "windows": 308,
+   "settled": 10,
+   "realized_pnl": 37.0791,
+   "filled": 9
+  },
+  "budget": 10.0,
+  "changed_pt": "2026-11-15 15:49:25"
+ },
+ "checks": []
+}
