@@ -1,0 +1,50 @@
+{
+ "series": "KXGTA6SONGS",
+ "settlement_source": "Rockstar Games, Take-Two Interactive, official GTA 6 credits, in-game radio track listings, verified gameplay footage from major gaming outlets (IGN, GameSpot, Polygon, Kotaku, PC Gamer, Game Informer, Eurogamer, The Verge), official artist/label press releases (GTASONGS terms). Series metadata lists only Kotaku and Rockstar.",
+ "settlement_variable": "Whether a specific song (title+artist, original studio recording) is playable on at least one in-game radio station in the launch version of GTA VI (day-one patch included, North American release, any major platform)",
+ "timezone": "ET (Expiration time 10:00 AM ET)",
+ "tie_handling": "n/a binary",
+ "rounding": "n/a; $1 binary, tick $0.01",
+ "trading_close_vs_settlement": "Latest expiration = 30 days after official North American release date of GTA VI; moves earlier once outcome determined (Rule 7.2; can_close_early=1). API close_time varies per market (2030-01-01 placeholder for some; 2026-11-19 for Blinding Lights). Settlement no later than day after expiration unless under review; timer 1800s.",
+ "early_close_or_void_clauses": [
+  "Market Outcome Review (Rule 6.3(d)) at sole discretion",
+  "Undeterminable value -> Kalshi determines payouts per 6.3(b)",
+  "Behaviour if game not released before close_time: unknown"
+ ],
+ "title_vs_rules_divergences": [
+  "Event title 'What songs will be on GTA 6' vs actual per-song contract 'playable on radio at launch'",
+  "Excludes songs only in cutscenes/missions/menus/trailers, post-launch DLC/updates, custom stations, collector-edition exclusives",
+  "Covers/remixes/live versions do not count; censored versions count if recognizable",
+  "Day-one patch counts; later additions don't",
+  "close_time (e.g. 2030-01-01) not tied to actual release date; mixed earlier close_times (2026-11-19) with unexplained reason"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Rockstar Newswire",
+   "url": "https://www.rockstargames.com/newswire",
+   "latency": "hours-days around announcements",
+   "cost": "free"
+  },
+  {
+   "name": "Kotaku",
+   "url": "https://kotaku.com",
+   "latency": "hours",
+   "cost": "free"
+  },
+  {
+   "name": "Official GTA VI soundtrack playlists (Spotify/Apple)",
+   "url": "https://open.spotify.com/",
+   "latency": "at/after release",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Insider risk: Rockstar/Take-Two/label/artist staff hold MNPI (Source Agency employees prohibited)",
+  "Official track-list announcements are discrete jump events",
+  "Long-dated multi-year capital lock; release date uncertain",
+  "Subjective identification rules",
+  "Discretionary review clause"
+ ],
+ "notes": "Rules do not say individual song markets close early before launch; the 2026-11-19 close for Blinding Lights is unexplained. Whether Rockstar has confirmed any launch songs is unknown."
+}

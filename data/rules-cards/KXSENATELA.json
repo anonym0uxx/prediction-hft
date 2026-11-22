@@ -1,0 +1,56 @@
+{
+ "series": "KXSENATELA",
+ "settlement_source": "United States Congress (SENATEPARTY terms; congress.gov). Accelerated path: >=4 of 8 Designated Media Sources (NYT, AP, DDHQ, CNN, Fox, NBC, CBS, ABC) call winner with no contradiction.",
+ "settlement_variable": "Party of the first candidate who presents a certificate of election and is sworn in to the Louisiana Senate seat for the term beginning 2027 (replacement's party if vacancy before seating; election-day party if candidate switches before swearing-in)",
+ "timezone": "ET (Expiration time 10:00 AM ET)",
+ "tie_handling": "No explicit tie clause: unknown. Louisiana runoff/primary mechanics not addressed in terms (unknown).",
+ "rounding": "n/a; $1 binary, tick $0.01",
+ "trading_close_vs_settlement": "Nominal close_time 2027-11-03 15:00Z. Expiration = sooner of first 10:00 AM ET after swearing-in or one year after the popular vote; accelerated resolution on media consensus (can_close_early=1). Settlement no later than day after expiration unless under review; timer 1800s.",
+ "early_close_or_void_clauses": [
+  "Accelerated determination via >=4/8 media sources, none contradicting",
+  "Exchange may replace a Designated Media Source at sole discretion",
+  "Market Outcome Review (Rule 6.3(c)) at sole discretion",
+  "Vacancy before seating: replacement's party governs"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'win the Senate race' (election winner) vs rules: party of the person SWORN IN; differs on death/resignation/vacancy before seating",
+  "yes_sub_title names a candidate (Julia Letlow / Jamie Davis) but rules settle on party only",
+  "Party switch between election and swearing-in: resolves on election-day party",
+  "Settlement is at swearing-in (Jan 2027) or accelerated media call, not election day itself"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "AP election results",
+   "url": "https://apnews.com/hub/election-results",
+   "latency": "real-time on election night",
+   "cost": "free"
+  },
+  {
+   "name": "Decision Desk HQ",
+   "url": "https://decisiondeskhq.com/results/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Louisiana Secretary of State results",
+   "url": "https://voterportal.sos.la.gov/",
+   "latency": "near real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Congress.gov members",
+   "url": "https://www.congress.gov/members",
+   "latency": "post swearing-in",
+   "cost": "free"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Election-night vote-count observers/decision-desk staff have info edge (explicitly prohibited groups)",
+  "Accelerated resolution can close market abruptly on media call",
+  "Very long-dated (close 2027-11-03) capital lock if no early call",
+  "Sole-discretion review and media-source replacement clause",
+  "Candidate/party mapping ambiguity in yes_sub_title"
+ ],
+ "notes": "R ~0.84-0.85, D ~0.15-0.16. Outcome not publicly observable until the general election results; only SENATEPARTY terms read, full market rules page not fetched."
+}

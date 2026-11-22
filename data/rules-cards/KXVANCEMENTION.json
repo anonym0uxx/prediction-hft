@@ -1,0 +1,51 @@
+{
+ "series": "KXVANCEMENTION",
+ "settlement_source": "Per market rules: video of the live broadcast/stream of the specified event; if Kalshi employees cannot reach consensus on video, internal and external official transcripts. Series lists ABC, Fox, MSNBC, WSJ, Semafor, The Information, CBS, WaPo, Axios, CNN, Reuters, NYT, AP, Politico.",
+ "settlement_variable": "Whether JD Vance says a specified word/phrase (exact, plural or possessive; slash alternatives either count) during a specified event (rally, press conference), in an official capacity; one market per word per event",
+ "timezone": "ET unless stated (Expiration time 10:00 AM ET)",
+ "tie_handling": "n/a binary; any count thresholds are per-market (unknown)",
+ "rounding": "n/a; $1 binary, tick $0.01. Word must be standalone: fused unhyphenated compounds don't count; hyphen/space compounds do; tense/derivational inflections don't count",
+ "trading_close_vs_settlement": "Trading continues after the event; close_time up to 14 days after originally scheduled date (event 2026-10-30 -> close 2026-11-13; event 10-26 -> close 11-09). Expiration moves earlier once event occurs and consensus reached (Rule 7.2; can_close_early=1). Exchange may keep market open 24h after a live stream for an official recording.",
+ "early_close_or_void_clauses": [
+  "Event cancelled: if an 'Event does not qualify/occur' strike exists it resolves Yes, others No; otherwise resolves to last fair price at Exchange's discretion",
+  "Event postponed: market stays open if rescheduled within 14 calendar days, announced by end of following day",
+  "Latest expiration = 14 days after originally scheduled event date",
+  "Video consensus by Kalshi employees; fallback transcripts",
+  "Market Outcome Review (Rule 7.1) at sole discretion",
+  "Presence alone / inaudible private conversations on camera don't count; official capacity only"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'originally scheduled for <date>': event may be rescheduled; original date governs the expiry window",
+  "Title implies any mention; rules require official capacity, exact word/plural/possessive, standalone unit, with live video taking priority over transcripts",
+  "Official transcripts may differ from live audio; used only if video consensus fails"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "Live broadcast/stream of event (C-SPAN, whitehouse.gov, YouTube)",
+   "url": "https://www.c-span.org/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Roll Call Factba.se transcripts",
+   "url": "https://rollcall.com/factbase/",
+   "latency": "minutes to hours post-event",
+   "cost": "free/paid"
+  },
+  {
+   "name": "Rev transcription",
+   "url": "https://www.rev.com/",
+   "latency": "near real-time",
+   "cost": "paid"
+  }
+ ],
+ "observability_before_settlement": "high",
+ "toxicity_flags": [
+  "Outcome known to anyone watching once event ends, but market stays open until Kalshi consensus: stale-quote sniping window",
+  "Live-stream observers know result in real time while book lags",
+  "Subjective video-vs-transcript resolution; sole-discretion review",
+  "Cancellation without 'Event does not qualify' strike resolves at discretionary last fair price",
+  "~151 open markets per series, dispersed liquidity"
+ ],
+ "notes": "Many open markets are for events already past (closes 2026-11-09/11-13) and effectively determined; resting quotes on them are adverse-selection bait. Middle of MENTION.pdf (clarifications) was truncated in extraction; details beyond plurals/possessives unknown."
+}

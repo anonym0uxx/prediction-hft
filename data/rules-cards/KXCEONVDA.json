@@ -1,0 +1,49 @@
+{
+ "series": "KXCEONVDA",
+ "settlement_source": "Source Agency: the CEO of the company, the company (NVIDIA), and Bloomberg (CEOCHANGE terms). Series metadata lists only Bloomberg.",
+ "settlement_variable": "Whether Nvidia's CEO (Jensen Huang, CEO at issuance) has actually left the CEO position, announced by or on behalf of the CEO after issuance and before the deadline date (independent deadline markets: Jan 1 2027, Jul 1 2027, Jan 1 2028...)",
+ "timezone": "ET (Expiration time 10:00 AM ET)",
+ "tie_handling": "n/a binary event; 'Before' excludes the deadline calendar date",
+ "rounding": "n/a; $1 binary, tick $0.01",
+ "trading_close_vs_settlement": "Last trading = expiration (deadline date; close_time 14:00-15:00Z). If departure occurs, expiration moves earlier per Rule 7.2 (can_close_early=1). Settlement no later than day after expiration unless under review; settlement_timer 1800s.",
+ "early_close_or_void_clauses": [
+  "Expiration moved earlier on departure event (Rule 7.2)",
+  "Kalshi may start Market Outcome Review (Rule 6.3(d)) at sole discretion",
+  "If Expiration Value cannot be determined, Kalshi determines payouts per Rule 6.3(b)",
+  "Each deadline evaluated independently; multiple can resolve Yes"
+ ],
+ "title_vs_rules_divergences": [
+  "Title 'leave as CEO' vs rules: announcing a FUTURE departure alone does not qualify - CEO must actually have left; a pre-announced transition effective later does not trigger until effective",
+  "Announcement must be made after issuance (2026-11-08); a prior announcement would not count",
+  "Payout Criterion says 'announced ... that they have left' while Expiration Value is as documented by Source Agency at 10:00 AM ET on Expiration Date - slight timing ambiguity",
+  "Role change (e.g. to Executive Chair): unknown whether interim/co-CEO arrangements are treated as leaving"
+ ],
+ "public_feeds_for_settlement_variable": [
+  {
+   "name": "SEC EDGAR NVIDIA 8-K filings",
+   "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=8-K",
+   "latency": "minutes (8-K due within 4 business days)",
+   "cost": "free"
+  },
+  {
+   "name": "NVIDIA Newsroom",
+   "url": "https://nvidianews.nvidia.com/",
+   "latency": "real-time",
+   "cost": "free"
+  },
+  {
+   "name": "Bloomberg",
+   "url": "https://www.bloomberg.com/",
+   "latency": "real-time",
+   "cost": "paid"
+  }
+ ],
+ "observability_before_settlement": "partial",
+ "toxicity_flags": [
+  "Insider/MNPI risk on CEO departure; Kalshi prohibits MNPI holders and Source Agency employees",
+  "Jump-risk binary: announcement reprices instantly (can_close_early)",
+  "Long-dated (to 2028), ~1c spread; adverse selection on news",
+  "Discretionary review/payout clauses (6.3)"
+ ],
+ "notes": "Rule 7.2 early expiration means resolution can occur the moment an effective departure is announced. Market data as of 2026-11-22 refresh: YES ~0.15 (before Jan 2027), ~0.38 (before Jul 2027). Whether those prices are rich vs base rate is not a rules finding."
+}
