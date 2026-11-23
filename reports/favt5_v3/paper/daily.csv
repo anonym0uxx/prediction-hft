@@ -5,18 +5,21 @@ btc_v3,BTC v3 (paper account),2026-11-17,96,2,0,2,2,1,1,4.2986,118.7514,118.7514
 btc_v3,BTC v3 (paper account),2026-11-18,96,1,0,1,1,1,0,1.9485,69.4215,188.1729,338.17
 btc_v3,BTC v3 (paper account),2026-11-19,88,0,0,0,0,0,0,0,0,188.1729,338.17
 btc_v3,BTC v3 (paper account),2026-11-20,96,0,0,0,0,0,0,0,0,188.1729,338.17
-btc_v3,BTC v3 (paper account),2026-11-21,84,2,0,2,2,1,1,2.8377,-13.2277,174.9452,324.95
+btc_v3,BTC v3 (paper account),2026-11-21,95,2,0,2,2,1,1,2.8377,-13.2277,174.9452,324.95
+btc_v3,BTC v3 (paper account),2026-11-22,54,0,1,0,0,0,0,0,0,174.9452,324.95
 btc_fav_t5,Favourite control (comparison),2026-11-15,33,6,0,4,4,4,0,0.2626,3.5604,3.5604,153.56
 btc_fav_t5,Favourite control (comparison),2026-11-16,96,13,0,13,12,11,1,0.8207,-39.8307,-36.2703,113.73
 btc_fav_t5,Favourite control (comparison),2026-11-17,96,15,0,15,16,16,0,0.9705,13.1615,-23.1088,126.89
 btc_fav_t5,Favourite control (comparison),2026-11-18,96,11,0,10,10,10,0,0.8253,11.2767,-11.8321,138.17
 btc_fav_t5,Favourite control (comparison),2026-11-19,88,14,0,12,12,11,1,0.9189,-37.4699,-49.302,100.7
 btc_fav_t5,Favourite control (comparison),2026-11-20,96,17,0,14,14,14,0,0.8823,11.9737,-37.3283,112.67
-btc_fav_t5,Favourite control (comparison),2026-11-21,84,11,0,11,11,11,0,0.8351,11.3859,-25.9424,124.06
+btc_fav_t5,Favourite control (comparison),2026-11-21,95,15,0,15,15,15,0,1.1347,15.4703,-21.858,128.14
+btc_fav_t5,Favourite control (comparison),2026-11-22,54,4,1,4,4,4,0,0.3281,4.4829,-17.3751,132.62
 eth_challenge,ETH challenge (separate),2026-11-15,33,0,0,0,0,0,0,0,0,0.0,150.0
 eth_challenge,ETH challenge (separate),2026-11-16,96,5,0,5,5,2,3,12.08,145.43,145.43,295.43
 eth_challenge,ETH challenge (separate),2026-11-17,96,3,0,3,3,2,1,7.7139,345.4261,490.8561,640.86
 eth_challenge,ETH challenge (separate),2026-11-18,96,5,0,5,5,2,3,12.5741,113.0859,603.942,753.94
 eth_challenge,ETH challenge (separate),2026-11-19,88,2,0,2,2,0,2,4.8941,-97.0641,506.8779,656.88
 eth_challenge,ETH challenge (separate),2026-11-20,96,3,0,3,3,2,1,7.6465,310.1535,817.0314,967.03
-eth_challenge,ETH challenge (separate),2026-11-21,84,4,0,4,4,0,4,10.1937,-189.6837,627.3477,777.35
+eth_challenge,ETH challenge (separate),2026-11-21,95,5,0,5,5,1,4,12.5641,-61.8141,755.2173,905.22
+eth_challenge,ETH challenge (separate),2026-11-22,54,2,1,2,2,0,2,3.926,-78.116,677.1013,827.1
