@@ -1,0 +1,78 @@
+{
+ "closes": 281,
+ "edge>=0c": {
+  "n_calls": 281,
+  "taker_all": {
+   "n": 281,
+   "net_$": -13.81,
+   "per_trade_$": -0.049,
+   "se": 0.18
+  },
+  "maker_fill_touch": {
+   "n": 262,
+   "net_$": -27.56,
+   "per_trade_$": -0.105,
+   "se": 0.181
+  },
+  "maker_fill_through": {
+   "n": 258,
+   "net_$": -38.31,
+   "per_trade_$": -0.148,
+   "se": 0.181
+  },
+  "fill_rate_touch": 0.93,
+  "fill_rate_through": 0.92,
+  "maker_unfilled_would_have_won_pct": 100,
+  "maker_filled_won_pct": 28.2
+ },
+ "edge>=2c": {
+  "n_calls": 88,
+  "taker_all": {
+   "n": 88,
+   "net_$": -18.11,
+   "per_trade_$": -0.206,
+   "se": 0.397
+  },
+  "maker_fill_touch": {
+   "n": 82,
+   "net_$": -34.1,
+   "per_trade_$": -0.416,
+   "se": 0.38
+  },
+  "maker_fill_through": {
+   "n": 82,
+   "net_$": -34.1,
+   "per_trade_$": -0.416,
+   "se": 0.38
+  },
+  "fill_rate_touch": 0.93,
+  "fill_rate_through": 0.93,
+  "maker_unfilled_would_have_won_pct": 100,
+  "maker_filled_won_pct": 19.5
+ },
+ "edge>=5c": {
+  "n_calls": 16,
+  "taker_all": {
+   "n": 16,
+   "net_$": 18.78,
+   "per_trade_$": 1.174,
+   "se": 1.132
+  },
+  "maker_fill_touch": {
+   "n": 13,
+   "net_$": 7.3,
+   "per_trade_$": 0.562,
+   "se": 1.261
+  },
+  "maker_fill_through": {
+   "n": 13,
+   "net_$": 7.3,
+   "per_trade_$": 0.562,
+   "se": 1.261
+  },
+  "fill_rate_touch": 0.81,
+  "fill_rate_through": 0.81,
+  "maker_unfilled_would_have_won_pct": 100,
+  "maker_filled_won_pct": 38.5
+ }
+}

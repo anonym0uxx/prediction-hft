@@ -1,0 +1,302 @@
+{
+ "crossasset": {
+  "k=1s BTC->ETH": {
+   "corr_lead": 0.232,
+   "corr_rev": 0.348,
+   "corr_contemp": 0.4,
+   "n": 29689,
+   "se": 0.006
+  },
+  "k=1s BTC->SOL": {
+   "corr_lead": 0.283,
+   "corr_rev": 0.302,
+   "corr_contemp": 0.353,
+   "n": 31439,
+   "se": 0.006
+  },
+  "k=2s BTC->ETH": {
+   "corr_lead": 0.171,
+   "corr_rev": 0.27,
+   "corr_contemp": 0.521,
+   "n": 30431,
+   "se": 0.008
+  },
+  "k=2s BTC->SOL": {
+   "corr_lead": 0.197,
+   "corr_rev": 0.238,
+   "corr_contemp": 0.473,
+   "n": 30857,
+   "se": 0.008
+  },
+  "k=5s BTC->ETH": {
+   "corr_lead": 0.077,
+   "corr_rev": 0.21,
+   "corr_contemp": 0.736,
+   "n": 30613,
+   "se": 0.013
+  },
+  "k=5s BTC->SOL": {
+   "corr_lead": 0.102,
+   "corr_rev": 0.184,
+   "corr_contemp": 0.693,
+   "n": 30516,
+   "se": 0.013
+  },
+  "k=10s BTC->ETH": {
+   "corr_lead": 0.04,
+   "corr_rev": 0.158,
+   "corr_contemp": 0.817,
+   "n": 30723,
+   "se": 0.018
+  },
+  "k=10s BTC->SOL": {
+   "corr_lead": 0.053,
+   "corr_rev": 0.132,
+   "corr_contemp": 0.771,
+   "n": 30448,
+   "se": 0.018
+  },
+  "k=30s BTC->ETH": {
+   "corr_lead": -0.015,
+   "corr_rev": 0.092,
+   "corr_contemp": 0.866,
+   "n": 30770,
+   "se": 0.031
+  },
+  "k=30s BTC->SOL": {
+   "corr_lead": -0.023,
+   "corr_rev": 0.075,
+   "corr_contemp": 0.819,
+   "n": 30424,
+   "se": 0.031
+  }
+ },
+ "crossasset_final60": {
+  "k=2s BTC->ETH final60s": {
+   "corr_lead": 0.098,
+   "n": 2279,
+   "se": 0.03,
+   "sign_agree_big": 0.569,
+   "n_big": 58
+  },
+  "k=2s BTC->SOL final60s": {
+   "corr_lead": 0.182,
+   "n": 2322,
+   "se": 0.029,
+   "sign_agree_big": 0.594,
+   "n_big": 64
+  },
+  "k=5s BTC->ETH final60s": {
+   "corr_lead": 0.104,
+   "n": 2325,
+   "se": 0.046,
+   "sign_agree_big": 0.648,
+   "n_big": 236
+  },
+  "k=5s BTC->SOL final60s": {
+   "corr_lead": 0.105,
+   "n": 2250,
+   "se": 0.047,
+   "sign_agree_big": 0.619,
+   "n_big": 226
+  },
+  "k=10s BTC->ETH final60s": {
+   "corr_lead": 0.086,
+   "n": 2291,
+   "se": 0.066,
+   "sign_agree_big": 0.593,
+   "n_big": 518
+  },
+  "k=10s BTC->SOL final60s": {
+   "corr_lead": 0.107,
+   "n": 2249,
+   "se": 0.067,
+   "sign_agree_big": 0.578,
+   "n_big": 498
+  }
+ },
+ "basis_bp": {
+  "BTCD": {
+   "n": 51,
+   "mean": 0.45,
+   "sd": 0.56,
+   "p10": -0.17,
+   "p90": 1.49
+  },
+  "ETHD": {
+   "n": 48,
+   "mean": 0.65,
+   "sd": 0.49,
+   "p10": 0.14,
+   "p90": 1.49
+  },
+  "SOLD": {
+   "n": 38,
+   "mean": 1.18,
+   "sd": 0.37,
+   "p10": 0.69,
+   "p90": 1.94
+  },
+  "BTC15M": {
+   "n": 29,
+   "mean": 0.29,
+   "sd": 0.51,
+   "p10": -0.64,
+   "p90": 0.9
+  },
+  "ETH15M": {
+   "n": 29,
+   "mean": 0.62,
+   "sd": 0.43,
+   "p10": 0.14,
+   "p90": 1.25
+  },
+  "SOL15M": {
+   "n": 30,
+   "mean": 1.23,
+   "sd": 0.59,
+   "p10": 0.78,
+   "p90": 1.97
+  }
+ },
+ "first_minute_drift": {
+  "BTC": {
+   "n": 55,
+   "sign_agree_min1": 0.596,
+   "n_big1": 47,
+   "corr_min1": 0.319,
+   "beta_min1": 1.52,
+   "se_beta": 0.62,
+   "sign_agree_min7": 0.808,
+   "n_big7": 52,
+   "corr_min7": 0.801,
+   "sd_dy_bp": 13.7,
+   "sd_d1_bp": 2.9
+  },
+  "ETH": {
+   "n": 55,
+   "sign_agree_min1": 0.54,
+   "n_big1": 50,
+   "corr_min1": 0.229,
+   "beta_min1": 1.13,
+   "se_beta": 0.66,
+   "sign_agree_min7": 0.745,
+   "n_big7": 51,
+   "corr_min7": 0.763,
+   "sd_dy_bp": 19.2,
+   "sd_d1_bp": 3.9
+  },
+  "SOL": {
+   "n": 55,
+   "sign_agree_min1": 0.596,
+   "n_big1": 52,
+   "corr_min1": 0.246,
+   "beta_min1": 1.01,
+   "se_beta": 0.55,
+   "sign_agree_min7": 0.755,
+   "n_big7": 53,
+   "corr_min7": 0.771,
+   "sd_dy_bp": 19.4,
+   "sd_d1_bp": 4.7
+  }
+ },
+ "sigma_vs_realized": {
+  "BTC": {
+   "n_hours": 4,
+   "mean_sigma_ewma_bp": 3.2,
+   "mean_realized_bp": 3.08,
+   "ratio_mean": 0.95,
+   "ratio_sd": 0.07,
+   "hourly": [
+    [
+     4,
+     2.54,
+     2.15
+    ],
+    [
+     5,
+     3.46,
+     3.45
+    ],
+    [
+     6,
+     2.99,
+     2.84
+    ],
+    [
+     16,
+     3.81,
+     3.87
+    ]
+   ]
+  },
+  "ETH": {
+   "n_hours": 6,
+   "mean_sigma_ewma_bp": 5.01,
+   "mean_realized_bp": 5.47,
+   "ratio_mean": 1.09,
+   "ratio_sd": 0.09,
+   "hourly": [
+    [
+     5,
+     4.91,
+     4.92
+    ],
+    [
+     6,
+     4.6,
+     4.53
+    ],
+    [
+     7,
+     5.49,
+     6.65
+    ],
+    [
+     8,
+     5.05,
+     5.27
+    ],
+    [
+     11,
+     4.28,
+     5.06
+    ],
+    [
+     12,
+     5.73,
+     6.38
+    ]
+   ]
+  },
+  "SOL": {
+   "n_hours": 4,
+   "mean_sigma_ewma_bp": 4.81,
+   "mean_realized_bp": 5.29,
+   "ratio_mean": 1.09,
+   "ratio_sd": 0.1,
+   "hourly": [
+    [
+     4,
+     3.37,
+     3.52
+    ],
+    [
+     6,
+     5.06,
+     4.97
+    ],
+    [
+     7,
+     6.05,
+     7.59
+    ],
+    [
+     8,
+     4.76,
+     5.09
+    ]
+   ]
+  }
+ }
+}

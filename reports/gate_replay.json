@@ -1,0 +1,226 @@
+{
+ "n_windows": 236,
+ "variants": {
+  "gate_full": {
+   "trades": [
+    {
+     "close_ts": 1793144700,
+     "ticker": "KXBTC15M-26OCT271945-45",
+     "series": "KXBTC15M",
+     "pnl_c": 12.2,
+     "price": 0.87,
+     "side": "yes",
+     "secs_left": 46.2,
+     "win": 1.0,
+     "mode": "favourite"
+    }
+   ],
+   "reasons": {
+    "agreement": 24,
+    "feed": 29,
+    "edge_lcb": 5,
+    "liquidity": 5
+   }
+  },
+  "gate_no_feed": {
+   "trades": [
+    {
+     "close_ts": 1793144700,
+     "ticker": "KXBTC15M-26OCT271945-45",
+     "series": "KXBTC15M",
+     "pnl_c": 12.2,
+     "price": 0.87,
+     "side": "yes",
+     "secs_left": 46.2,
+     "win": 1.0,
+     "mode": "favourite"
+    }
+   ],
+   "reasons": {
+    "agreement": 24,
+    "edge_lcb": 5,
+    "liquidity": 5
+   }
+  },
+  "favourite_only": {
+   "trades": [
+    {
+     "close_ts": 1793085300,
+     "ticker": "KXSOL15M-26OCT270315-15",
+     "series": "KXSOL15M",
+     "pnl_c": 13.1,
+     "price": 0.86,
+     "side": "yes",
+     "secs_left": 44.4,
+     "win": 1.0,
+     "mode": "favourite"
+    },
+    {
+     "close_ts": 1793098800,
+     "ticker": "KXSOL15M-26OCT270700-00",
+     "series": "KXSOL15M",
+     "pnl_c": 15.0,
+     "price": 0.84,
+     "side": "yes",
+     "secs_left": 52.2,
+     "win": 1.0,
+     "mode": "favourite"
+    },
+    {
+     "close_ts": 1793111400,
+     "ticker": "KXSOL15M-26OCT271030-30",
+     "series": "KXSOL15M",
+     "pnl_c": 18.8,
+     "price": 0.8,
+     "side": "yes",
+     "secs_left": 54.6,
+     "win": 1.0,
+     "mode": "favourite"
+    },
+    {
+     "close_ts": 1793144700,
+     "ticker": "KXBTC15M-26OCT271945-45",
+     "series": "KXBTC15M",
+     "pnl_c": 12.2,
+     "price": 0.87,
+     "side": "yes",
+     "secs_left": 46.2,
+     "win": 1.0,
+     "mode": "favourite"
+    }
+   ],
+   "reasons": {
+    "agreement": 24
+   }
+  },
+  "no_override": {
+   "trades": [
+    {
+     "close_ts": 1793144700,
+     "ticker": "KXBTC15M-26OCT271945-45",
+     "series": "KXBTC15M",
+     "pnl_c": 12.2,
+     "price": 0.87,
+     "side": "yes",
+     "secs_left": 46.2,
+     "win": 1.0,
+     "mode": "favourite"
+    }
+   ],
+   "reasons": {
+    "agreement": 24,
+    "feed": 29,
+    "edge_lcb": 5,
+    "liquidity": 5
+   }
+  }
+ },
+ "reference": {
+  "trades": [
+   {
+    "close_ts": 1793083500,
+    "ticker": "KXETH15M-26OCT270245-45",
+    "series": "KXETH15M",
+    "pnl_c": -28.4,
+    "side": "yes",
+    "price": 0.27,
+    "fee_c": 1.4,
+    "secs_left": 53.4,
+    "p_cal": 0.6466,
+    "d_bp": 1.21,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793085300,
+    "ticker": "KXSOL15M-26OCT270315-15",
+    "series": "KXSOL15M",
+    "pnl_c": 13.1,
+    "side": "yes",
+    "price": 0.86,
+    "fee_c": 0.9,
+    "secs_left": 44.4,
+    "p_cal": 0.92,
+    "d_bp": 4.68,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793098800,
+    "ticker": "KXSOL15M-26OCT270700-00",
+    "series": "KXSOL15M",
+    "pnl_c": 15.0,
+    "side": "yes",
+    "price": 0.84,
+    "fee_c": 1.0,
+    "secs_left": 52.2,
+    "p_cal": 0.9289,
+    "d_bp": 8.52,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793111400,
+    "ticker": "KXSOL15M-26OCT271030-30",
+    "series": "KXSOL15M",
+    "pnl_c": 18.8,
+    "side": "yes",
+    "price": 0.8,
+    "fee_c": 1.2,
+    "secs_left": 54.6,
+    "p_cal": 0.8799,
+    "d_bp": 7.59,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793124900,
+    "ticker": "KXETH15M-26OCT271415-15",
+    "series": "KXETH15M",
+    "pnl_c": -65.7,
+    "side": "no",
+    "price": 0.64,
+    "fee_c": 1.7,
+    "secs_left": 16.8,
+    "p_cal": 0.9461,
+    "d_bp": -1.25,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793125800,
+    "ticker": "KXBTC15M-26OCT271430-30",
+    "series": "KXBTC15M",
+    "pnl_c": -51.8,
+    "side": "no",
+    "price": 0.5,
+    "fee_c": 1.8,
+    "secs_left": 54.6,
+    "p_cal": 0.7834,
+    "d_bp": -1.55,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793125800,
+    "ticker": "KXETH15M-26OCT271430-30",
+    "series": "KXETH15M",
+    "pnl_c": -20.1,
+    "side": "no",
+    "price": 0.19,
+    "fee_c": 1.1,
+    "secs_left": 42.6,
+    "p_cal": 0.8961,
+    "d_bp": -2.35,
+    "fill": "take"
+   },
+   {
+    "close_ts": 1793144700,
+    "ticker": "KXBTC15M-26OCT271945-45",
+    "series": "KXBTC15M",
+    "pnl_c": 12.2,
+    "side": "yes",
+    "price": 0.87,
+    "fee_c": 0.8,
+    "secs_left": 46.2,
+    "p_cal": 0.9671,
+    "d_bp": 3.9,
+    "fill": "take"
+   }
+  ]
+ }
+}

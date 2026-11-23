@@ -1,0 +1,413 @@
+{
+ "imb_15M_T-90..T-10s": {
+  "lo": {
+   "mean_resid": -0.024,
+   "se": 0.124,
+   "n": 261,
+   "G": 19,
+   "imb_range": [
+    -1.0,
+    -0.53
+   ]
+  },
+  "mid": {
+   "mean_resid": -0.093,
+   "se": 0.112,
+   "n": 261,
+   "G": 20,
+   "imb_range": [
+    -0.52,
+    0.71
+   ]
+  },
+  "hi": {
+   "mean_resid": -0.084,
+   "se": 0.124,
+   "n": 261,
+   "G": 19,
+   "imb_range": [
+    0.71,
+    1.0
+   ]
+  },
+  "slope": {
+   "beta": -0.041,
+   "se": 0.029,
+   "n": 783,
+   "G": 20
+  }
+ },
+ "imb_15M_T-45..T-10s": {
+  "lo": {
+   "mean_resid": -0.014,
+   "se": 0.089,
+   "n": 55,
+   "G": 10,
+   "imb_range": [
+    -1.0,
+    -0.04
+   ]
+  },
+  "mid": {
+   "mean_resid": 0.028,
+   "se": 0.085,
+   "n": 55,
+   "G": 10,
+   "imb_range": [
+    -0.04,
+    0.78
+   ]
+  },
+  "hi": {
+   "mean_resid": 0.004,
+   "se": 0.076,
+   "n": 55,
+   "G": 8,
+   "imb_range": [
+    0.82,
+    1.0
+   ]
+  },
+  "slope": {
+   "beta": -0.005,
+   "se": 0.029,
+   "n": 165,
+   "G": 10
+  }
+ },
+ "imb_hourly_T-3.5..T-2.5": {
+  "lo": {
+   "mean_resid": 0.055,
+   "se": 0.103,
+   "n": 46,
+   "G": 12,
+   "imb_range": [
+    -0.99,
+    -0.21
+   ]
+  },
+  "mid": {
+   "mean_resid": 0.008,
+   "se": 0.113,
+   "n": 46,
+   "G": 12,
+   "imb_range": [
+    -0.2,
+    0.24
+   ]
+  },
+  "hi": {
+   "mean_resid": 0.062,
+   "se": 0.112,
+   "n": 47,
+   "G": 10,
+   "imb_range": [
+    0.25,
+    1.0
+   ]
+  },
+  "slope": {
+   "beta": -0.004,
+   "se": 0.079,
+   "n": 139,
+   "G": 12
+  }
+ },
+ "imb_hourly_final_minute": {
+  "lo": {
+   "mean_resid": 0.36,
+   "se": 0.062,
+   "n": 15,
+   "G": 4,
+   "imb_range": [
+    -0.98,
+    -0.1
+   ]
+  },
+  "mid": {
+   "mean_resid": 0.019,
+   "se": 0.266,
+   "n": 15,
+   "G": 4,
+   "imb_range": [
+    -0.0,
+    0.22
+   ]
+  },
+  "hi": {
+   "mean_resid": 0.208,
+   "se": 0.084,
+   "n": 16,
+   "G": 5,
+   "imb_range": [
+    0.23,
+    1.0
+   ]
+  },
+  "slope": {
+   "beta": -0.066,
+   "se": 0.05,
+   "n": 46,
+   "G": 5
+  }
+ },
+ "proj_sign_15M": {
+  "|d| 0-0.5bp": {
+   "acc": 0.794,
+   "se": 0.123,
+   "n": 107,
+   "markets": 8,
+   "contested_acc": 0.758,
+   "contested_n": 91,
+   "contested_markets": 8,
+   "disagree_acc": 0.071,
+   "disagree_n": 14,
+   "disagree_markets": 4
+  },
+  "|d| 0.5-1bp": {
+   "acc": 0.863,
+   "se": 0.14,
+   "n": 80,
+   "markets": 9,
+   "contested_acc": 0.831,
+   "contested_n": 65,
+   "contested_markets": 6,
+   "disagree_acc": 0.091,
+   "disagree_n": 11,
+   "disagree_markets": 2
+  },
+  "|d| 1-2bp": {
+   "acc": 0.995,
+   "se": 0.006,
+   "n": 190,
+   "markets": 9,
+   "contested_acc": 0.982,
+   "contested_n": 57,
+   "contested_markets": 8,
+   "disagree_acc": 0.0,
+   "disagree_n": 1,
+   "disagree_markets": 1
+  },
+  "|d| 2-4bp": {
+   "acc": 1.0,
+   "se": 0.0,
+   "n": 214,
+   "markets": 15,
+   "contested_acc": 1.0,
+   "contested_n": 15,
+   "contested_markets": 6,
+   "disagree_acc": NaN,
+   "disagree_n": 0,
+   "disagree_markets": 0
+  },
+  "|d| 4-1000000000.0bp": {
+   "acc": 1.0,
+   "se": 0.0,
+   "n": 2627,
+   "markets": 38,
+   "contested_acc": 1.0,
+   "contested_n": 16,
+   "contested_markets": 3,
+   "disagree_acc": NaN,
+   "disagree_n": 0,
+   "disagree_markets": 0
+  }
+ },
+ "p13_synth": {
+  "opp": 13,
+  "markets": 105,
+  "hit": 0.9230769230769231,
+  "mean_c": 9.907692307692304,
+  "se_c": 3.592125864916726,
+  "by_asset": {
+   "KXBTC": [
+    0.05,
+    0.14,
+    0.18,
+    0.06,
+    0.08
+   ],
+   "KXETH": [
+    0.04,
+    -0.25,
+    0.35,
+    0.07
+   ],
+   "KXSOL": [
+    0.14,
+    0.16,
+    0.2,
+    0.06
+   ]
+  },
+  "rows": {
+   "KXETH15M-26OCT270145-45": {
+    "px": 0.96,
+    "win": true,
+    "pnl": 0.040000000000000036,
+    "mins_left": 0.91,
+    "d": 2.431224688002054,
+    "asset": "KXETH"
+   },
+   "KXETH15M-26OCT270245-45": {
+    "px": 0.25,
+    "win": false,
+    "pnl": -0.25,
+    "mins_left": 0.89,
+    "d": 1.2141868521076127,
+    "asset": "KXETH"
+   },
+   "KXSOL15M-26OCT270315-15": {
+    "px": 0.86,
+    "win": true,
+    "pnl": 0.14,
+    "mins_left": 0.74,
+    "d": 4.6810399501717725,
+    "asset": "KXSOL"
+   },
+   "KXETH15M-26OCT270345-45": {
+    "px": 0.65,
+    "win": true,
+    "pnl": 0.35,
+    "mins_left": 0.89,
+    "d": -1.7798503138510835,
+    "asset": "KXETH"
+   },
+   "KXBTC15M-26OCT270445-45": {
+    "px": 0.9470000000000001,
+    "win": true,
+    "pnl": 0.052999999999999936,
+    "mins_left": 0.91,
+    "d": -2.9038388127378134,
+    "asset": "KXBTC"
+   },
+   "KXSOL15M-26OCT270700-00": {
+    "px": 0.84,
+    "win": true,
+    "pnl": 0.16000000000000003,
+    "mins_left": 0.87,
+    "d": 8.518479789063615,
+    "asset": "KXSOL"
+   },
+   "KXBTC15M-26OCT270715-15": {
+    "px": 0.86,
+    "win": true,
+    "pnl": 0.14,
+    "mins_left": 0.66,
+    "d": 2.197341625223004,
+    "asset": "KXBTC"
+   },
+   "KXBTC15M-26OCT270745-45": {
+    "px": 0.8200000000000001,
+    "win": true,
+    "pnl": 0.17999999999999994,
+    "mins_left": 0.89,
+    "d": -1.3547075144115794,
+    "asset": "KXBTC"
+   },
+   "KXBTC15M-26OCT270800-00": {
+    "px": 0.9390000000000001,
+    "win": true,
+    "pnl": 0.06099999999999994,
+    "mins_left": 0.89,
+    "d": 1.9123707593071693,
+    "asset": "KXBTC"
+   },
+   "KXSOL15M-26OCT271030-30": {
+    "px": 0.8,
+    "win": true,
+    "pnl": 0.19999999999999996,
+    "mins_left": 0.91,
+    "d": 7.587190811169098,
+    "asset": "KXSOL"
+   },
+   "KXETH15M-26OCT271030-30": {
+    "px": 0.926,
+    "win": true,
+    "pnl": 0.07399999999999995,
+    "mins_left": 0.86,
+    "d": -5.181432689909116,
+    "asset": "KXETH"
+   },
+   "KXSOL15M-26OCT271145-45": {
+    "px": 0.936,
+    "win": true,
+    "pnl": 0.06399999999999995,
+    "mins_left": 0.51,
+    "d": 2.450713747339517,
+    "asset": "KXSOL"
+   },
+   "KXBTC15M-26OCT271245-45": {
+    "px": 0.924,
+    "win": true,
+    "pnl": 0.07599999999999996,
+    "mins_left": 0.91,
+    "d": -1.7934707975886255,
+    "asset": "KXBTC"
+   }
+  }
+ },
+ "tod": {
+  "5": {
+   "n": 19,
+   "share_le95": 0.26,
+   "med_fav": 1.0
+  },
+  "6": {
+   "n": 35,
+   "share_le95": 0.14,
+   "med_fav": 0.999
+  },
+  "7": {
+   "n": 45,
+   "share_le95": 0.09,
+   "med_fav": 0.999
+  },
+  "8": {
+   "n": 51,
+   "share_le95": 0.08,
+   "med_fav": 1.0
+  },
+  "9": {
+   "n": 64,
+   "share_le95": 0.06,
+   "med_fav": 1.0
+  },
+  "10": {
+   "n": 12,
+   "share_le95": 0.25,
+   "med_fav": 1.0
+  },
+  "11": {
+   "n": 73,
+   "share_le95": 0.29,
+   "med_fav": 0.997
+  },
+  "12": {
+   "n": 37,
+   "share_le95": 0.0,
+   "med_fav": 1.0
+  },
+  "13": {
+   "n": 36,
+   "share_le95": 0.0,
+   "med_fav": 1.0
+  },
+  "14": {
+   "n": 92,
+   "share_le95": 0.14,
+   "med_fav": 1.0
+  },
+  "15": {
+   "n": 164,
+   "share_le95": 0.15,
+   "med_fav": 1.0
+  },
+  "16": {
+   "n": 114,
+   "share_le95": 0.05,
+   "med_fav": 1.0
+  }
+ },
+ "vol_by_hour_15M": {}
+}

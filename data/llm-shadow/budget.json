@@ -1,8 +1,8 @@
 {
- "day_pt": "2026-11-03",
- "calls": 21,
- "prompt_tokens": 170097,
- "completion_tokens": 7690,
+ "day_pt": "2026-11-23",
+ "calls": 29,
+ "prompt_tokens": 235099,
+ "completion_tokens": 12565,
  "n429": 0,
  "n402": 0,
  "errors": 0,
